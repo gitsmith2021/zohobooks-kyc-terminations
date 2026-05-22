@@ -1,0 +1,468 @@
+@use '../../styles/variables' as *;
+
+// ── Host ──────────────────────────────────────────────────────────────────────
+:host { display: flex; flex-direction: column; flex: 1; min-height: 0; overflow: hidden; }
+
+// ── Shell ─────────────────────────────────────────────────────────────────────
+.tm-shell {
+  display: flex; flex-direction: column; flex: 1; min-height: 0; overflow: hidden;
+  padding: 16px 20px 0; background: $body-bg; gap: 10px;
+  font-family: $font; color: $text; font-size: 13px;
+}
+
+// ── View Toggle Tab List ──────────────────────────────────────────────────────
+.tm-view-toggle {
+  display: flex;
+  gap: 12px;
+  border-bottom: 1px solid $border;
+  padding-bottom: 12px;
+  margin-bottom: 16px;
+  flex-shrink: 0;
+  
+  button {
+    font-size: 13px;
+    height: 38px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    
+    i {
+      font-size: 14px;
+    }
+  }
+}
+
+// ── KPI Metrics ───────────────────────────────────────────────────────────────
+.tm-metrics { display: flex; gap: 10px; flex-shrink: 0; }
+
+.tm-metric-card {
+  flex: 1; display: flex; align-items: center; gap: 0;
+  border: 1px solid transparent; border-radius: 10px; overflow: hidden;
+  transition: all .2s ease;
+  &:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,.06); }
+  &:nth-child(1) { background: rgba(246,78,96,.08);   border-color: rgba(246,78,96,.15);   }
+  &:nth-child(2) { background: rgba(0,184,205,.08);   border-color: rgba(0,184,205,.15);   }
+  &:nth-child(3) { background: rgba(255,193,7,.08);   border-color: rgba(255,193,7,.15);   }
+  &:nth-child(4) { background: rgba(0,166,116,.08);   border-color: rgba(0,166,116,.15);   }
+  &:nth-child(5) { background: rgba(62,85,105,.08);   border-color: rgba(62,85,105,.15);   }
+  &:nth-child(6) { background: rgba(156,163,175,.08); border-color: rgba(156,163,175,.15); }
+}
+
+.tm-metric-icon {
+  width: 40px; height: 40px; border-radius: 8px; background: #fff;
+  box-shadow: 0 2px 6px rgba(0,0,0,.06);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px; flex-shrink: 0; margin: 10px 0 10px 12px;
+}
+.icon-requested  { color: $orange; }
+.icon-review     { color: $accent; }
+.icon-notice     { color: $warning-text; }
+.icon-approved   { color: $success; }
+.icon-terminated { color: #6b7280; }
+.icon-calloff    { color: #a1aab2; }
+
+.tm-metric-body { padding: 10px 12px; flex: 1; min-width: 0; }
+.tm-metric-val  { font-size: 24px; font-weight: 800; line-height: 1; color: $text; letter-spacing: -.5px; }
+.tm-metric-lbl  { font-size: 12.5px; color: $text-muted; margin-top: 3px; font-weight: 500; }
+
+// ── Grid Card ─────────────────────────────────────────────────────────────────
+.tm-grid-card {
+  flex: 1; min-height: 0; display: flex; flex-direction: column;
+  background: #fff; border: 1px solid $border; border-radius: $card-r;
+  overflow: hidden; margin-bottom: 16px;
+}
+
+.tm-grid-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 16px; border-bottom: 1px solid $border; flex-shrink: 0;
+}
+.tm-grid-title   { font-size: 13.5px; font-weight: 700; color: $text; margin: 0; }
+.tm-grid-sub     { font-size: 12.5px; color: $text-muted; }
+.tm-grid-actions { display: flex; align-items: center; gap: 8px; }
+
+// Filter Action Bar
+.filter-action-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 8px 16px;
+  border-bottom: 1px solid $border;
+  background: #f8f9fb;
+  flex-shrink: 0;
+  flex-wrap: wrap;
+}
+
+// Search Box
+.search-box {
+  position: relative;
+  flex: 1;
+  min-width: 260px;
+  display: flex;
+  align-items: center;
+
+  .search-icon {
+    position: absolute;
+    left: 12px;
+    color: $text-muted;
+    font-size: 13px;
+    pointer-events: none;
+  }
+
+  .search-input {
+    width: 100%;
+    height: 34px;
+    padding: 6px 32px 6px 32px;
+    border-radius: 6px;
+    border: 1px solid $border;
+    background: #ffffff;
+    font-size: 13px;
+    color: $text;
+    transition: all 0.2s ease;
+
+    &:focus {
+      outline: none;
+      border-color: $accent;
+      box-shadow: 0 0 0 3px rgba(0, 184, 205, 0.15);
+    }
+  }
+
+  .clear-btn {
+    position: absolute;
+    right: 12px;
+    background: transparent;
+    border: none;
+    color: $text-muted;
+    cursor: pointer;
+    font-size: 12px;
+    padding: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: background-color 0.2s;
+
+    &:hover {
+      background-color: rgba(0, 0, 0, 0.05);
+      color: $text;
+    }
+  }
+}
+
+// Dropdown Filters
+.dropdown-filters {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.filter-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  .filter-label {
+    font-size: 12.5px;
+    font-weight: 600;
+    color: $text;
+    white-space: nowrap;
+  }
+
+  // Kendo Multiselect integration styles
+  &.status-filter-group, &.date-filter-group {
+    .kendo-filter-multiselect {
+      width: 180px;
+      min-width: 180px;
+      border-radius: 6px;
+      border-color: $border;
+      font-size: 13px;
+      background: #ffffff;
+
+      &:focus-within {
+        border-color: $accent;
+      }
+    }
+  }
+
+  .clear-btn {
+    background: transparent;
+    border: none;
+    color: $text-muted;
+    cursor: pointer;
+    font-size: 12px;
+    padding: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+
+    &:hover {
+      background-color: rgba(0, 0, 0, 0.05);
+      color: $text;
+    }
+  }
+}
+
+// ── Kendo Grid ────────────────────────────────────────────────────────────────
+.tm-grid {
+  &.k-grid { border: none; font-size: 13px; flex: 1; min-height: 0; height: 100%; }
+  .k-grid-header .k-header { font-size: 12px; font-weight: 700; }
+  .k-grid-content {
+    tr:hover td { background: rgba(246,78,96,.03); }
+    td { padding: 8px 10px; border-color: $border; }
+  }
+  .k-pager {
+    background: #fafbfc; border-top: 1px solid $border; font-size: 12px;
+    flex-shrink: 0; padding: 2px 8px; min-height: 32px;
+    .k-pager-nav, .k-button { min-width: 24px; height: 24px; padding: 0 4px; }
+    .k-pager-sizes .k-input-inner,
+    .k-pager-sizes .k-picker { height: 24px; font-size: 12px; padding: 0 4px; }
+    .k-pager-info { font-size: 12px; padding: 0 6px; }
+    .k-pager-numbers .k-button { min-width: 24px; height: 24px; }
+  }
+}
+
+// ── Cell Styles ───────────────────────────────────────────────────────────────
+.cell-clinic  { display: flex; align-items: center; gap: 8px; }
+
+.clinic-avatar {
+  width: 26px; height: 26px; border-radius: 4px; background: #e9ecef; color: $text;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 700; flex-shrink: 0;
+  &-lg { width: 38px; height: 38px; border-radius: 7px; font-size: 15px; }
+}
+
+.clinic-name    { font-size: 13px; font-weight: 600; color: $text; }
+.clinic-contact { font-size: 12.5px; color: $text-muted; }
+.cell-date      { font-size: 13px; color: $text; }
+.cell-date--urgent { color: $orange; font-weight: 600; }
+.cell-muted     { font-size: 13px; color: $text-muted; }
+.cell-manager   { font-size: 13px; color: $text; }
+.cell-reason    { font-size: 12.5px; color: $text; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 220px; display: block; }
+.cell-actions   { display: flex; gap: 4px; align-items: center; }
+
+.ref-tag {
+  font-size: 12px; font-weight: 700; font-family: monospace;
+  color: $accent-hover; background: rgba(0,184,205,.07);
+  padding: 2px 8px; border-radius: 4px;
+}
+
+.grid-icon-btn {
+  width: 28px !important; min-width: 28px !important; height: 28px !important;
+  padding: 0 !important; display: inline-flex !important;
+  align-items: center !important; justify-content: center !important;
+}
+
+// Action button colour modifiers
+.tm-btn-approved   { color: $success !important; border-color: rgba(0,166,116,.45) !important; background: rgba(0,166,116,.06) !important; &:hover { background: rgba(0,166,116,.14) !important; } }
+.tm-btn-terminated { color: #6b7280 !important; border-color: rgba(107,114,128,.4) !important; background: rgba(107,114,128,.06) !important; &:hover { background: rgba(107,114,128,.12) !important; } }
+.tm-btn-calloff    { color: $text-muted !important; border-color: rgba(161,170,178,.4) !important; background: rgba(161,170,178,.06) !important; &:hover { background: rgba(161,170,178,.12) !important; } }
+
+// ── Status Badges ─────────────────────────────────────────────────────────────
+.tm-status-badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 3px 9px; border-radius: 4px; font-size: 12.5px; font-weight: 600; white-space: nowrap;
+}
+.tm-badge-icon       { font-size: 10px; }
+.tm-badge-requested  { background: rgba(246,78,96,.1);   color: $orange;       }
+.tm-badge-review     { background: rgba(0,184,205,.12);  color: $accent-hover; }
+.tm-badge-notice     { background: rgba(255,193,7,.18);  color: $warning-text; }
+.tm-badge-approved   { background: rgba(0,166,116,.1);   color: $success;      }
+.tm-badge-terminated { background: rgba(107,114,128,.1); color: #6b7280;       }
+.tm-badge-calloff    { background: rgba(156,163,175,.12);color: $text-muted;   }
+
+// ── Slide Panel ───────────────────────────────────────────────────────────────
+.slide-panel-overlay {
+  position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(4px); z-index: 1040;
+}
+
+.slide-panel {
+  position: fixed; top: 0; right: 0; bottom: 0; width: 380px;
+  background: #fff; z-index: 1050; box-shadow: -6px 0 25px rgba(0,0,0,.08);
+  display: flex; flex-direction: column;
+  animation: tmSlideIn .3s forwards ease-out;
+  &--wide { width: 62vw; }
+}
+
+@keyframes tmSlideIn {
+  from { transform: translateX(100%); }
+  to   { transform: translateX(0); }
+}
+
+// Panel chrome
+.nkp-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 24px; border-bottom: 1px solid #e9ecef; background: #fff; flex-shrink: 0;
+}
+.nkp-header-left { display: flex; align-items: center; gap: 12px; }
+.nkp-header-icon {
+  width: 40px; height: 40px; border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; flex-shrink: 0;
+}
+.tm-panel-icon { background: rgba(246,78,96,.1); color: $orange; }
+
+.nkp-title    { font-size: 15px; font-weight: 700; color: $text; margin: 0; }
+.nkp-subtitle { font-size: 12px; color: $text-muted; margin: 2px 0 0; }
+.nkp-close-btn {
+  background: none; border: none; cursor: pointer; width: 32px; height: 32px;
+  border-radius: 6px; display: flex; align-items: center; justify-content: center;
+  font-size: 16px; color: $text-muted; flex-shrink: 0;
+  &:hover { background: #f0f1f3; color: $text; }
+}
+.nkp-body {
+  flex: 1; overflow-y: auto; padding: 20px 24px;
+  display: flex; flex-direction: column; gap: 0;
+}
+.nkp-footer {
+  display: flex; align-items: center; justify-content: flex-end; gap: 8px;
+  padding: 12px 24px; border-top: 1px solid #e9ecef; background: #fafbfc; flex-shrink: 0;
+}
+
+// ── Panel Body Styles ─────────────────────────────────────────────────────────
+.tm-clinic-strip {
+  display: flex; align-items: flex-start; gap: 12px;
+  background: #f8f9fa; border: 1px solid $border; border-radius: $card-r;
+  padding: 12px; margin-bottom: 16px;
+}
+.tm-strip-name    { font-size: 14px; font-weight: 700; color: $text; margin-bottom: 3px; }
+.tm-strip-contact { font-size: 12.5px; color: $text-muted; i { margin-right: 3px; color: $accent; } }
+.tm-strip-value   { text-align: right; flex-shrink: 0; }
+.tm-strip-val-lbl { font-size: 11px; color: $text-muted; text-transform: uppercase; letter-spacing: .4px; }
+.tm-strip-val     { font-size: 14px; font-weight: 700; color: $text; margin-top: 2px; }
+
+// Lifecycle stepper
+.tm-lifecycle {
+  display: flex; align-items: center; margin-bottom: 16px;
+  padding: 10px 14px; background: #f8f9fa; border: 1px solid $border; border-radius: $card-r;
+}
+
+.tm-lc-step {
+  display: flex; flex-direction: column; align-items: center; gap: 4px; flex: 1;
+  .tm-lc-dot {
+    width: 12px; height: 12px; border-radius: 50%;
+    border: 2px solid $border; background: #fff; transition: all .2s;
+  }
+  .tm-lc-label { font-size: 11px; font-weight: 600; color: $text-muted; text-align: center; white-space: nowrap; }
+  &.done   { .tm-lc-dot { background: $orange; border-color: $orange; } .tm-lc-label { color: $orange; } }
+  &.active { .tm-lc-dot { background: $orange; border-color: $orange; box-shadow: 0 0 0 3px rgba(246,78,96,.2); } .tm-lc-label { color: $orange; font-weight: 700; } }
+  &.calloff { .tm-lc-dot { background: $text-muted; border-color: $text-muted; } }
+}
+.tm-lc-line { height: 2px; flex: 1; background: $border; margin-bottom: 14px; }
+
+// Notice stats
+.tm-notice-grid {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 16px;
+}
+.tm-notice-stat {
+  background: #f8f9fa; border: 1px solid $border; border-radius: $card-r;
+  padding: 10px 12px; text-align: center;
+  &--warn   { background: rgba(255,193,7,.06); border-color: rgba(255,193,7,.3); }
+  &--urgent { background: rgba(246,78,96,.06); border-color: rgba(246,78,96,.3); }
+}
+.tm-notice-lbl { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; color: $text-muted; margin-bottom: 4px; }
+.tm-notice-val { font-size: 14px; font-weight: 700; color: $text; }
+
+// Section title
+.tm-section-title {
+  font-size: 13px; font-weight: 700; color: $text;
+  display: flex; align-items: center; gap: 6px; margin-bottom: 8px;
+  i { color: $orange; }
+}
+
+// Reason box
+.tm-reason-box {
+  font-size: 13px; color: $text; line-height: 1.6;
+  padding: 12px 14px; background: rgba(246,78,96,.04);
+  border: 1px solid rgba(246,78,96,.18); border-left: 3px solid $orange;
+  border-radius: 0 $card-r $card-r 0; margin-bottom: 4px;
+}
+
+// Call-off box
+.tm-calloff-box {
+  font-size: 13px; color: $text; line-height: 1.6;
+  padding: 12px 14px; background: rgba(156,163,175,.07);
+  border: 1px solid rgba(156,163,175,.3); border-left: 3px solid $text-muted;
+  border-radius: 0 $card-r $card-r 0;
+}
+
+// Checklist
+.tm-checklist { display: flex; flex-direction: column; gap: 0; }
+.tm-check-row {
+  display: flex; align-items: center; gap: 8px; padding: 8px 0;
+  border-bottom: 1px solid $border; font-size: 12.5px; color: $text;
+  &:last-child { border-bottom: none; }
+  span:first-of-type { flex: 1; }
+}
+.tm-check-icon { font-size: 13px; flex-shrink: 0; }
+.tm-check-icon--done    { color: $success; }
+.tm-check-icon--pending { color: $orange; }
+.tm-check-badge {
+  font-size: 11px; font-weight: 700; padding: 1px 7px; border-radius: 4px;
+  &--done    { background: rgba(0,166,116,.1); color: $success; }
+  &--pending { background: rgba(246,78,96,.1); color: $orange; }
+}
+
+// Textarea
+.tm-textarea {
+  width: 100%; border: 1px solid $border; border-radius: $card-r;
+  padding: 8px 10px; font-size: 13px; color: $text; resize: vertical;
+  outline: none; font-family: $font; box-sizing: border-box; margin-bottom: 8px; min-height: 100px;
+  &:focus { border-color: $accent; box-shadow: 0 0 0 3px rgba(0,184,205,.12); }
+  &--error { border-color: $orange !important; }
+}
+
+// Call-off form
+.tm-calloff-form { margin-top: 14px; }
+.tm-calloff-warning {
+  display: flex; gap: 10px; padding: 12px; margin-bottom: 12px;
+  background: rgba(255,193,7,.08); border: 1px solid rgba(255,193,7,.3);
+  border-radius: $card-r;
+  i { color: $warning-text; font-size: 18px; margin-top: 2px; flex-shrink: 0; }
+}
+
+.tm-field-error {
+  font-size: 12px; color: $orange; display: flex; align-items: center; gap: 4px; margin-top: -4px;
+  i { font-size: 11px; }
+}
+
+// ── OTP Handover Portal Styles ───────────────────────────────────────────────
+.handover-portal-container {
+  font-family: $font;
+  background: #fff;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  
+  .portal-header {
+    h4 {
+      font-family: $font;
+    }
+  }
+}
+
+.otp-sent-alert {
+  animation: tmFadeIn 0.3s forwards ease;
+}
+
+// ── Raise Termination Modal Dialog ───────────────────────────────────────────
+.raise-dialog {
+  box-shadow: 0 20px 50px rgba(15, 23, 42, 0.15);
+  border: 1px solid $border;
+  animation: tmSlideDown .3s forwards cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes tmSlideDown {
+  from { transform: translate(-50%, -10%); opacity: 0; }
+  to   { transform: translate(-50%, 0); opacity: 1; }
+}
+
+@keyframes tmFadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+// Utilities
+.text-danger  { color: $orange !important; }
+.text-primary { color: $accent !important; }

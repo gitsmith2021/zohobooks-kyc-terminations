@@ -1,0 +1,505 @@
+@if (record) {
+<div class="slide-panel-overlay" (click)="onClose()"></div>
+<div class="slide-panel slide-panel--wide slide-in">
+
+  <!-- Header -->
+  <div class="nkp-header">
+    <div class="nkp-header-left">
+      <div class="nkp-header-icon"><i class="fas fa-user-check"></i></div>
+      <div>
+        <h5 class="nkp-title">KYC Review — {{ record.companyName }}</h5>
+        <div class="nkp-subtitle">
+          <span><i class="fas fa-user-md"></i> {{ getContactName() }}</span>
+          <span class="sep">|</span>
+          <span><i class="fas fa-envelope"></i> {{ getClinicEmail() }}</span>
+          <span class="sep">|</span>
+          <span><i class="fas fa-phone"></i> {{ getClinicPhone() }}</span>
+          <span class="sep">|</span>
+          <span><i class="fas fa-user-tie"></i> Sales Person: {{ record.salesPerson }}</span>
+        </div>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;flex-shrink:0">
+      <span class="kyc-status-badge" [ngClass]="getStatusClass(record.status)">
+        <i [class]="getStatusIcon(record.status) + ' badge-icon'"></i>
+        {{ record.status }}
+      </span>
+      <button class="nkp-close-btn" (click)="onClose()"><i class="fas fa-times"></i></button>
+    </div>
+  </div>
+
+  <!-- Scrollable Body -->
+  <div class="nkp-body">
+
+
+
+
+
+    <!-- ── Section 01: Clinic / Company Details ──────────────────────────── -->
+    <div class="nkp-section">
+      <div class="nkp-section-hdr">
+        <div class="nkp-section-num">01</div>
+        <div class="nkp-section-title">Clinic / Company Details</div>
+      </div>
+      <div class="krc-grid-3">
+
+        <div class="krc-field krc-field--full">
+          <div class="krc-label-row">
+            <span class="krc-label">Legal Clinic Name</span>
+            @if (isReviewable()) {
+              <button type="button" class="btn-warning-toggle" [class.active]="fieldCorrections['companyName']?.invalid" (click)="toggleCorrection('companyName')" title="Mark field as invalid">
+                <i class="fas fa-exclamation-triangle"></i>
+              </button>
+            }
+          </div>
+          <div class="krc-value" [class.krc-value--error]="fieldCorrections['companyName']?.invalid">
+            {{ record.companyName }}
+          </div>
+          @if (fieldCorrections['companyName']?.invalid) {
+            <textarea class="krc-correction-textarea" [(ngModel)]="fieldCorrections['companyName'].comment" placeholder="Enter correction remarks for Legal Clinic Name..."></textarea>
+          }
+        </div>
+
+        <div class="krc-field">
+          <div class="krc-label-row">
+            <span class="krc-label">Trade License Number</span>
+            @if (isReviewable()) {
+              <button type="button" class="btn-warning-toggle" [class.active]="fieldCorrections['tradeLicenseNumber']?.invalid" (click)="toggleCorrection('tradeLicenseNumber')" title="Mark field as invalid">
+                <i class="fas fa-exclamation-triangle"></i>
+              </button>
+            }
+          </div>
+          <div class="krc-value" [class.krc-value--error]="fieldCorrections['tradeLicenseNumber']?.invalid">
+            {{ record.tradeLicenseNumber }}
+          </div>
+          @if (fieldCorrections['tradeLicenseNumber']?.invalid) {
+            <textarea class="krc-correction-textarea" [(ngModel)]="fieldCorrections['tradeLicenseNumber'].comment" placeholder="Enter correction remarks for Trade License Number..."></textarea>
+          }
+        </div>
+        <div class="krc-field">
+          <div class="krc-label-row">
+            <span class="krc-label">Trade License Expiry Date</span>
+            @if (isReviewable()) {
+              <button type="button" class="btn-warning-toggle" [class.active]="fieldCorrections['tradeLicenseExpiry']?.invalid" (click)="toggleCorrection('tradeLicenseExpiry')" title="Mark field as invalid">
+                <i class="fas fa-exclamation-triangle"></i>
+              </button>
+            }
+          </div>
+          <div class="krc-value" [class.krc-value--error]="fieldCorrections['tradeLicenseExpiry']?.invalid || record.fieldErrors?.['tradeLicenseExpiry']">
+            {{ record.tradeLicenseExpiry | date:'dd MMM yyyy' }}
+          </div>
+          @if (fieldCorrections['tradeLicenseExpiry']?.invalid) {
+            <textarea class="krc-correction-textarea" [(ngModel)]="fieldCorrections['tradeLicenseExpiry'].comment" placeholder="Enter correction remarks for Trade License Expiry..."></textarea>
+          }
+          @if (!fieldCorrections['tradeLicenseExpiry']?.invalid && record.fieldErrors?.['tradeLicenseExpiry']) {
+            <div class="krc-error"><i class="fas fa-exclamation-circle"></i> {{ record.fieldErrors?.['tradeLicenseExpiry'] }}</div>
+          }
+        </div>
+        <div class="krc-field">
+          <div class="krc-label-row">
+            <span class="krc-label">DHA License Number</span>
+            @if (isReviewable()) {
+              <button type="button" class="btn-warning-toggle" [class.active]="fieldCorrections['dhaLicenseNumber']?.invalid" (click)="toggleCorrection('dhaLicenseNumber')" title="Mark field as invalid">
+                <i class="fas fa-exclamation-triangle"></i>
+              </button>
+            }
+          </div>
+          <div class="krc-value" [class.krc-value--error]="fieldCorrections['dhaLicenseNumber']?.invalid">
+            {{ record.dhaLicenseNumber }}
+          </div>
+          @if (fieldCorrections['dhaLicenseNumber']?.invalid) {
+            <textarea class="krc-correction-textarea" [(ngModel)]="fieldCorrections['dhaLicenseNumber'].comment" placeholder="Enter correction remarks for DHA License Number..."></textarea>
+          }
+        </div>
+
+        <div class="krc-field">
+          <div class="krc-label-row">
+            <span class="krc-label">VAT / TRN Number</span>
+            @if (isReviewable()) {
+              <button type="button" class="btn-warning-toggle" [class.active]="fieldCorrections['vatTrnNumber']?.invalid" (click)="toggleCorrection('vatTrnNumber')" title="Mark field as invalid">
+                <i class="fas fa-exclamation-triangle"></i>
+              </button>
+            }
+          </div>
+          <div class="krc-value" [class.krc-value--error]="fieldCorrections['vatTrnNumber']?.invalid">
+            {{ record.vatTrnNumber }}
+          </div>
+          @if (fieldCorrections['vatTrnNumber']?.invalid) {
+            <textarea class="krc-correction-textarea" [(ngModel)]="fieldCorrections['vatTrnNumber'].comment" placeholder="Enter correction remarks for VAT/TRN Number..."></textarea>
+          }
+        </div>
+        <div class="krc-field">
+          <div class="krc-label-row">
+            <span class="krc-label">Emirate</span>
+            @if (isReviewable()) {
+              <button type="button" class="btn-warning-toggle" [class.active]="fieldCorrections['emirate']?.invalid" (click)="toggleCorrection('emirate')" title="Mark field as invalid">
+                <i class="fas fa-exclamation-triangle"></i>
+              </button>
+            }
+          </div>
+          <div class="krc-value" [class.krc-value--error]="fieldCorrections['emirate']?.invalid">
+            {{ record.emirate }}
+          </div>
+          @if (fieldCorrections['emirate']?.invalid) {
+            <textarea class="krc-correction-textarea" [(ngModel)]="fieldCorrections['emirate'].comment" placeholder="Enter correction remarks for Emirate..."></textarea>
+          }
+        </div>
+        <div class="krc-field">
+          <div class="krc-label-row">
+            <span class="krc-label">Clinic Phone Number</span>
+            @if (isReviewable()) {
+              <button type="button" class="btn-warning-toggle" [class.active]="fieldCorrections['clinicPhone']?.invalid" (click)="toggleCorrection('clinicPhone')" title="Mark field as invalid">
+                <i class="fas fa-exclamation-triangle"></i>
+              </button>
+            }
+          </div>
+          <div class="krc-value" [class.krc-value--error]="fieldCorrections['clinicPhone']?.invalid">
+            {{ getClinicPhone() }}
+          </div>
+          @if (fieldCorrections['clinicPhone']?.invalid) {
+            <textarea class="krc-correction-textarea" [(ngModel)]="fieldCorrections['clinicPhone'].comment" placeholder="Enter correction remarks for Clinic Phone..."></textarea>
+          }
+        </div>
+
+        <div class="krc-field">
+          <div class="krc-label-row">
+            <span class="krc-label">Clinic Email ID</span>
+            @if (isReviewable()) {
+              <button type="button" class="btn-warning-toggle" [class.active]="fieldCorrections['clinicEmail']?.invalid" (click)="toggleCorrection('clinicEmail')" title="Mark field as invalid">
+                <i class="fas fa-exclamation-triangle"></i>
+              </button>
+            }
+          </div>
+          <div class="krc-value" [class.krc-value--error]="fieldCorrections['clinicEmail']?.invalid">
+            {{ getClinicEmail() }}
+          </div>
+          @if (fieldCorrections['clinicEmail']?.invalid) {
+            <textarea class="krc-correction-textarea" [(ngModel)]="fieldCorrections['clinicEmail'].comment" placeholder="Enter correction remarks for Clinic Email ID..."></textarea>
+          }
+        </div>
+        <div class="krc-field">
+          <div class="krc-label-row">
+            <span class="krc-label">Website</span>
+            @if (isReviewable()) {
+              <button type="button" class="btn-warning-toggle" [class.active]="fieldCorrections['website']?.invalid" (click)="toggleCorrection('website')" title="Mark field as invalid">
+                <i class="fas fa-exclamation-triangle"></i>
+              </button>
+            }
+          </div>
+          <div class="krc-value" [class.krc-value--error]="fieldCorrections['website']?.invalid">
+            {{ record.website || '—' }}
+          </div>
+          @if (fieldCorrections['website']?.invalid) {
+            <textarea class="krc-correction-textarea" [(ngModel)]="fieldCorrections['website'].comment" placeholder="Enter correction remarks for Website..."></textarea>
+          }
+        </div>
+
+        <div class="krc-field krc-field--full">
+          <div class="krc-label-row">
+            <span class="krc-label">Registered Business Address</span>
+            @if (isReviewable()) {
+              <button type="button" class="btn-warning-toggle" [class.active]="fieldCorrections['registeredAddress']?.invalid" (click)="toggleCorrection('registeredAddress')" title="Mark field as invalid">
+                <i class="fas fa-exclamation-triangle"></i>
+              </button>
+            }
+          </div>
+          <div class="krc-value krc-value--multiline" [class.krc-value--error]="fieldCorrections['registeredAddress']?.invalid">
+            {{ record.registeredAddress }}
+          </div>
+          @if (fieldCorrections['registeredAddress']?.invalid) {
+            <textarea class="krc-correction-textarea" [(ngModel)]="fieldCorrections['registeredAddress'].comment" placeholder="Enter correction remarks for Registered Address..."></textarea>
+          }
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ── Section 02: Authorized Signatory Details ───────────────────────── -->
+    <div class="nkp-section">
+      <div class="nkp-section-hdr">
+        <div class="nkp-section-num">02</div>
+        <div class="nkp-section-title">Authorized Signatory Details</div>
+      </div>
+      <div class="krc-grid-3">
+
+        <div class="krc-field">
+          <div class="krc-label-row">
+            <span class="krc-label">Full Name</span>
+            @if (isReviewable()) {
+              <button type="button" class="btn-warning-toggle" [class.active]="fieldCorrections['contactName']?.invalid" (click)="toggleCorrection('contactName')" title="Mark field as invalid">
+                <i class="fas fa-exclamation-triangle"></i>
+              </button>
+            }
+          </div>
+          <div class="krc-value" [class.krc-value--error]="fieldCorrections['contactName']?.invalid">
+            {{ getContactName() }}
+          </div>
+          @if (fieldCorrections['contactName']?.invalid) {
+            <textarea class="krc-correction-textarea" [(ngModel)]="fieldCorrections['contactName'].comment" placeholder="Enter correction remarks for Full Name..."></textarea>
+          }
+        </div>
+        <div class="krc-field">
+          <div class="krc-label-row">
+            <span class="krc-label">Designation</span>
+            @if (isReviewable()) {
+              <button type="button" class="btn-warning-toggle" [class.active]="fieldCorrections['signatoryDesignation']?.invalid" (click)="toggleCorrection('signatoryDesignation')" title="Mark field as invalid">
+                <i class="fas fa-exclamation-triangle"></i>
+              </button>
+            }
+          </div>
+          <div class="krc-value" [class.krc-value--error]="fieldCorrections['signatoryDesignation']?.invalid">
+            {{ record.signatoryDesignation }}
+          </div>
+          @if (fieldCorrections['signatoryDesignation']?.invalid) {
+            <textarea class="krc-correction-textarea" [(ngModel)]="fieldCorrections['signatoryDesignation'].comment" placeholder="Enter correction remarks for Designation..."></textarea>
+          }
+        </div>
+        <div class="krc-field">
+          <div class="krc-label-row">
+            <span class="krc-label">Email Address</span>
+            @if (isReviewable()) {
+              <button type="button" class="btn-warning-toggle" [class.active]="fieldCorrections['signatoryEmail']?.invalid" (click)="toggleCorrection('signatoryEmail')" title="Mark field as invalid">
+                <i class="fas fa-exclamation-triangle"></i>
+              </button>
+            }
+          </div>
+          <div class="krc-value" [class.krc-value--error]="fieldCorrections['signatoryEmail']?.invalid">
+            {{ record.signatoryEmail }}
+          </div>
+          @if (fieldCorrections['signatoryEmail']?.invalid) {
+            <textarea class="krc-correction-textarea" [(ngModel)]="fieldCorrections['signatoryEmail'].comment" placeholder="Enter correction remarks for Signatory Email..."></textarea>
+          }
+        </div>
+
+        <div class="krc-field">
+          <div class="krc-label-row">
+            <span class="krc-label">Mobile Number</span>
+            @if (isReviewable()) {
+              <button type="button" class="btn-warning-toggle" [class.active]="fieldCorrections['signatoryMobile']?.invalid" (click)="toggleCorrection('signatoryMobile')" title="Mark field as invalid">
+                <i class="fas fa-exclamation-triangle"></i>
+              </button>
+            }
+          </div>
+          <div class="krc-value" [class.krc-value--error]="fieldCorrections['signatoryMobile']?.invalid">
+            {{ getSignatoryMobile() }}
+          </div>
+          @if (fieldCorrections['signatoryMobile']?.invalid) {
+            <textarea class="krc-correction-textarea" [(ngModel)]="fieldCorrections['signatoryMobile'].comment" placeholder="Enter correction remarks for Signatory Mobile..."></textarea>
+          }
+        </div>
+        <div class="krc-field">
+          <div class="krc-label-row">
+            <span class="krc-label">Emirates ID Copy</span>
+            @if (isReviewable()) {
+              <button type="button" class="btn-warning-toggle" [class.active]="fieldCorrections['fileEmiratiesId']?.invalid" (click)="toggleCorrection('fileEmiratiesId')" title="Mark document as invalid">
+                <i class="fas fa-exclamation-triangle"></i>
+              </button>
+            }
+          </div>
+          <div class="krc-doc-chip" [class.krc-doc-chip--error]="fieldCorrections['fileEmiratiesId']?.invalid">
+            <div style="display:flex; align-items:center; gap:7px; flex:1; overflow:hidden;">
+              <i class="fas" [class.fa-check-circle]="!fieldCorrections['fileEmiratiesId']?.invalid" [class.fa-exclamation-circle]="fieldCorrections['fileEmiratiesId']?.invalid"></i> 
+              <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ record.fileEmiratiesId }}</span>
+            </div>
+            <button class="doc-chip-preview-btn" (click)="previewDocument({ name: 'Emirates ID Copy', fileType: 'Uploaded Document', uploadedOn: record.submittedOn, icon: 'fas fa-id-card' })" title="Preview Document">
+              <i class="fas fa-eye"></i>
+            </button>
+          </div>
+          @if (fieldCorrections['fileEmiratiesId']?.invalid) {
+            <textarea class="krc-correction-textarea" [(ngModel)]="fieldCorrections['fileEmiratiesId'].comment" placeholder="Enter correction remarks for Emirates ID Copy..."></textarea>
+          }
+        </div>
+        <div class="krc-field">
+          <div class="krc-label-row">
+            <span class="krc-label">Passport Copy</span>
+            @if (isReviewable()) {
+              <button type="button" class="btn-warning-toggle" [class.active]="fieldCorrections['filePassport']?.invalid" (click)="toggleCorrection('filePassport')" title="Mark document as invalid">
+                <i class="fas fa-exclamation-triangle"></i>
+              </button>
+            }
+          </div>
+          <div class="krc-doc-chip" [class.krc-doc-chip--error]="fieldCorrections['filePassport']?.invalid">
+            <div style="display:flex; align-items:center; gap:7px; flex:1; overflow:hidden;">
+              <i class="fas" [class.fa-check-circle]="!fieldCorrections['filePassport']?.invalid" [class.fa-exclamation-circle]="fieldCorrections['filePassport']?.invalid"></i> 
+              <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ record.filePassport }}</span>
+            </div>
+            <button class="doc-chip-preview-btn" (click)="previewDocument({ name: 'Passport Copy', fileType: 'Uploaded Document', uploadedOn: record.submittedOn, icon: 'fas fa-passport' })" title="Preview Document">
+              <i class="fas fa-eye"></i>
+            </button>
+          </div>
+          @if (fieldCorrections['filePassport']?.invalid) {
+            <textarea class="krc-correction-textarea" [(ngModel)]="fieldCorrections['filePassport'].comment" placeholder="Enter correction remarks for Passport Copy..."></textarea>
+          }
+        </div>
+
+        <div class="krc-field">
+          <div class="krc-label-row">
+            <span class="krc-label">Signature Authority Proof</span>
+            @if (isReviewable()) {
+              <button type="button" class="btn-warning-toggle" [class.active]="fieldCorrections['fileSignatureProof']?.invalid" (click)="toggleCorrection('fileSignatureProof')" title="Mark document as invalid">
+                <i class="fas fa-exclamation-triangle"></i>
+              </button>
+            }
+          </div>
+          @if (record.fileSignatureProof) {
+          <div class="krc-doc-chip" [class.krc-doc-chip--error]="fieldCorrections['fileSignatureProof']?.invalid">
+            <div style="display:flex; align-items:center; gap:7px; flex:1; overflow:hidden;">
+              <i class="fas" [class.fa-check-circle]="!fieldCorrections['fileSignatureProof']?.invalid" [class.fa-exclamation-circle]="fieldCorrections['fileSignatureProof']?.invalid"></i> 
+              <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ record.fileSignatureProof }}</span>
+            </div>
+            <button class="doc-chip-preview-btn" (click)="previewDocument({ name: 'Signature Authority Proof', fileType: 'Uploaded Document', uploadedOn: record.submittedOn, icon: 'fas fa-file-signature' })" title="Preview Document">
+              <i class="fas fa-eye"></i>
+            </button>
+          </div>
+          } @else {
+          <div class="krc-doc-chip krc-doc-chip--na" [class.krc-doc-chip--error]="fieldCorrections['fileSignatureProof']?.invalid || record.fieldErrors?.['fileSignatureProof']">
+            <i class="fas fa-minus-circle"></i> Not Provided
+          </div>
+          }
+          @if (fieldCorrections['fileSignatureProof']?.invalid) {
+            <textarea class="krc-correction-textarea" [(ngModel)]="fieldCorrections['fileSignatureProof'].comment" placeholder="Enter correction remarks for Signature Proof..."></textarea>
+          }
+          @if (!fieldCorrections['fileSignatureProof']?.invalid && record.fieldErrors?.['fileSignatureProof']) {
+            <div class="krc-error"><i class="fas fa-exclamation-circle"></i> {{ record.fieldErrors?.['fileSignatureProof'] }}</div>
+          }
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ── Section 03: Compliance Documents ──────────────────────────────── -->
+    <div class="nkp-section">
+      <div class="nkp-section-hdr">
+        <div class="nkp-section-num">03</div>
+        <div class="nkp-section-title">
+          Compliance Documents
+          <span class="doc-count" style="margin-left:8px">{{ getDocuments().length }} files</span>
+        </div>
+      </div>
+
+    <!-- Documents -->
+    <div class="doc-list">
+      @for (doc of getDocuments(); track doc.name) {
+      <div class="doc-item">
+        <div class="doc-row" [class.doc-row--error]="fieldCorrections[doc.name]?.invalid">
+          <div class="doc-icon-wrap"><i [class]="doc.icon"></i></div>
+          <div class="doc-info">
+            <div class="doc-name">{{ doc.name }}</div>
+            <div class="doc-meta">{{ doc.fileType }} · Uploaded {{ doc.uploadedOn | date:'dd MMM yyyy' }}</div>
+          </div>
+          <div class="doc-actions">
+            @if (isReviewable()) {
+              <button type="button" class="btn-warning-toggle" [class.active]="fieldCorrections[doc.name]?.invalid" (click)="toggleCorrection(doc.name)" title="Mark document as invalid">
+                <i class="fas fa-exclamation-triangle"></i>
+              </button>
+            }
+            <button class="doc-action-btn" title="Preview" (click)="previewDocument(doc)"><i class="fas fa-eye"></i></button>
+            <button class="doc-action-btn" title="Download"><i class="fas fa-download"></i></button>
+            <span class="doc-status" [class.doc-status--ok]="doc.verified" [class.doc-status--pending]="!doc.verified">
+              {{ doc.verified ? 'Verified' : 'Pending' }}
+            </span>
+          </div>
+        </div>
+        @if (fieldCorrections[doc.name]?.invalid) {
+          <textarea class="krc-correction-textarea" style="margin-top: -2px; border-top-left-radius: 0; border-top-right-radius: 0;" [(ngModel)]="fieldCorrections[doc.name].comment" placeholder="Enter correction remarks for {{ doc.name }}..."></textarea>
+        }
+      </div>
+      }
+    </div>
+    </div>
+    <!-- /Section 03 -->
+
+    <!-- Rejection reason (shown if previously rejected) -->
+    @if (record.rejectionReason) {
+    <div class="dlg-rejection-banner">
+      <i class="fas fa-exclamation-circle"></i>
+      <div>
+        <strong>Previous Rejection Reason:</strong>
+        <div style="margin-top:2px">{{ record.rejectionReason }}</div>
+      </div>
+    </div>
+    }
+
+    <!-- Reviewer Notes -->
+    <label class="dlg-label">
+      Reviewer Notes <span class="dlg-label-hint">(optional)</span>
+    </label>
+    <textarea class="dlg-textarea" rows="2" [(ngModel)]="reviewerNotes"
+      placeholder="Add compliance notes or observations..."></textarea>
+
+    <!-- Rejection Form -->
+    @if (showRejectForm) {
+    <div class="dlg-reject-form">
+      <label class="dlg-label">
+        Rejection Reason <span class="text-required">*</span>
+      </label>
+      <textarea class="dlg-textarea dlg-textarea--danger" rows="3" [(ngModel)]="rejectionReason"
+        placeholder="Clearly state the reason for rejection. This will be communicated to the clinic..."></textarea>
+    </div>
+    }
+
+  </div>
+  <!-- /Body -->
+
+  <div class="nkp-footer">
+    @if (!showRejectForm) {
+    
+    @if (isReviewable()) {
+    <button kendoButton themeColor="error" fillMode="outline" (click)="showRejectForm = true">
+      <i class="fas fa-times-circle me-2"></i>Reject
+    </button>
+    <button kendoButton themeColor="primary" fillMode="outline" (click)="onRequestCorrection()">
+      <i class="fas fa-redo me-2"></i>Request Correction
+    </button>
+    <button kendoButton themeColor="success" fillMode="solid" (click)="onApprove()">
+      <i class="fas fa-check-circle me-2"></i>Approve KYC
+    </button>
+    }
+
+    @if (record.status === 'KYC Expired') {
+      <button kendoButton themeColor="warning" fillMode="solid" (click)="onResendKyc()">
+        <i class="fas fa-paper-plane me-2"></i>Resend KYC Link
+      </button>
+    }
+    } @else {
+    <button kendoButton themeColor="primary" fillMode="outline" (click)="showRejectForm = false">
+      <i class="fas fa-arrow-left me-1"></i>Back
+    </button>
+    <button kendoButton themeColor="error" fillMode="solid" (click)="onReject()">
+      <i class="fas fa-times-circle me-2"></i>Confirm Rejection
+    </button>
+    }
+  </div>
+
+  <!-- Document Preview Slide -->
+  @if (previewDoc) {
+  <div class="slide-panel-overlay" style="z-index: 1060" (click)="closePreview()"></div>
+  <div class="slide-panel slide-panel--wide slide-in" style="z-index: 1070;">
+    <!-- Header -->
+    <div class="nkp-header">
+      <div class="nkp-header-left">
+        <div class="nkp-header-icon"><i [class]="previewDoc.icon"></i></div>
+        <div>
+          <h5 class="nkp-title">Document Preview — {{ previewDoc.name }}</h5>
+          <div class="nkp-subtitle">{{ previewDoc.fileType }} &nbsp;·&nbsp; Uploaded {{ previewDoc.uploadedOn | date:'dd MMM yyyy' }}</div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;flex-shrink:0">
+        <button kendoButton themeColor="primary" fillMode="solid" (click)="closePreview()"><i class="fas fa-download me-2"></i>Download</button>
+        <button class="nkp-close-btn" (click)="closePreview()"><i class="fas fa-times"></i></button>
+      </div>
+    </div>
+  
+    <!-- Viewer Body -->
+    <div class="nkp-body" style="background: #e9ecef; padding: 24px;">
+      <div style="height: 100%; min-height: 500px; background: #fff; border-radius: 8px; border: 1px solid #dee2e6; display: flex; align-items: center; justify-content: center; flex-direction: column; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
+        <i [class]="previewDoc.icon" style="font-size: 72px; margin-bottom: 20px; color: #ced4da;"></i>
+        <div style="font-size: 18px; font-weight: 700; color: #495057; margin-bottom: 8px;">{{ previewDoc.name }}</div>
+        <div style="font-size: 13.5px; color: #868e96;">(Document viewer component rendering)</div>
+      </div>
+    </div>
+  </div>
+  }
+
+</div>
+}

@@ -1,0 +1,1267 @@
+<!-- ═══════════════════════════════════════════════════════════════════════
+     CONTRACT TEAM DASHBOARD
+     ══════════════════════════════════════════════════════════════════════ -->
+<div class="dashboard-shell">
+
+  <!-- ── Sidebar ──────────────────────────────────────────────────────── -->
+  <app-sidebar [activeNav]="activeNav" [sidebarCollapsed]="sidebarCollapsed" [navItems]="navItems"
+    [kycUnderReviewCount]="kycUnderReviewCount" [terminationCount]="terminationCount" (navChange)="setNav($event)">
+  </app-sidebar>
+  <!-- /Sidebar -->
+
+  <!-- ── Main Area ─────────────────────────────────────────────────────── -->
+  <div class="main-area">
+
+    <!-- Top Bar -->
+    <header class="top-bar">
+      <div class="top-bar-left">
+        <button kendoButton themeColor="base" fillMode="flat" class="sidebar-toggle-btn" (click)="toggleSidebar()">
+          <i class="fas" [class.fa-indent]="sidebarCollapsed" [class.fa-outdent]="!sidebarCollapsed"></i>
+        </button>
+        <div>
+          <h5 class="top-title">Welcome back, Ali Ahmed</h5>
+          <!-- <small class="top-date">{{ today | date:'EEEE, d MMMM yyyy' }}</small> -->
+        </div>
+      </div>
+      <div class="top-actions" style="position: relative;">
+        @if (expiredKycCount > 0) {
+        <div class="alert-pill">
+          <i class="fas fa-exclamation-triangle text-danger"></i>
+          <span class="text-danger fw-semibold" style="font-size:13px">{{ expiredKycCount }} Expired KYC</span>
+        </div>
+        }
+        <div style="position: relative;">
+          <button kendoButton themeColor="base" fillMode="flat" class="icon-btn"
+            (click)="showNotifications = !showNotifications">
+            <i class="fas fa-bell"></i>
+            @if (unreadNotificationsCount > 0) {
+            <span class="notif-badge-dot"></span>
+            }
+          </button>
+
+          <!-- Glassmorphic Notifications Dropdown -->
+          @if (showNotifications) {
+          <div class="notif-dropdown slide-in-top">
+            <div class="notif-dropdown-header">
+              <span class="fw-bold">Notifications</span>
+              @if (unreadNotificationsCount > 0) {
+              <span class="notif-unread-count">{{ unreadNotificationsCount }} new</span>
+              }
+            </div>
+            <div class="notif-dropdown-body">
+              @for (n of notifications; track n.id) {
+              <div class="notif-item" [class.notif-unread]="n.unread" (click)="navigateToNotification(n)">
+                <div class="notif-icon-wrap" [ngClass]="n.colorClass">
+                  <i [class]="n.icon"></i>
+                </div>
+                <div class="notif-content">
+                  <div class="notif-title-row">
+                    <span class="notif-title">{{ n.title }}</span>
+                    <span class="notif-time">{{ n.time }}</span>
+                  </div>
+                  <p class="notif-msg">{{ n.message }}</p>
+                </div>
+              </div>
+              }
+            </div>
+          </div>
+          }
+        </div>
+        <button kendoButton themeColor="base" fillMode="flat" class="icon-btn">
+          <i class="fas fa-cog"></i>
+        </button>
+      </div>
+    </header>
+
+    <!-- Page Content -->
+    @if (activeNav === 'dashboard') {
+    <div class="content-body dashboard-layout">
+      <!-- Breadcrumb -->
+      <div class="page-breadcrumb text-muted mb-1" style="font-size: 13px; font-weight: 500;">
+        Home / <span class="text-primary">Dashboard</span>
+      </div>
+
+      <div class="dashboard-grid-layout">
+
+        <!-- Main Grid Area (Left) -->
+        <div class="dashboard-main-col">
+
+          <!-- ── KPI Cards ─────────────────────────────────────────────────── -->
+          <div class="kpi-row mb-4">
+
+            <!-- ── Card 1 : Contracts ────────────────────────────────── -->
+            <div class="kpi-card kpi-card--contracts">
+              <div class="kpi-card-top">
+                <div class="kpi-icon-wrap">
+                  <i class="fas fa-file-contract"></i>
+                </div>
+                <div class="kpi-main">
+                  <div class="kpi-big-num">{{ contractsTotal }}</div>
+                  <div class="kpi-main-label">Contracts</div>
+                </div>
+                <button class="kpi-nav-btn" title="Go to Contracts" (click)="setNav('contracts')">
+                  <i class="fas fa-arrow-right"></i>
+                </button>
+              </div>
+              <div class="kpi-card-stats">
+                <div class="kpi-stat">
+                  <span class="kpi-stat-val">{{ contractsActiveSigned }}</span>
+                  <div class="kpi-stat-tag">
+                    <span class="kpi-stat-dot kpi-dot--success"></span>
+                    <span class="kpi-stat-lbl">Active / Signed</span>
+                  </div>
+                </div>
+                <div class="kpi-stat">
+                  <span class="kpi-stat-val">{{ pendingSigCount }}</span>
+                  <div class="kpi-stat-tag">
+                    <span class="kpi-stat-dot kpi-dot--primary"></span>
+                    <span class="kpi-stat-lbl">Pending Signature</span>
+                  </div>
+                </div>
+                <div class="kpi-stat">
+                  <span class="kpi-stat-val">{{ contractsReadyDispatch }}</span>
+                  <div class="kpi-stat-tag">
+                    <span class="kpi-stat-dot kpi-dot--muted"></span>
+                    <span class="kpi-stat-lbl">Ready to Send</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- ── Card 2 : KYC Verification ─────────────────────────────── -->
+            <div class="kpi-card kpi-card--kyc">
+              <div class="kpi-card-top">
+                <div class="kpi-icon-wrap">
+                  <i class="fas fa-id-card"></i>
+                </div>
+                <div class="kpi-main">
+                  <div class="kpi-big-num">{{ kycPipelineTotal }}</div>
+                  <div class="kpi-main-label">KYC Verification</div>
+                </div>
+                <button class="kpi-nav-btn" title="Go to KYC" (click)="setNav('kyc')">
+                  <i class="fas fa-arrow-right"></i>
+                </button>
+              </div>
+              <div class="kpi-card-stats">
+                <div class="kpi-stat">
+                  <span class="kpi-stat-val">{{ kycUnderReviewCount }}</span>
+                  <div class="kpi-stat-tag">
+                    <span class="kpi-stat-dot kpi-dot--warning"></span>
+                    <span class="kpi-stat-lbl">Under Review</span>
+                  </div>
+                </div>
+                <div class="kpi-stat">
+                  <span class="kpi-stat-val">{{ kycApprovedCount }}</span>
+                  <div class="kpi-stat-tag">
+                    <span class="kpi-stat-dot kpi-dot--success"></span>
+                    <span class="kpi-stat-lbl">Approved</span>
+                  </div>
+                </div>
+                <div class="kpi-stat" [class.kpi-stat--alert]="expiredKycCount > 0">
+                  <span class="kpi-stat-val">{{ expiredKycCount }}</span>
+                  <div class="kpi-stat-tag">
+                    <span class="kpi-stat-dot kpi-dot--danger"></span>
+                    <span class="kpi-stat-lbl">Expired</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- ── Card 3 : Terminations ──────────────────────────────────── -->
+            <div class="kpi-card kpi-card--terminations">
+              <div class="kpi-card-top">
+                <div class="kpi-icon-wrap">
+                  <i class="fas fa-times-circle"></i>
+                </div>
+                <div class="kpi-main">
+                  <div class="kpi-big-num">{{ terminationTotalActive }}</div>
+                  <div class="kpi-main-label">Terminations</div>
+                </div>
+                <button class="kpi-nav-btn" title="Go to Terminations" (click)="setNav('terminations')">
+                  <i class="fas fa-arrow-right"></i>
+                </button>
+              </div>
+              <div class="kpi-card-stats">
+                <div class="kpi-stat kpi-stat--alert">
+                  <span class="kpi-stat-val">{{ terminationCount }}</span>
+                  <div class="kpi-stat-tag">
+                    <span class="kpi-stat-dot kpi-dot--danger"></span>
+                    <span class="kpi-stat-lbl">Requested</span>
+                  </div>
+                </div>
+                <div class="kpi-stat">
+                  <span class="kpi-stat-val">{{ terminationApprovedCount }}</span>
+                  <div class="kpi-stat-tag">
+                    <span class="kpi-stat-dot kpi-dot--warning"></span>
+                    <span class="kpi-stat-lbl">Approved</span>
+                  </div>
+                </div>
+                <div class="kpi-stat">
+                  <span class="kpi-stat-val">0</span>
+                  <div class="kpi-stat-tag">
+                    <span class="kpi-stat-dot kpi-dot--muted"></span>
+                    <span class="kpi-stat-lbl">Accts Pending</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+          <!-- /KPI Cards -->
+
+          <!-- ── Customer Status Grid ───────────────────────────────────────── -->
+          <div class="grid-card">
+            <div class="grid-card-header">
+              <div>
+                <h6 class="grid-card-title">Customer Records</h6>
+                <small class="text-muted">{{ customers.length }} total records across all lifecycle stages</small>
+              </div>
+              <div class="grid-actions">
+                @if (selectedExpiredCount > 0) {
+                <span class="text-muted" style="font-size:12px">{{ selectedExpiredCount }} expired selected</span>
+                }
+                <button kendoButton themeColor="primary" fillMode="outline" [disabled]="selectedExpiredCount === 0"
+                  (click)="bulkSendKycRenewal()">
+                  <i class="fas fa-envelope me-1"></i>Bulk Send KYC Renewal
+                </button>
+                <button kendoButton themeColor="primary" fillMode="outline" class="grid-icon-btn" title="Export">
+                  <i class="fas fa-download"></i>
+                </button>
+              </div>
+            </div>
+
+            <!-- Filter and Search Actions -->
+            <div class="filter-action-bar">
+              <div class="search-box">
+                <i class="fas fa-search search-icon"></i>
+                <input 
+                  type="text" 
+                  class="filter-input search-input" 
+                  placeholder="Search company, contact, email or sales person..." 
+                  [(ngModel)]="searchQuery" 
+                  (input)="applyFilter()"
+                />
+                @if (searchQuery) {
+                  <button class="clear-btn" (click)="searchQuery = ''; applyFilter()">
+                    <i class="fas fa-times"></i>
+                  </button>
+                }
+              </div>
+              
+              <div class="dropdown-filters">
+                <div class="filter-group date-filter-group">
+                  <span class="filter-label">Filter by Date</span>
+                  <kendo-multiselect
+                    [data]="dateFilterOptions"
+                    [(value)]="selectedDateFilters"
+                    (valueChange)="applyFilter()"
+                    placeholder="All Dates / Months"
+                    [checkboxes]="true"
+                    [autoClose]="false"
+                    class="kendo-filter-multiselect"
+                  >
+                  </kendo-multiselect>
+                </div>
+
+                <div class="filter-group status-filter-group">
+                  <span class="filter-label">Status</span>
+                  <kendo-multiselect
+                    [data]="availableStatuses"
+                    [(value)]="selectedStatuses"
+                    (valueChange)="applyFilter()"
+                    placeholder="All Statuses"
+                    [checkboxes]="true"
+                    [autoClose]="false"
+                    class="kendo-filter-multiselect"
+                  >
+                  </kendo-multiselect>
+                </div>
+              </div>
+            </div>
+
+            <kendo-grid [data]="gridData" [pageSize]="gridState.take!" [skip]="gridState.skip!" [sort]="gridState.sort!"
+              [sortable]="{ allowUnsort: true, mode: 'single' }"
+              [pageable]="{ buttonCount: 5, pageSizes: [10, 20, 50], info: true }" [selectable]="selectableSettings"
+              kendoGridSelectBy="id" [(selectedKeys)]="selectedKeys" (dataStateChange)="onStateChange($event)"
+              class="dashboard-grid">
+
+              <!-- Checkbox Column -->
+              <kendo-grid-checkbox-column [width]="50" [showSelectAll]="true" [locked]="true">
+              </kendo-grid-checkbox-column>
+
+              <!-- Company / Contact -->
+              <kendo-grid-column field="companyName" title="Company" [width]="280" [locked]="true">
+                <ng-template kendoGridHeaderTemplate let-column>
+                  {{ column.title }} <i class="fas fa-sort ms-1"></i>
+                </ng-template>
+                <ng-template kendoGridCellTemplate let-dataItem>
+                  <div style="display:flex;align-items:center;gap:10px">
+                    <div class="company-avatar">{{ dataItem.companyName.charAt(0) }}</div>
+                    <div>
+                      <div style="font-weight:600;font-size:13px;color:#3e5569">{{ dataItem.companyName }}</div>
+                      <div style="color:#a1aab2;font-size:11px">{{ dataItem.customerName }}</div>
+                    </div>
+                  </div>
+                </ng-template>
+              </kendo-grid-column>
+
+              <!-- Status -->
+              <kendo-grid-column field="status" title="Status" [width]="200">
+                <ng-template kendoGridHeaderTemplate let-column>
+                  {{ column.title }} <i class="fas fa-sort ms-1"></i>
+                </ng-template>
+                <ng-template kendoGridCellTemplate let-dataItem>
+                  <span class="status-badge" [ngClass]="getStatusClass(dataItem.status)">
+                    {{ dataItem.status }}
+                  </span>
+                </ng-template>
+              </kendo-grid-column>
+
+              <!-- Next Action -->
+              <kendo-grid-column field="nextAction" title="Next Action" [width]="230">
+                <ng-template kendoGridHeaderTemplate let-column>
+                  {{ column.title }} <i class="fas fa-sort ms-1"></i>
+                </ng-template>
+                <ng-template kendoGridCellTemplate let-dataItem>
+                  <span style="color:#a1aab2;font-size:13px">
+                    <i class="fas fa-circle"
+                      style="font-size:6px;color:#00B8CD;margin-right:5px;vertical-align:middle"></i>
+                    {{ dataItem.nextAction }}
+                  </span>
+                </ng-template>
+              </kendo-grid-column>
+
+              <!-- Sales Person -->
+              <kendo-grid-column field="salesPerson" title="Sales Person" [width]="230">
+                <ng-template kendoGridHeaderTemplate let-column>
+                  {{ column.title }} <i class="fas fa-sort ms-1"></i>
+                </ng-template>
+                <ng-template kendoGridCellTemplate let-dataItem>
+                  <span style="font-size:13px">{{ dataItem.salesPerson }}</span>
+                </ng-template>
+              </kendo-grid-column>
+
+              <!-- Expiry / Termination Date -->
+              <kendo-grid-column field="kycExpiryDate" title="Expiry / Termination" [width]="180" filter="date">
+                <ng-template kendoGridHeaderTemplate let-column>
+                  {{ column.title }} <i class="fas fa-sort ms-1" style="color: #a1aab2;"></i>
+                </ng-template>
+                <ng-template kendoGridCellTemplate let-dataItem>
+                  <span [style.color]="dataItem.kycExpired ? '#f64e60' : 'inherit'"
+                    [style.fontWeight]="dataItem.kycExpired ? '600' : 'normal'">
+                    @if (dataItem.kycExpired) {
+                    <i class="fas fa-exclamation-circle text-danger" style="font-size:11px;margin-right:3px"></i>
+                    }
+                    {{ (dataItem.terminationDate || dataItem.kycExpiryDate) | date:'dd MMM yyyy' }}
+                  </span>
+                </ng-template>
+              </kendo-grid-column>
+
+              <!-- Actions -->
+              <kendo-grid-column title="Actions" [width]="200" [filterable]="false" [sortable]="false">
+                <ng-template kendoGridHeaderTemplate let-column>
+                  {{ column.title }}
+                </ng-template>
+                <ng-template kendoGridCellTemplate let-dataItem>
+                  <div style="display:flex;gap:4px;flex-wrap:wrap">
+
+                    @if (isKycReviewable(dataItem.status)) {
+                    <button kendoButton [size]="'small'" themeColor="primary" fillMode="outline" title="Review KYC"
+                      (click)="openKycDialog(dataItem)">
+                      <i class="fas fa-search me-1"></i>Review KYC
+                    </button>
+                    }
+
+                    @if (isTerminationStatus(dataItem.status)) {
+                    <button kendoButton [size]="'small'" themeColor="error" fillMode="outline"
+                      title="Manage Termination" (click)="openTerminationPanel(dataItem)">
+                      <i class="fas fa-times-circle me-1"></i>Manage
+                    </button>
+                    }
+
+                    @if (isContractSent(dataItem.status)) {
+                    <button kendoButton [size]="'small'" themeColor="success" fillMode="outline" title="View Contract"
+                      (click)="openContractPanel(dataItem)">
+                      <i class="fas fa-file-contract me-1"></i>View
+                    </button>
+                    }
+
+                    @if (isContractSigned(dataItem.status)) {
+                    <span class="active-badge" style="cursor:pointer" title="Active Contract"
+                      (click)="openContractPanel(dataItem)">
+                      <i class="fas fa-check-circle" style="margin-right:3px"></i>Active
+                    </span>
+                    }
+
+                  </div>
+                </ng-template>
+              </kendo-grid-column>
+            </kendo-grid>
+          </div>
+          <!-- /Grid Card -->
+        </div>
+        <!-- /Main Col -->
+
+        <!-- Right Sidebar Area (Widgets) -->
+        <div class="dashboard-side-col">
+
+          <!-- Quick Actions -->
+          <div class="side-widget mb-4">
+            <h6 class="widget-title"><i class="fas fa-bolt text-warning me-2"></i>Quick Actions</h6>
+            <div class="widget-body p-3 d-flex flex-column gap-2">
+              <button kendoButton themeColor="primary" fillMode="solid" class="w-100 text-start"
+                style="border-radius: 6px;" (click)="openNewKycPanel()">
+                <i class="fas fa-plus-circle me-2"></i> Send New KYC Request
+              </button>
+              <button kendoButton themeColor="primary" fillMode="outline" class="w-100 text-start"
+                style="border-radius: 6px;" (click)="setNav('kyc')">
+                <i class="fas fa-search me-2"></i> Review Pending KYC
+              </button>
+              <button kendoButton themeColor="primary" fillMode="outline" class="w-100 text-start"
+                style="border-radius: 6px;" (click)="setNav('terminations')">
+                <i class="fas fa-times-circle me-2 text-danger"></i> Review Terminations
+              </button>
+            </div>
+          </div>
+
+          <!-- Action Required Watchlist -->
+          <div class="side-widget">
+            <h6 class="widget-title"><i class="fas fa-exclamation-triangle text-danger me-2"></i>Action Required</h6>
+            <div class="widget-body p-3">
+              @if (expiredKycCount === 0 && terminationCount === 0) {
+              <div class="text-muted" style="font-size:12px; text-align:center; padding: 20px 0;">
+                No urgent actions required.
+              </div>
+              } @else {
+              <!-- Expired KYC -->
+              @for (cust of customers; track cust.id) {
+              @if (cust.kycExpired) {
+              <div class="d-flex align-items-center mb-3 action-row" (click)="openActionPanel(cust, 'kyc-expired')"
+                style="cursor: pointer; padding: 8px; border-radius: 6px; transition: background 0.2s;">
+                <div class="company-avatar me-2"
+                  style="width:32px;height:32px;font-size:13px;border-radius:6px;background:rgba(246,78,96,0.1);color:#f64e60;">
+                  <i class="fas fa-id-card"></i>
+                </div>
+                <div class="flex-grow-1 min-w-0">
+                  <div
+                    style="font-size:12.5px;font-weight:600;color:#3e5569;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+                    {{ cust.companyName }}</div>
+                  <div style="font-size:11px;color:#f64e60;font-weight:500;">KYC Expired</div>
+                </div>
+              </div>
+              }
+              }
+              <!-- Terminations -->
+              @for (cust of customers; track cust.id) {
+              @if (cust.status === 'Termination Requested') {
+              <div class="d-flex align-items-center mb-3 action-row" (click)="openTerminationPanel(cust)"
+                style="cursor: pointer; padding: 8px; border-radius: 6px; transition: background 0.2s;">
+                <div class="company-avatar me-2"
+                  style="width:32px;height:32px;font-size:13px;border-radius:6px;background:rgba(246,78,96,0.1);color:#f64e60;">
+                  <i class="fas fa-ban"></i>
+                </div>
+                <div class="flex-grow-1 min-w-0">
+                  <div
+                    style="font-size:12.5px;font-weight:600;color:#3e5569;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+                    {{ cust.companyName }}</div>
+                  <div style="font-size:11px;color:#f64e60;font-weight:500;">Termination Requested</div>
+                </div>
+              </div>
+              }
+              }
+              }
+            </div>
+          </div>
+
+        </div>
+        <!-- /Side Col -->
+      </div>
+      <!-- /Dashboard Grid Layout -->
+
+    </div>
+    } @else if (activeNav === 'kyc') {
+    <app-kyc-verification [openRecordId]="kycRecordToOpen"
+      (panelClosed)="kycRecordToOpen = null"></app-kyc-verification>
+    } @else if (activeNav === 'contracts') {
+    <app-contracts [openRecordId]="contractRecordToOpen" (panelClosed)="contractRecordToOpen = null"></app-contracts>
+    } @else if (activeNav === 'terminations') {
+    <app-terminations [openRecordId]="terminationRecordToOpen"
+      (panelClosed)="terminationRecordToOpen = null"></app-terminations>
+    } @else {
+    <app-coming-soon [pageName]="navMeta[activeNav]?.label" [pageIcon]="navMeta[activeNav]?.icon">
+    </app-coming-soon>
+    }
+    <!-- /Page Content -->
+
+  </div>
+  <!-- /Main Area -->
+
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════
+     ACTION REQUIRED SLIDE PANEL
+     ══════════════════════════════════════════════════════════════════════ -->
+@if (actionPanelOpen && actionPanelCustomer) {
+<div class="slide-panel-overlay" (click)="closeActionPanel()"></div>
+<div class="slide-panel slide-in">
+  <div class="slide-panel-header d-flex justify-content-between align-items-center">
+    <h5 class="mb-0">KYC Renewal</h5>
+    <button class="icon-btn" (click)="closeActionPanel()"
+      style="background:none;border:none;font-size:16px;color:#6c757d;"><i class="fas fa-times"></i></button>
+  </div>
+
+  <div class="slide-panel-body p-4">
+    <!-- Customer Info -->
+    <div class="d-flex align-items-center mb-4 pb-3" style="border-bottom: 1px solid #e9ecef;">
+      <div class="company-avatar me-3" style="width:48px;height:48px;font-size:18px;">
+        {{ actionPanelCustomer.companyName.charAt(0) }}
+      </div>
+      <div>
+        <h6 class="mb-1" style="font-weight: 600; color: #3e5569;">{{ actionPanelCustomer.companyName }}</h6>
+        <div class="text-muted" style="font-size:13px;">{{ actionPanelCustomer.customerName }}</div>
+      </div>
+    </div>
+
+    <div class="alert alert-danger d-flex align-items-start"
+      style="font-size:13px; border-radius:6px; border:none; background:rgba(246,78,96,0.1); color:#f64e60;">
+      <i class="fas fa-exclamation-triangle mt-1 me-2"></i>
+      <div>KYC has expired. Please send a renewal link to the customer to collect updated documents.</div>
+    </div>
+
+    <div class="mb-4">
+      <label class="text-muted d-block mb-1" style="font-size:12px; font-weight:600;">KYC Expiry Date</label>
+      <div style="font-weight:500; font-size:14px;">
+        {{ (actionPanelCustomer.kycExpiryDate | date:'dd MMM yyyy') || 'N/A' }}
+      </div>
+    </div>
+
+    <button kendoButton themeColor="primary" fillMode="outline" class="w-100" style="border-radius:6px; padding:10px;"
+      (click)="sendIndividualKycRenewal(actionPanelCustomer); closeActionPanel()">
+      <i class="fas fa-paper-plane me-2"></i> Send KYC Renewal Email
+    </button>
+  </div>
+</div>
+}
+
+
+<!-- ═══════════════════════════════════════════════════════════════════════
+     TERMINATION MANAGEMENT SLIDE PANEL
+     ══════════════════════════════════════════════════════════════════════ -->
+@if (terminationPanelOpen && selectedCustomer) {
+<app-termination-panel [record]="selectedCustomer" (close)="closeTerminationPanel()" (approve)="onTerminationApproved()"
+  (callOff)="onTerminationCallOff($event)">
+</app-termination-panel>
+}
+
+
+<!-- ═══════════════════════════════════════════════════════════════════════
+     KYC REVIEW SLIDE PANEL
+     ══════════════════════════════════════════════════════════════════════ -->
+@if (kycDialogOpen && selectedCustomer) {
+<div class="slide-panel-overlay" (click)="closeKycDialog()"></div>
+<div class="slide-panel slide-panel--wide slide-in">
+
+  <!-- Header -->
+  <div class="nkp-header">
+    <div class="nkp-header-left">
+      <div class="nkp-header-icon"><i class="fas fa-file-search"></i></div>
+      <div>
+        <h5 class="nkp-title">KYC Review — {{ selectedCustomer.companyName }}</h5>
+        <div class="nkp-subtitle">{{ selectedCustomer.customerName }}&nbsp;&nbsp;·&nbsp;&nbsp;Sales Person: {{
+          selectedCustomer.salesPerson }}</div>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;flex-shrink:0">
+      <span class="status-badge" [ngClass]="getStatusClass(selectedCustomer.status)">{{ selectedCustomer.status
+        }}</span>
+      <button class="nkp-close-btn" (click)="closeKycDialog()"><i class="fas fa-times"></i></button>
+    </div>
+  </div>
+
+  <!-- Scrollable Body -->
+  <div class="nkp-body">
+
+    <!-- ── Section 01: Clinic / Company Details ─────────────────────────── -->
+    <div class="nkp-section">
+      <div class="nkp-section-hdr">
+        <div class="nkp-section-num">01</div>
+        <div class="nkp-section-title">Clinic / Company Details</div>
+      </div>
+
+      <div class="krc-grid-3">
+
+        <div class="krc-field krc-field--full">
+          <div class="krc-label">Legal Clinic Name</div>
+          <div class="krc-value">{{ selectedCustomer.companyName }}</div>
+        </div>
+
+        <div class="krc-field">
+          <div class="krc-label">Trade License Number</div>
+          <div class="krc-value">{{ selectedCustomer.tradeLicenseNumber }}</div>
+        </div>
+        <div class="krc-field">
+          <div class="krc-label">Trade License Expiry Date</div>
+          <div class="krc-value" [class.krc-value--error]="selectedCustomer.fieldErrors?.['tradeLicenseExpiry']">
+            {{ selectedCustomer.tradeLicenseExpiry | date:'dd MMM yyyy' }}
+          </div>
+          @if (selectedCustomer.fieldErrors?.['tradeLicenseExpiry']) {
+          <div class="krc-error"><i class="fas fa-exclamation-circle"></i> {{
+            selectedCustomer.fieldErrors?.['tradeLicenseExpiry'] }}</div>
+          }
+        </div>
+        <div class="krc-field">
+          <div class="krc-label">DHA License Number</div>
+          <div class="krc-value">{{ selectedCustomer.dhaLicenseNumber }}</div>
+        </div>
+
+        <div class="krc-field">
+          <div class="krc-label">VAT / TRN Number</div>
+          <div class="krc-value">{{ selectedCustomer.vatTrnNumber }}</div>
+        </div>
+        <div class="krc-field">
+          <div class="krc-label">Emirate</div>
+          <div class="krc-value">{{ selectedCustomer.emirate }}</div>
+        </div>
+        <div class="krc-field">
+          <div class="krc-label">Clinic Phone Number</div>
+          <div class="krc-value">{{ selectedCustomer.clinicPhone }}</div>
+        </div>
+
+        <div class="krc-field">
+          <div class="krc-label">Clinic Email ID</div>
+          <div class="krc-value">{{ selectedCustomer.clinicEmail }}</div>
+        </div>
+        <div class="krc-field">
+          <div class="krc-label">Website</div>
+          <div class="krc-value">{{ selectedCustomer.website || '—' }}</div>
+        </div>
+
+        <div class="krc-field krc-field--full">
+          <div class="krc-label">Registered Business Address</div>
+          <div class="krc-value krc-value--multiline">{{ selectedCustomer.registeredAddress }}</div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ── Section 02: Authorized Signatory Details ─────────────────────── -->
+    <div class="nkp-section">
+      <div class="nkp-section-hdr">
+        <div class="nkp-section-num">02</div>
+        <div class="nkp-section-title">Authorized Signatory Details</div>
+      </div>
+
+      <div class="krc-grid-3">
+
+        <div class="krc-field">
+          <div class="krc-label">Full Name</div>
+          <div class="krc-value">{{ selectedCustomer.customerName }}</div>
+        </div>
+        <div class="krc-field">
+          <div class="krc-label">Designation</div>
+          <div class="krc-value">{{ selectedCustomer.signatoryDesignation }}</div>
+        </div>
+        <div class="krc-field">
+          <div class="krc-label">Email Address</div>
+          <div class="krc-value">{{ selectedCustomer.signatoryEmail }}</div>
+        </div>
+
+        <div class="krc-field">
+          <div class="krc-label">Mobile Number</div>
+          <div class="krc-value">{{ selectedCustomer.signatoryMobile }}</div>
+        </div>
+        <div class="krc-field">
+          <div class="krc-label">Emirates ID Copy</div>
+          <div class="krc-doc-chip"><i class="fas fa-check-circle"></i> {{ selectedCustomer.fileEmiratiesId }}</div>
+        </div>
+        <div class="krc-field">
+          <div class="krc-label">Passport Copy</div>
+          <div class="krc-doc-chip"><i class="fas fa-check-circle"></i> {{ selectedCustomer.filePassport }}</div>
+        </div>
+
+        <div class="krc-field">
+          <div class="krc-label">Signature Authority Proof</div>
+          @if (selectedCustomer.fileSignatureProof) {
+          <div class="krc-doc-chip"><i class="fas fa-check-circle"></i> {{ selectedCustomer.fileSignatureProof }}</div>
+          } @else {
+          <div class="krc-doc-chip krc-doc-chip--na"
+            [class.krc-doc-chip--error]="selectedCustomer.fieldErrors?.['fileSignatureProof']">
+            <i class="fas fa-minus-circle"></i> Not Provided
+          </div>
+          }
+          @if (selectedCustomer.fieldErrors?.['fileSignatureProof']) {
+          <div class="krc-error"><i class="fas fa-exclamation-circle"></i> {{
+            selectedCustomer.fieldErrors?.['fileSignatureProof'] }}</div>
+          }
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ── Section 03: Compliance Documents ────────────────────────────── -->
+    <div class="nkp-section">
+      <div class="nkp-section-hdr">
+        <div class="nkp-section-num">03</div>
+        <div class="nkp-section-title">
+          Compliance Documents
+          <span class="doc-count-badge" style="margin-left:8px">{{ kycDocuments.length }} files</span>
+        </div>
+      </div>
+
+      @for (doc of kycDocuments; track doc.name) {
+      <div class="doc-row">
+        <div class="doc-icon"><i [class]="doc.icon"></i></div>
+        <div style="flex:1">
+          <div style="font-weight:600;font-size:13px">{{ doc.name }}</div>
+          <div style="color:#6c757d;font-size:11px">
+            {{ doc.fileType }} · Uploaded {{ doc.uploadedOn | date:'dd MMM yyyy' }}
+          </div>
+        </div>
+        <span class="doc-status-badge">Uploaded</span>
+      </div>
+      }
+    </div>
+
+    <!-- ── Reviewer Notes ─────────────────────────────────────────────── -->
+    <div class="nkp-section nkp-section--last">
+      <div class="nkp-section-hdr">
+        <div class="nkp-section-num" style="background:#eef0f3;color:#6c757d">
+          <i class="fas fa-pen" style="font-size:10px"></i>
+        </div>
+        <div class="nkp-section-title">Reviewer Notes <span class="nkp-opt">(optional)</span></div>
+      </div>
+      <textarea class="nkp-textarea" rows="3" [(ngModel)]="kycReviewerNotes"
+        placeholder="Add compliance notes or reason for rejection / correction request..."></textarea>
+    </div>
+
+  </div>
+  <!-- /Body -->
+
+  <!-- Footer -->
+  <div class="nkp-footer">
+    <button kendoButton themeColor="base" fillMode="outline" (click)="closeKycDialog()">
+      Close
+    </button>
+    <button kendoButton themeColor="primary" fillMode="outline" (click)="resendKyc()">
+      <i class="fas fa-paper-plane me-2"></i>Resend KYC
+    </button>
+    <button kendoButton themeColor="error" fillMode="outline" (click)="rejectKyc()">
+      <i class="fas fa-times-circle me-2"></i>Reject
+    </button>
+    <button kendoButton themeColor="warning" fillMode="outline" (click)="requestCorrection()">
+      <i class="fas fa-edit me-2"></i>Request Correction
+    </button>
+    <button kendoButton themeColor="success" fillMode="solid" (click)="approveKyc()">
+      <i class="fas fa-check-circle me-2"></i>Approve KYC
+    </button>
+  </div>
+
+</div>
+}
+
+
+<!-- ═══════════════════════════════════════════════════════════════════════
+     NEW KYC REQUEST SLIDE PANEL
+     ══════════════════════════════════════════════════════════════════════ -->
+@if (newKycPanelOpen) {
+<div class="slide-panel-overlay" (click)="closeNewKycPanel()"></div>
+<div class="slide-panel slide-panel--wide slide-in">
+
+  <!-- Header -->
+  <div class="nkp-header">
+    <div class="nkp-header-left">
+      <div class="nkp-header-icon"><i class="fas fa-file-medical-alt"></i></div>
+      <div>
+        <h5 class="nkp-title">Send New KYC Request</h5>
+        <div class="nkp-subtitle">Fill in all details to initiate the KYC verification process</div>
+      </div>
+    </div>
+    <button class="nkp-close-btn" (click)="closeNewKycPanel()"><i class="fas fa-times"></i></button>
+  </div>
+
+  <!-- Scrollable Body -->
+  <div class="nkp-body">
+
+    <!-- ── Section 01: Clinic / Company Details ─────────────────────────── -->
+    <div class="nkp-section">
+      <div class="nkp-section-hdr">
+        <div class="nkp-section-num">01</div>
+        <div class="nkp-section-title">Clinic / Company Details</div>
+      </div>
+
+      <div class="nkp-grid-3">
+
+        <div class="nkp-field nkp-field--full">
+          <label class="nkp-label">Legal Clinic Name <span class="nkp-req">*</span></label>
+          <input type="text" class="nkp-input" [(ngModel)]="newKycForm.legalClinicName"
+            placeholder="e.g. CityCare Medical Clinic LLC">
+        </div>
+
+        <div class="nkp-field">
+          <label class="nkp-label">Trade License Number <span class="nkp-req">*</span></label>
+          <input type="text" class="nkp-input" [(ngModel)]="newKycForm.tradeLicenseNumber"
+            placeholder="e.g. TL-2024-123456">
+        </div>
+
+        <div class="nkp-field">
+          <label class="nkp-label">Trade License Expiry Date <span class="nkp-req">*</span></label>
+          <input type="date" class="nkp-input" [(ngModel)]="newKycForm.tradeLicenseExpiry">
+        </div>
+
+        <div class="nkp-field">
+          <label class="nkp-label">DHA License Number <span class="nkp-req">*</span></label>
+          <input type="text" class="nkp-input" [(ngModel)]="newKycForm.dhaLicenseNumber"
+            placeholder="Dubai Health Authority License No.">
+        </div>
+
+        <div class="nkp-field">
+          <label class="nkp-label">VAT / TRN Number</label>
+          <input type="text" class="nkp-input" [(ngModel)]="newKycForm.vatTrnNumber" placeholder="e.g. 100123456700003">
+        </div>
+
+        <div class="nkp-field">
+          <label class="nkp-label">Emirate <span class="nkp-req">*</span></label>
+          <select class="nkp-select" [(ngModel)]="newKycForm.emirate">
+            <option value="">Select Emirate</option>
+            <option>Dubai</option>
+            <option>Abu Dhabi</option>
+            <option>Sharjah</option>
+            <option>Ajman</option>
+            <option>Umm Al Quwain</option>
+            <option>Ras Al Khaimah</option>
+            <option>Fujairah</option>
+          </select>
+        </div>
+
+        <div class="nkp-field">
+          <label class="nkp-label">Clinic Phone Number <span class="nkp-req">*</span></label>
+          <input type="tel" class="nkp-input" [(ngModel)]="newKycForm.clinicPhone" placeholder="+971 4 xxx xxxx">
+        </div>
+
+        <div class="nkp-field">
+          <label class="nkp-label">Clinic Email ID <span class="nkp-req">*</span></label>
+          <input type="email" class="nkp-input" [(ngModel)]="newKycForm.clinicEmail" placeholder="clinic@example.ae">
+        </div>
+
+        <div class="nkp-field">
+          <label class="nkp-label">Website <span class="nkp-opt">(if available)</span></label>
+          <input type="url" class="nkp-input" [(ngModel)]="newKycForm.website" placeholder="https://www.clinic.ae">
+        </div>
+
+        <div class="nkp-field nkp-field--full">
+          <label class="nkp-label">Registered Business Address <span class="nkp-req">*</span></label>
+          <textarea class="nkp-textarea" [(ngModel)]="newKycForm.registeredAddress" rows="2"
+            placeholder="Unit, Building, Street, Area, Emirate, UAE"></textarea>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ── Section 02: Authorized Signatory Details ─────────────────────── -->
+    <div class="nkp-section">
+      <div class="nkp-section-hdr">
+        <div class="nkp-section-num">02</div>
+        <div class="nkp-section-title">Authorized Signatory Details</div>
+      </div>
+
+      <div class="nkp-grid-3">
+        <div class="nkp-field">
+          <label class="nkp-label">Full Name <span class="nkp-req">*</span></label>
+          <input type="text" class="nkp-input" [(ngModel)]="newKycForm.signatoryName" placeholder="As per Emirates ID">
+        </div>
+        <div class="nkp-field">
+          <label class="nkp-label">Designation <span class="nkp-req">*</span></label>
+          <input type="text" class="nkp-input" [(ngModel)]="newKycForm.signatoryDesignation"
+            placeholder="e.g. CEO, Medical Director">
+        </div>
+        <div class="nkp-field">
+          <label class="nkp-label">Email Address <span class="nkp-req">*</span></label>
+          <input type="email" class="nkp-input" [(ngModel)]="newKycForm.signatoryEmail"
+            placeholder="signatory@clinic.ae">
+        </div>
+        <div class="nkp-field">
+          <label class="nkp-label">Mobile Number <span class="nkp-req">*</span></label>
+          <input type="tel" class="nkp-input" [(ngModel)]="newKycForm.signatoryMobile" placeholder="+971 50 xxx xxxx">
+        </div>
+      </div>
+
+      <div class="nkp-grid-3 nkp-mt">
+        <div class="nkp-field">
+          <label class="nkp-label">Emirates ID Copy <span class="nkp-req">*</span></label>
+          <div class="nkp-upload" [class.nkp-upload--filled]="newKycForm.fileEmiratiesId" (click)="eidInput.click()">
+            <i class="fas" [class.fa-id-card]="!newKycForm.fileEmiratiesId"
+              [class.fa-check-circle]="newKycForm.fileEmiratiesId"></i>
+            <span>{{ newKycForm.fileEmiratiesId || 'Upload Emirates ID' }}</span>
+          </div>
+          <input type="file" #eidInput style="display:none" accept=".pdf,.jpg,.jpeg,.png"
+            (change)="onFileSelect('fileEmiratiesId', $event)">
+        </div>
+
+        <div class="nkp-field">
+          <label class="nkp-label">Passport Copy <span class="nkp-req">*</span></label>
+          <div class="nkp-upload" [class.nkp-upload--filled]="newKycForm.filePassport" (click)="passportInput.click()">
+            <i class="fas" [class.fa-passport]="!newKycForm.filePassport"
+              [class.fa-check-circle]="newKycForm.filePassport"></i>
+            <span>{{ newKycForm.filePassport || 'Upload Passport Copy' }}</span>
+          </div>
+          <input type="file" #passportInput style="display:none" accept=".pdf,.jpg,.jpeg,.png"
+            (change)="onFileSelect('filePassport', $event)">
+        </div>
+
+        <div class="nkp-field">
+          <label class="nkp-label">Signature Authority Proof <span class="nkp-opt">(if needed)</span></label>
+          <div class="nkp-upload" [class.nkp-upload--filled]="newKycForm.fileSignatureProof"
+            (click)="sigAuthInput.click()">
+            <i class="fas" [class.fa-file-signature]="!newKycForm.fileSignatureProof"
+              [class.fa-check-circle]="newKycForm.fileSignatureProof"></i>
+            <span>{{ newKycForm.fileSignatureProof || 'Upload Authority Proof' }}</span>
+          </div>
+          <input type="file" #sigAuthInput style="display:none" accept=".pdf,.jpg,.jpeg,.png"
+            (change)="onFileSelect('fileSignatureProof', $event)">
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Section 03: Compliance Documents ────────────────────────────── -->
+    <div class="nkp-section nkp-section--last">
+      <div class="nkp-section-hdr">
+        <div class="nkp-section-num">03</div>
+        <div class="nkp-section-title">Compliance Documents</div>
+      </div>
+
+      <div class="nkp-grid-3">
+
+        <div class="nkp-field">
+          <label class="nkp-label">Trade License Copy <span class="nkp-req">*</span></label>
+          <div class="nkp-upload" [class.nkp-upload--filled]="newKycForm.fileTradeLicense"
+            (click)="tlCopyInput.click()">
+            <i class="fas" [class.fa-file-alt]="!newKycForm.fileTradeLicense"
+              [class.fa-check-circle]="newKycForm.fileTradeLicense"></i>
+            <span>{{ newKycForm.fileTradeLicense || 'Upload Trade License' }}</span>
+          </div>
+          <input type="file" #tlCopyInput style="display:none" accept=".pdf,.jpg,.jpeg,.png"
+            (change)="onFileSelect('fileTradeLicense', $event)">
+        </div>
+
+        <div class="nkp-field">
+          <label class="nkp-label">DHA / MOH License Copy <span class="nkp-req">*</span></label>
+          <div class="nkp-upload" [class.nkp-upload--filled]="newKycForm.fileDhaLicense" (click)="dhaInput.click()">
+            <i class="fas" [class.fa-hospital]="!newKycForm.fileDhaLicense"
+              [class.fa-check-circle]="newKycForm.fileDhaLicense"></i>
+            <span>{{ newKycForm.fileDhaLicense || 'Upload DHA / MOH License' }}</span>
+          </div>
+          <input type="file" #dhaInput style="display:none" accept=".pdf,.jpg,.jpeg,.png"
+            (change)="onFileSelect('fileDhaLicense', $event)">
+        </div>
+
+        <div class="nkp-field">
+          <label class="nkp-label">Emirates ID Copies <span class="nkp-req">*</span></label>
+          <div class="nkp-upload" [class.nkp-upload--filled]="newKycForm.fileEmiratiesIdCopies"
+            (click)="eidCopiesInput.click()">
+            <i class="fas" [class.fa-id-card]="!newKycForm.fileEmiratiesIdCopies"
+              [class.fa-check-circle]="newKycForm.fileEmiratiesIdCopies"></i>
+            <span>{{ newKycForm.fileEmiratiesIdCopies || 'Upload Emirates IDs' }}</span>
+          </div>
+          <input type="file" #eidCopiesInput style="display:none" accept=".pdf,.jpg,.jpeg,.png" multiple
+            (change)="onFileSelect('fileEmiratiesIdCopies', $event)">
+        </div>
+
+        <div class="nkp-field">
+          <label class="nkp-label">Passport Copies <span class="nkp-req">*</span></label>
+          <div class="nkp-upload" [class.nkp-upload--filled]="newKycForm.filePassportCopies"
+            (click)="passportCopiesInput.click()">
+            <i class="fas" [class.fa-passport]="!newKycForm.filePassportCopies"
+              [class.fa-check-circle]="newKycForm.filePassportCopies"></i>
+            <span>{{ newKycForm.filePassportCopies || 'Upload Passports' }}</span>
+          </div>
+          <input type="file" #passportCopiesInput style="display:none" accept=".pdf,.jpg,.jpeg,.png" multiple
+            (change)="onFileSelect('filePassportCopies', $event)">
+        </div>
+
+        <div class="nkp-field">
+          <label class="nkp-label">VAT Certificate</label>
+          <div class="nkp-upload" [class.nkp-upload--filled]="newKycForm.fileVatCert" (click)="vatInput.click()">
+            <i class="fas" [class.fa-file-invoice]="!newKycForm.fileVatCert"
+              [class.fa-check-circle]="newKycForm.fileVatCert"></i>
+            <span>{{ newKycForm.fileVatCert || 'Upload VAT Certificate' }}</span>
+          </div>
+          <input type="file" #vatInput style="display:none" accept=".pdf,.jpg,.jpeg,.png"
+            (change)="onFileSelect('fileVatCert', $event)">
+        </div>
+
+        <div class="nkp-field">
+          <label class="nkp-label">Address Proof <span class="nkp-req">*</span></label>
+          <div class="nkp-upload" [class.nkp-upload--filled]="newKycForm.fileAddressProof"
+            (click)="addressInput.click()">
+            <i class="fas" [class.fa-map-marker-alt]="!newKycForm.fileAddressProof"
+              [class.fa-check-circle]="newKycForm.fileAddressProof"></i>
+            <span>{{ newKycForm.fileAddressProof || 'Upload Address Proof' }}</span>
+          </div>
+          <input type="file" #addressInput style="display:none" accept=".pdf,.jpg,.jpeg,.png"
+            (change)="onFileSelect('fileAddressProof', $event)">
+        </div>
+
+        <div class="nkp-field">
+          <label class="nkp-label">Company Stamp</label>
+          <div class="nkp-upload" [class.nkp-upload--filled]="newKycForm.fileCompanyStamp" (click)="stampInput.click()">
+            <i class="fas" [class.fa-stamp]="!newKycForm.fileCompanyStamp"
+              [class.fa-check-circle]="newKycForm.fileCompanyStamp"></i>
+            <span>{{ newKycForm.fileCompanyStamp || 'Upload Company Stamp' }}</span>
+          </div>
+          <input type="file" #stampInput style="display:none" accept=".pdf,.jpg,.jpeg,.png"
+            (change)="onFileSelect('fileCompanyStamp', $event)">
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+  <!-- /Body -->
+
+  <!-- Footer -->
+  <div class="nkp-footer">
+    <button kendoButton themeColor="base" fillMode="outline" (click)="closeNewKycPanel()">
+      Cancel
+    </button>
+    <button kendoButton themeColor="primary" fillMode="solid" (click)="submitNewKyc()">
+      <i class="fas fa-paper-plane me-2"></i> Submit KYC Request
+    </button>
+  </div>
+
+</div>
+}
+
+<!-- ═══════════════════════════════════════════════════════════════════════
+     CONTRACT PREVIEW SLIDE PANEL
+     ══════════════════════════════════════════════════════════════════════ -->
+@if (contractPanelOpen && contractPanelCustomer) {
+<div class="slide-panel-overlay" (click)="closeContractPanel()"></div>
+<div class="slide-panel slide-panel--wide slide-in" style="display:flex;flex-direction:column">
+
+  <!-- Header -->
+  <div class="nkp-header">
+    <div class="nkp-header-left">
+      <div class="nkp-header-icon"><i class="fas fa-file-contract"></i></div>
+      <div>
+        <h5 class="nkp-title">Contract Preview — {{ contractPanelCustomer.companyName }}</h5>
+        <div class="nkp-subtitle">
+          {{ selectedContract?.ref ?? '—' }}&nbsp;&nbsp;·&nbsp;&nbsp;Unitecare Software Solutions FZE &times; {{
+          contractPanelCustomer.companyName }}
+        </div>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;flex-shrink:0">
+      @if (selectedContract?.status === 'active') {
+      <span class="status-badge badge-success">Active Contract</span>
+      } @else if (selectedContract?.status === 'pending') {
+      <span class="status-badge badge-warning">Pending Signature</span>
+      } @else {
+      <span class="status-badge badge-secondary">Expired</span>
+      }
+      <button class="nkp-close-btn" (click)="closeContractPanel()"><i class="fas fa-times"></i></button>
+    </div>
+  </div>
+
+  <!-- Version Navigator -->
+  <div class="cp-version-bar">
+    <span class="cp-version-label">Contract History</span>
+    <div class="cp-version-tabs">
+      @for (cv of contractPanelCustomer.contractHistory ?? []; track cv.ref; let i = $index) {
+      <button class="cp-version-tab" [class.active]="selectedContractIdx === i"
+        [class.cp-version-tab--pending]="cv.status === 'pending'"
+        [class.cp-version-tab--expired]="cv.status === 'expired'" (click)="selectedContractIdx = i">
+        <span class="cp-version-num">v{{ cv.version }}</span>
+        <span class="cp-version-status-chip">
+          @if (cv.status === 'active') { <span class="cp-live-dot"></span> }
+          {{ cv.status === 'active' ? 'Active' : cv.status === 'pending' ? 'Pending' : 'Expired' }}
+        </span>
+      </button>
+      }
+    </div>
+  </div>
+
+  <!-- PDF-like Viewer -->
+  <div class="cp-viewer">
+    @if (selectedContract) {
+    <div class="cp-paper">
+
+      <!-- Watermark -->
+      @if (selectedContract.status === 'expired') {
+      <div class="cp-watermark">EXPIRED</div>
+      }
+
+      <!-- Letterhead -->
+      <div class="cp-letterhead">
+        <div class="cp-logo-block">
+          <div class="cp-logo-icon"><i class="fas fa-hospital-alt"></i></div>
+          <div>
+            <div class="cp-logo-name">Unitecare Software Solutions FZE</div>
+            <div class="cp-logo-tagline">Healthcare Technology &amp; Contract Management · Dubai, UAE</div>
+          </div>
+        </div>
+        <div class="cp-letterhead-right">
+          <div class="cp-ref-badge">{{ selectedContract.ref }}</div>
+          <div class="cp-ref-date">Dated: {{ selectedContract.startDate | date:'dd MMMM yyyy' }}</div>
+        </div>
+      </div>
+
+      <!-- Title -->
+      <div class="cp-title-block">
+        <div class="cp-doc-title">HEALTHCARE SOFTWARE SERVICES AGREEMENT</div>
+        <div class="cp-doc-subtitle">
+          Contracts · Digital Services Platform · Version {{ selectedContract.version }}
+        </div>
+      </div>
+
+      <!-- Parties -->
+      <div class="cp-section">
+        <div class="cp-section-label">Parties to the Agreement</div>
+        <div class="cp-parties-grid">
+          <div class="cp-party">
+            <div class="cp-party-role">Service Provider</div>
+            <div class="cp-party-name">Unitecare Software Solutions FZE</div>
+            <div class="cp-party-detail">Freezone Authority, Dubai, United Arab Emirates</div>
+            <div class="cp-party-detail">License No: FZE-2019-04521</div>
+          </div>
+          <div class="cp-party-and">AND</div>
+          <div class="cp-party">
+            <div class="cp-party-role">Client</div>
+            <div class="cp-party-name">{{ contractPanelCustomer.companyName }}</div>
+            <div class="cp-party-detail">{{ contractPanelCustomer.customerName }}, Authorised Signatory</div>
+            <div class="cp-party-detail">Dubai, United Arab Emirates</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Scope of Services -->
+      <div class="cp-section">
+        <div class="cp-section-label">Scope of Services</div>
+        <div class="cp-clause-list">
+          <div class="cp-clause">
+            <span class="cp-clause-num">1.</span>
+            <span>Contracts Management Platform — Full lifecycle contract management, digital signing, version control,
+              and cloud archival on the Contracts platform.</span>
+          </div>
+          <div class="cp-clause">
+            <span class="cp-clause-num">2.</span>
+            <span>KYC Verification &amp; Document Management — Regulatory compliance, identity verification, document
+              collection, and automated renewal tracking for all clinic-level onboarding.</span>
+          </div>
+          <div class="cp-clause">
+            <span class="cp-clause-num">3.</span>
+            <span>Healthcare Regulatory Compliance Support — DHA/MOH licensing advisory, trade license monitoring, and
+              documentation assistance aligned with UAE federal requirements.</span>
+          </div>
+          <div class="cp-clause">
+            <span class="cp-clause-num">4.</span>
+            <span>Technical Support &amp; SLA Coverage — Priority support desk with guaranteed 4-hour response SLA and
+              99.5% platform uptime commitment.</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Contract Terms -->
+      <div class="cp-section">
+        <div class="cp-section-label">Contract Terms</div>
+        <div class="cp-terms-grid">
+          <div class="cp-term">
+            <div class="cp-term-lbl">Contract Period</div>
+            <div class="cp-term-val">{{ selectedContract.startDate | date:'dd MMM yyyy' }} — {{ selectedContract.endDate
+              | date:'dd MMM yyyy' }}</div>
+          </div>
+          <div class="cp-term">
+            <div class="cp-term-lbl">Annual Contract Value</div>
+            <div class="cp-term-val">{{ selectedContract.annualValue }}</div>
+          </div>
+          <div class="cp-term">
+            <div class="cp-term-lbl">Payment Schedule</div>
+            <div class="cp-term-val">Quarterly Installments (4 × AED)</div>
+          </div>
+          <div class="cp-term">
+            <div class="cp-term-lbl">Renewal Clause</div>
+            <div class="cp-term-val">Auto-renew with 60-day prior written notice</div>
+          </div>
+          <div class="cp-term">
+            <div class="cp-term-lbl">Governing Law</div>
+            <div class="cp-term-val">UAE Federal Law &amp; DIFC Regulations</div>
+          </div>
+          <div class="cp-term">
+            <div class="cp-term-lbl">Termination Notice</div>
+            <div class="cp-term-val">30-day notice; 60 days for no-fault termination</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Signatures -->
+      <div class="cp-section cp-section--last">
+        <div class="cp-section-label">Authorised Signatures</div>
+        <div class="cp-sig-grid">
+
+          <!-- Unitecare -->
+          <div class="cp-sig-block">
+            <div class="cp-sig-line">
+              <div class="cp-sig-cursive">Ahmed Al Marri</div>
+            </div>
+            <div class="cp-sig-name">Ahmed Al Marri</div>
+            <div class="cp-sig-detail">Chief Executive Officer</div>
+            <div class="cp-sig-detail">Unitecare Software Solutions FZE</div>
+            <div class="cp-sig-date">{{ selectedContract.startDate | date:'dd MMMM yyyy' }}</div>
+          </div>
+
+          <!-- Client -->
+          <div class="cp-sig-block" [class.cp-sig-block--pending]="selectedContract.status === 'pending'">
+            @if (selectedContract.status === 'pending') {
+            <div class="cp-sig-awaiting">
+              <i class="fas fa-pen-nib"></i>
+              <span>Awaiting Client Signature</span>
+            </div>
+            } @else {
+            <div class="cp-sig-line">
+              <div class="cp-sig-cursive">{{ contractPanelCustomer.customerName }}</div>
+            </div>
+            }
+            <div class="cp-sig-name">{{ contractPanelCustomer.customerName }}</div>
+            <div class="cp-sig-detail">Authorised Signatory</div>
+            <div class="cp-sig-detail">{{ contractPanelCustomer.companyName }}</div>
+            @if (selectedContract.status !== 'pending') {
+            <div class="cp-sig-date">{{ selectedContract.startDate | date:'dd MMMM yyyy' }}</div>
+            }
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Page Footer -->
+      <div class="cp-page-footer">
+        <span>{{ selectedContract.ref }} — Confidential</span>
+        <span>Unitecare Software Solutions FZE × {{ contractPanelCustomer.companyName }}</span>
+        <span>Page 1 of 3</span>
+      </div>
+
+    </div>
+    }
+  </div>
+
+  <!-- Footer Actions -->
+  <div class="nkp-footer">
+    <button kendoButton themeColor="base" fillMode="outline" (click)="closeContractPanel()">
+      Close
+    </button>
+    <button kendoButton themeColor="base" fillMode="outline" [disabled]="true"
+      title="PDF download available in production">
+      <i class="fas fa-download me-2"></i>Download PDF
+    </button>
+    @if (selectedContract?.status === 'pending') {
+    <button kendoButton themeColor="warning" fillMode="outline">
+      <i class="fas fa-paper-plane me-2"></i>Send Signature Reminder
+    </button>
+    }
+    @if (selectedContract?.status === 'active') {
+    <button kendoButton themeColor="primary" fillMode="outline">
+      <i class="fas fa-file-alt me-2"></i>Request Amendment
+    </button>
+    }
+  </div>
+
+</div>
+}

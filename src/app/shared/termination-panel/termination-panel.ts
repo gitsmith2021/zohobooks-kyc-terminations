@@ -1,0 +1,63 @@
+import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { CommonModule, DatePipe } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { ButtonModule } from '@progress/kendo-angular-buttons';
+
+@Component({
+  selector: 'app-termination-panel',
+  standalone: true,
+  imports: [CommonModule, DatePipe, FormsModule, ButtonModule],
+  templateUrl: './termination-panel.html',
+  styleUrl: './termination-panel.scss',
+})
+export class TerminationPanel {
+  /** Full CustomerRecord passed in from the dashboard */
+  @Input() record: any;
+
+  /** Close / dismiss the panel */
+  @Output() close = new EventEmitter<void>();
+
+  /** User clicked Approve Termination */
+  @Output() approve = new EventEmitter<void>();
+
+  /** User confirmed Call-Off — emits the mandatory remark text */
+  @Output() callOff = new EventEmitter<{ remark: string }>();
+
+  // ── Call-Off inline form state ──────────────────────────────────────────────
+  showCallOffForm   = false;
+  callOffRemark     = '';
+  callOffRemarkError = false;
+
+  // ── Computed notice-period helpers ─────────────────────────────────────────
+  get noticeEndDate(): Date | null {
+    if (!this.record?.terminationDate) { return null; }
+    const d = new Date(this.record.terminationDate);
+    d.setDate(d.getDate() + 30);
+    return d;
+  }
+
+  get daysUntilNoticeEnd(): number {
+    if (!this.noticeEndDate) { return 0; }
+    return Math.max(0, Math.ceil((this.noticeEndDate.getTime() - Date.now()) / 86_400_000));
+  }
+
+  // ── Event handlers ──────────────────────────────────────────────────────────
+  onClose(): void {
+    this.showCallOffForm    = false;
+    this.callOffRemark      = '';
+    this.callOffRemarkError = false;
+    this.close.emit();
+  }
+
+  onApprove(): void {
+    this.approve.emit();
+  }
+
+  onConfirmCallOff(): void {
+    if (!this.callOffRemark.trim()) {
+      this.callOffRemarkError = true;
+      return;
+    }
+    this.callOff.emit({ remark: this.callOffRemark });
+  }
+}

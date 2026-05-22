@@ -1,0 +1,601 @@
+@if (record) {
+
+<!-- ═══════════════════════════════════════════════════════════════
+     PREVIEW MODE
+     ═══════════════════════════════════════════════════════════════ -->
+@if (mode === 'preview') {
+<div class="slide-panel-overlay" (click)="onClose()"></div>
+<div class="slide-panel slide-panel--wide slide-in" style="display:flex;flex-direction:column">
+
+  <!-- Header -->
+  <div class="nkp-header">
+    <div class="nkp-header-left">
+      <div class="nkp-header-icon"><i class="fas fa-file-contract"></i></div>
+      <div>
+        <h5 class="nkp-title">Contract Preview — {{ record.companyName }}</h5>
+        <div class="nkp-subtitle">
+          {{ record.contractRef }}&nbsp;&nbsp;·&nbsp;&nbsp;Unitecare Software Solutions FZE &times; {{
+          record.companyName }}
+        </div>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;flex-shrink:0">
+      <span class="cs-status-badge" [ngClass]="getStatusClass(record.contractStatus)">
+        <i [class]="getStatusIcon(record.contractStatus) + ' cs-badge-icon'"></i>
+        {{ record.contractStatus }}
+      </span>
+      <button class="nkp-close-btn" (click)="onClose()"><i class="fas fa-times"></i></button>
+    </div>
+  </div>
+
+  <!-- PDF-like Viewer -->
+  <div class="cp-viewer">
+    <div class="cp-paper">
+
+      <!-- Watermark for terminated contracts -->
+      @if (record.contractStatus === 'Contract Terminated') {
+      <div class="cp-watermark">TERMINATED</div>
+      }
+
+      <!-- Letterhead -->
+      <div class="cp-letterhead">
+        <div class="cp-logo-block">
+          <div class="cp-logo-icon"><i class="fas fa-hospital-alt"></i></div>
+          <div>
+            <div class="cp-logo-name">Unitecare Software Solutions FZE</div>
+            <div class="cp-logo-tagline">Healthcare Technology &amp; Contract Management · Dubai, UAE</div>
+          </div>
+        </div>
+        <div class="cp-letterhead-right">
+          <div class="cp-ref-badge">{{ record.contractRef }}</div>
+          <div class="cp-ref-date">Dated: {{ contractStartDate() | date:'dd MMMM yyyy' }}</div>
+        </div>
+      </div>
+
+      <!-- Title -->
+      <div class="cp-title-block">
+        <div class="cp-doc-title">HEALTHCARE SOFTWARE SERVICES AGREEMENT</div>
+        <div class="cp-doc-subtitle">Contracts · Digital Services Platform</div>
+      </div>
+
+      <!-- Parties -->
+      <div class="cp-section">
+        <div class="cp-section-label">Parties to the Agreement</div>
+        <div class="cp-parties-grid">
+          <div class="cp-party">
+            <div class="cp-party-role">Service Provider</div>
+            <div class="cp-party-name">Unitecare Software Solutions FZE</div>
+            <div class="cp-party-detail">Freezone Authority, Dubai, United Arab Emirates</div>
+            <div class="cp-party-detail">License No: FZE-2019-04521</div>
+          </div>
+          <div class="cp-party-and">AND</div>
+          <div class="cp-party">
+            <div class="cp-party-role">Client</div>
+            <div class="cp-party-name">{{ record.companyName }}</div>
+            <div class="cp-party-detail">{{ record.contactName || record.customerName }}, Authorised Signatory</div>
+            <div class="cp-party-detail">Dubai, United Arab Emirates</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Scope of Services -->
+      <div class="cp-section">
+        <div class="cp-section-label">Scope of Services</div>
+        <div class="cp-clause-list">
+          <div class="cp-clause"><span class="cp-clause-num">1.</span><span>Contracts Management Platform — Full
+              lifecycle contract management, digital signing, version control, and cloud archival on the Contracts
+              platform.</span></div>
+          <div class="cp-clause"><span class="cp-clause-num">2.</span><span>KYC Verification &amp; Document Management —
+              Regulatory compliance, identity verification, document collection, and automated renewal tracking for all
+              clinic-level onboarding.</span></div>
+          <div class="cp-clause"><span class="cp-clause-num">3.</span><span>Healthcare Regulatory Compliance Support —
+              DHA/MOH licensing advisory, trade license monitoring, and documentation assistance aligned with UAE
+              federal requirements.</span></div>
+          <div class="cp-clause"><span class="cp-clause-num">4.</span><span>Technical Support &amp; SLA Coverage —
+              Priority support desk with guaranteed 4-hour response SLA and 99.5% platform uptime commitment.</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Customer Amendments (if any) -->
+      @if (record.amendments?.length > 0) {
+      <div class="cp-section">
+        <div class="cp-section-label">Customer-Specific Amendments</div>
+        <div class="cp-clause-list">
+          @for (a of record.amendments; track a.id; let i = $index) {
+          <div class="cp-clause">
+            <span class="cp-clause-num">{{ i + 1 }}.</span>
+            <span>{{ a.description }}<span class="cp-amend-meta"> — Added by {{ a.author }}, {{ a.addedOn | date:'dd MMM
+                yyyy' }}</span></span>
+          </div>
+          }
+        </div>
+      </div>
+      }
+
+      <!-- Approach 2 disclaimer -->
+      @if (record.approach === 2) {
+      <div class="cp-section">
+        <div class="cp-section-label">Special Conditions</div>
+        <div class="cp-disclaimer">
+          "This contract shall become effective only upon the customer going live and once the subscription payment is
+          successfully completed."
+        </div>
+      </div>
+      }
+
+      <!-- Contract Terms -->
+      <div class="cp-section">
+        <div class="cp-section-label">Contract Terms</div>
+        <div class="cp-terms-grid">
+          <div class="cp-term">
+            <div class="cp-term-lbl">Contract Period</div>
+            <div class="cp-term-val">{{ contractStartDate() | date:'dd MMM yyyy' }} — {{ contractEndDate() | date:'dd
+              MMM yyyy' }}</div>
+          </div>
+          <div class="cp-term">
+            <div class="cp-term-lbl">Annual Contract Value</div>
+            <div class="cp-term-val">{{ contractAnnualValue() }}</div>
+          </div>
+          <div class="cp-term">
+            <div class="cp-term-lbl">Payment Schedule</div>
+            <div class="cp-term-val">Quarterly Installments (4 × AED)</div>
+          </div>
+          <div class="cp-term">
+            <div class="cp-term-lbl">Renewal Clause</div>
+            <div class="cp-term-val">Auto-renew with 60-day prior written notice</div>
+          </div>
+          <div class="cp-term">
+            <div class="cp-term-lbl">Governing Law</div>
+            <div class="cp-term-val">UAE Federal Law &amp; DIFC Regulations</div>
+          </div>
+          <div class="cp-term">
+            <div class="cp-term-lbl">Termination Notice</div>
+            <div class="cp-term-val">30-day notice; 60 days for no-fault termination</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Signatures -->
+      <div class="cp-section cp-section--last">
+        <div class="cp-section-label">Authorised Signatures</div>
+        <div class="cp-sig-grid">
+
+          <!-- Unitecare -->
+          <div class="cp-sig-block">
+            <div class="cp-sig-line">
+              <div class="cp-sig-cursive">Ahmed Al Marri</div>
+            </div>
+            <div class="cp-sig-name">Ahmed Al Marri</div>
+            <div class="cp-sig-detail">Chief Executive Officer</div>
+            <div class="cp-sig-detail">Unitecare Software Solutions FZE</div>
+            <div class="cp-sig-date">{{ contractStartDate() | date:'dd MMMM yyyy' }}</div>
+          </div>
+
+          <!-- Client -->
+          <div class="cp-sig-block" [class.cp-sig-block--pending]="!record.contractSignedOn">
+            @if (record.contractSignedOn) {
+            <div class="cp-sig-line">
+              <div class="cp-sig-cursive">{{ record.contactName || record.customerName }}</div>
+            </div>
+            } @else {
+            <div class="cp-sig-awaiting">
+              <i class="fas fa-pen-nib"></i>
+              <span>Awaiting Client Signature</span>
+            </div>
+            }
+            <div class="cp-sig-name">{{ record.contactName || record.customerName }}</div>
+            <div class="cp-sig-detail">Authorised Signatory</div>
+            <div class="cp-sig-detail">{{ record.companyName }}</div>
+            @if (record.contractSignedOn) {
+            <div class="cp-sig-date">{{ record.contractSignedOn | date:'dd MMMM yyyy' }}</div>
+            }
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Page Footer -->
+      <div class="cp-page-footer">
+        <span>{{ record.contractRef }} — Confidential</span>
+        <span>Unitecare Software Solutions FZE &times; {{ record.companyName }}</span>
+        <span>Page 1 of 3</span>
+      </div>
+
+    </div>
+
+    <!-- Page 2: Annexure A (SLA Commitments) -->
+    <div class="cp-paper mt-3">
+      <!-- Watermark for terminated contracts -->
+      @if (record.contractStatus === 'Contract Terminated') {
+      <div class="cp-watermark">TERMINATED</div>
+      }
+
+      <!-- Letterhead -->
+      <div class="cp-letterhead">
+        <div class="cp-logo-block">
+          <div class="cp-logo-icon"><i class="fas fa-hospital-alt"></i></div>
+          <div>
+            <div class="cp-logo-name">Unitecare Software Solutions FZE</div>
+            <div class="cp-logo-tagline">Healthcare Technology &amp; Contract Management · Dubai, UAE</div>
+          </div>
+        </div>
+        <div class="cp-letterhead-right">
+          <div class="cp-ref-badge">ANNEXURE A</div>
+          <div class="cp-ref-date">Dated: {{ contractStartDate() | date:'dd MMMM yyyy' }}</div>
+        </div>
+      </div>
+
+      <!-- Title -->
+      <div class="cp-title-block">
+        <div class="cp-doc-title">ANNEXURE A: SERVICE LEVEL AGREEMENT (SLA)</div>
+        <div class="cp-doc-subtitle">Uptime Commitments, Support Levels, &amp; Escalation Procedures</div>
+      </div>
+
+      <!-- SLA Clauses -->
+      <div class="cp-section">
+        <div class="cp-section-label">1. Service Availability &amp; Uptime Target</div>
+        <div class="cp-clause-list">
+          <div class="cp-clause">
+            <span class="cp-clause-num">1.1.</span>
+            <span>Unitecare guarantees a Monthly Uptime Percentage of <strong>99.9%</strong> for the core Contracts and KYC Verification services.</span>
+          </div>
+          <div class="cp-clause">
+            <span class="cp-clause-num">1.2.</span>
+            <span>Uptime is monitored 24/7 by external monitoring agents, and is defined as the platform being fully accessible and functioning for end-users.</span>
+          </div>
+          <div class="cp-clause">
+            <span class="cp-clause-num">1.3.</span>
+            <span>Scheduled Maintenance Windows shall occur between 02:00 AM and 04:00 AM UAE Standard Time on weekends and do not count as downtime, provided a 48-hour prior notification is sent to the Client.</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="cp-section">
+        <div class="cp-section-label">2. Priority Support &amp; Response Targets</div>
+        <div class="cp-clause-list" style="margin-top: 10px;">
+          <table class="w-100" style="font-size:12px; border-collapse:collapse; text-align:left; border: 1px solid #e9ecef; width: 100%;">
+            <thead>
+              <tr style="background:#f8f9fa; border-bottom: 2px solid #e9ecef;">
+                <th style="padding:6px 10px; font-weight:700;">Severity Level</th>
+                <th style="padding:6px 10px; font-weight:700;">Definition</th>
+                <th style="padding:6px 10px; font-weight:700;">Initial Response</th>
+                <th style="padding:6px 10px; font-weight:700;">Target Resolution</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr style="border-bottom: 1px solid #e9ecef;">
+                <td style="padding:6px 10px; font-weight:600; color:#e53e3e;">Priority 1 (Critical)</td>
+                <td style="padding:6px 10px;">Core services unavailable, patient record lookup or document signature blocked globally.</td>
+                <td style="padding:6px 10px; font-weight:600;">&lt; 30 Minutes</td>
+                <td style="padding:6px 10px; font-weight:600; color:#e53e3e;">4 Hours</td>
+              </tr>
+              <tr style="border-bottom: 1px solid #e9ecef;">
+                <td style="padding:6px 10px; font-weight:600; color:#dd6b20;">Priority 2 (High)</td>
+                <td style="padding:6px 10px;">System active but experiencing degraded performance; form builder or review loading very slow.</td>
+                <td style="padding:6px 10px; font-weight:600;">&lt; 2 Hours</td>
+                <td style="padding:6px 10px; font-weight:600; color:#dd6b20;">12 Hours</td>
+              </tr>
+              <tr>
+                <td style="padding:6px 10px; font-weight:600; color:#3182ce;">Priority 3 (Normal)</td>
+                <td style="padding:6px 10px;">Minor UI updates, layout suggestions, non-blocking bug reports, or general account inquiries.</td>
+                <td style="padding:6px 10px; font-weight:600;">&lt; 8 Hours</td>
+                <td style="padding:6px 10px; font-weight:600; color:#3182ce;">48 Hours</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="cp-section">
+        <div class="cp-section-label">3. Service Credits &amp; Remedies</div>
+        <div class="cp-clause-list">
+          <div class="cp-clause">
+            <span class="cp-clause-num">3.1.</span>
+            <span>If availability falls below the 99.9% threshold in a given calendar month, Client is eligible to claim Service Credits as follows:
+              <ul style="margin: 4px 0 0 16px; padding: 0;">
+                <li>Uptime 99.0% - 99.8%: 10% credit of monthly subscription fee.</li>
+                <li>Uptime 95.0% - 98.9%: 25% credit of monthly subscription fee.</li>
+                <li>Uptime &lt; 95.0%: 50% credit of monthly subscription fee.</li>
+              </ul>
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Page Footer -->
+      <div class="cp-page-footer">
+        <span>{{ record.contractRef }} — Confidential</span>
+        <span>Unitecare Software Solutions FZE &times; {{ record.companyName }}</span>
+        <span>Page 2 of 3</span>
+      </div>
+
+    </div>
+
+    <!-- Page 3: Annexure B (UAE Healthcare Regulatory Compliance) -->
+    <div class="cp-paper mt-3">
+      <!-- Watermark for terminated contracts -->
+      @if (record.contractStatus === 'Contract Terminated') {
+      <div class="cp-watermark">TERMINATED</div>
+      }
+
+      <!-- Letterhead -->
+      <div class="cp-letterhead">
+        <div class="cp-logo-block">
+          <div class="cp-logo-icon"><i class="fas fa-hospital-alt"></i></div>
+          <div>
+            <div class="cp-logo-name">Unitecare Software Solutions FZE</div>
+            <div class="cp-logo-tagline">Healthcare Technology &amp; Contract Management · Dubai, UAE</div>
+          </div>
+        </div>
+        <div class="cp-letterhead-right">
+          <div class="cp-ref-badge">ANNEXURE B</div>
+          <div class="cp-ref-date">Dated: {{ contractStartDate() | date:'dd MMMM yyyy' }}</div>
+        </div>
+      </div>
+
+      <!-- Title -->
+      <div class="cp-title-block">
+        <div class="cp-doc-title">ANNEXURE B: REGULATORY &amp; DATA PRIVACY ADDENDUM</div>
+        <div class="cp-doc-subtitle">UAE Federal Healthcare Laws, DHA Compliance &amp; Patient Privacy Standards</div>
+      </div>
+
+      <!-- Regulatory Clauses -->
+      <div class="cp-section">
+        <div class="cp-section-label">1. Local Data Residency Commitments</div>
+        <div class="cp-clause-list">
+          <div class="cp-clause">
+            <span class="cp-clause-num">1.1.</span>
+            <span>In accordance with UAE Federal Law No. 2 of 2019 (concerning the use of Information and Communication Technology in Health Fields) and DHA guidelines, all patient health information, trade licenses, DHA medical practice permits, and KYC materials must be hosted on local secure servers located strictly within the territory of the United Arab Emirates.</span>
+          </div>
+          <div class="cp-clause">
+            <span class="cp-clause-num">1.2.</span>
+            <span>Unitecare confirms that its production hosting providers are ISO/IEC 27001 certified and fully compliant with DESC (Dubai Electronic Security Center) regulations.</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="cp-section">
+        <div class="cp-section-label">2. Healthcare Professional License (DHA) Tracking</div>
+        <div class="cp-clause-list">
+          <div class="cp-clause">
+            <span class="cp-clause-num">2.1.</span>
+            <span>The Client agrees to immediately submit and update all licenses of active medical practitioners (DHA licenses) inside the KYC module of the platform upon any changes or renewals.</span>
+          </div>
+          <div class="cp-clause">
+            <span class="cp-clause-num">2.2.</span>
+            <span>The platform will send automated expiration notifications 90 days, 60 days, and 30 days prior to license expirations to ensure compliance with DHA clinic licensing requirements.</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="cp-section cp-section--last">
+        <div class="cp-section-label">3. Business Continuity &amp; Disaster Recovery</div>
+        <div class="cp-clause-list">
+          <div class="cp-clause">
+            <span class="cp-clause-num">3.1.</span>
+            <span>Unitecare maintains continuous database replication with full recovery point objective (RPO) of &lt; 5 minutes and recovery time objective (RTO) of &lt; 1 hour.</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Page Footer -->
+      <div class="cp-page-footer">
+        <span>{{ record.contractRef }} — Confidential</span>
+        <span>Unitecare Software Solutions FZE &times; {{ record.companyName }}</span>
+        <span>Page 3 of 3</span>
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- Footer Actions -->
+  <div class="nkp-footer">
+
+    <button kendoButton themeColor="base" fillMode="outline" [disabled]="isDownloading" (click)="onDownloadPdf()">
+      @if (isDownloading) {
+        <span class="k-icon k-i-loading k-icon-md me-2"></span>Downloading...
+      } @else {
+        <i class="fas fa-download me-2"></i>Download Agreement
+      }
+    </button>
+    <button kendoButton themeColor="base" fillMode="outline" [disabled]="isPrinting" (click)="onPrintContract()">
+      @if (isPrinting) {
+        <span class="k-icon k-i-loading k-icon-md me-2"></span>Preparing...
+      } @else {
+        <i class="fas fa-print me-2"></i>Print
+      }
+    </button>
+    @if (record.contractStatus === 'Contract Sent') {
+    <button kendoButton themeColor="warning" fillMode="outline" (click)="onSendReminder()">
+      <i class="fas fa-paper-plane me-2"></i>Send Signature Reminder
+    </button>
+    }
+    @if (record.contractStatus === 'Contract Signed') {
+    <button kendoButton themeColor="primary" fillMode="outline" (click)="onRequestAmendment()">
+      <i class="fas fa-file-alt me-2"></i>Request Amendment
+    </button>
+    }
+  </div>
+
+</div>
+}
+
+<!-- ═══════════════════════════════════════════════════════════════
+     AMENDMENT MODE
+     ═══════════════════════════════════════════════════════════════ -->
+@if (mode === 'amend') {
+<div class="slide-panel-overlay" (click)="onClose()"></div>
+<div class="slide-panel slide-panel--wide slide-in" style="display:flex;flex-direction:column">
+
+  <!-- Header -->
+  <div class="nkp-header">
+    <div class="nkp-header-left">
+      <div class="nkp-header-icon"><i class="fas fa-file-pen"></i></div>
+      <div>
+        <h5 class="nkp-title">Amendments — {{ record.companyName }}</h5>
+        <div class="nkp-subtitle">{{ record.contractRef }}&nbsp;&nbsp;·&nbsp;&nbsp;{{ record.amendments?.length || 0 }}
+          amendment{{ record.amendments?.length !== 1 ? 's' : '' }} on record</div>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;flex-shrink:0">
+      <span class="cs-status-badge" [ngClass]="getStatusClass(record.contractStatus)">
+        <i [class]="getStatusIcon(record.contractStatus) + ' cs-badge-icon'"></i>
+        {{ record.contractStatus }}
+      </span>
+      <button class="nkp-close-btn" (click)="onClose()"><i class="fas fa-times"></i></button>
+    </div>
+  </div>
+
+  <!-- Amendment Navigator -->
+  @if (record.amendments?.length > 0) {
+  <div class="amend-nav-bar">
+    <span class="amend-nav-label">Amendments</span>
+    <div class="amend-nav-tabs">
+      @for (a of record.amendments; track a.id; let i = $index) {
+      <button class="amend-nav-tab" [class.active]="amendPanelActiveIdx === i" (click)="amendPanelActiveIdx = i">
+        <i class="fas fa-file-pen"></i>
+        Amendment {{ i + 1 }}
+      </button>
+      }
+    </div>
+  </div>
+  }
+
+  <!-- PDF-style Viewer -->
+  <div class="cp-viewer">
+    @if (!record.amendments || record.amendments.length === 0) {
+    <div class="amend-empty-state">
+      <i class="fas fa-file-pen"></i>
+      <div>No amendments added yet.</div>
+      <div style="font-size:12px;color:#a1aab2;margin-top:4px">Use the form below to add the first amendment.</div>
+    </div>
+    } @else {
+    <div class="cp-paper">
+
+      <!-- Letterhead -->
+      <div class="cp-letterhead">
+        <div class="cp-logo-block">
+          <div class="cp-logo-icon"><i class="fas fa-hospital-alt"></i></div>
+          <div>
+            <div class="cp-logo-name">Unitecare Software Solutions FZE</div>
+            <div class="cp-logo-tagline">Healthcare Technology &amp; Contract Management · Dubai, UAE</div>
+          </div>
+        </div>
+        <div class="cp-letterhead-right">
+          <div class="cp-ref-badge">{{ record.contractRef }}</div>
+          <div class="cp-ref-date">Amendment {{ amendPanelActiveIdx + 1 }} of {{ record.amendments.length }}</div>
+        </div>
+      </div>
+
+      <!-- Amendment Title -->
+      <div class="cp-title-block">
+        <div class="cp-doc-title">CONTRACT AMENDMENT NOTICE</div>
+        <div class="cp-doc-subtitle">{{ record.companyName }} · Amendment {{ amendPanelActiveIdx + 1 }}</div>
+      </div>
+
+      <!-- Parties -->
+      <div class="cp-section">
+        <div class="cp-section-label">Parties to the Amendment</div>
+        <div class="cp-parties-grid">
+          <div class="cp-party">
+            <div class="cp-party-role">Service Provider</div>
+            <div class="cp-party-name">Unitecare Software Solutions FZE</div>
+            <div class="cp-party-detail">Freezone Authority, Dubai, UAE</div>
+          </div>
+          <div class="cp-party-and">AND</div>
+          <div class="cp-party">
+            <div class="cp-party-role">Client</div>
+            <div class="cp-party-name">{{ record.companyName }}</div>
+            <div class="cp-party-detail">{{ record.contactName || record.customerName }}, Authorised Signatory</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Amendment Body -->
+      <div class="cp-section">
+        <div class="cp-section-label">Amendment Details</div>
+        <div class="amend-paper-body">
+          <div class="amend-paper-clause">
+            <span class="cp-clause-num">1.</span>
+            <span>{{ record.amendments[amendPanelActiveIdx].description }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Meta -->
+      <div class="cp-section">
+        <div class="cp-section-label">Amendment Record</div>
+        <div class="cp-terms-grid">
+          <div class="cp-term">
+            <div class="cp-term-lbl">Raised By</div>
+            <div class="cp-term-val">{{ record.amendments[amendPanelActiveIdx].author }}</div>
+          </div>
+          <div class="cp-term">
+            <div class="cp-term-lbl">Date Added</div>
+            <div class="cp-term-val">{{ record.amendments[amendPanelActiveIdx].addedOn | date:'dd MMMM yyyy' }}</div>
+          </div>
+          <div class="cp-term">
+            <div class="cp-term-lbl">Parent Contract</div>
+            <div class="cp-term-val">{{ record.contractRef }}</div>
+          </div>
+          <div class="cp-term">
+            <div class="cp-term-lbl">Amendment No.</div>
+            <div class="cp-term-val">{{ amendPanelActiveIdx + 1 }} of {{ record.amendments.length }}</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Signatures -->
+      <div class="cp-section cp-section--last">
+        <div class="cp-section-label">Authorised Signatures</div>
+        <div class="cp-sig-grid">
+          <div class="cp-sig-block">
+            <div class="cp-sig-line">
+              <div class="cp-sig-cursive">Ahmed Al Marri</div>
+            </div>
+            <div class="cp-sig-name">Ahmed Al Marri</div>
+            <div class="cp-sig-detail">Chief Executive Officer</div>
+            <div class="cp-sig-detail">Unitecare Software Solutions FZE</div>
+          </div>
+          <div class="cp-sig-block cp-sig-block--pending">
+            <div class="cp-sig-awaiting"><i class="fas fa-pen-nib"></i><span>Awaiting Client Signature</span></div>
+            <div class="cp-sig-name">{{ record.contactName || record.customerName }}</div>
+            <div class="cp-sig-detail">Authorised Signatory</div>
+            <div class="cp-sig-detail">{{ record.companyName }}</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Page Footer -->
+      <div class="cp-page-footer">
+        <span>{{ record.contractRef }} — Amendment {{ amendPanelActiveIdx + 1 }}</span>
+        <span>Unitecare Software Solutions FZE × {{ record.companyName }}</span>
+        <span>Confidential</span>
+      </div>
+
+    </div>
+    }
+  </div>
+
+  <!-- Footer: Add Amendment (only when editable) -->
+  @if (canAddAmendment()) {
+  <div class="amend-add-footer">
+    <textarea class="amend-add-textarea" rows="2" [(ngModel)]="newAmendDesc"
+      placeholder="Describe the amendment (e.g. custom pricing, special SLA, additional clause)..."></textarea>
+    <div style="display:flex;justify-content:flex-end;gap:8px">
+      <button kendoButton themeColor="primary" fillMode="solid" [disabled]="!newAmendDesc.trim()"
+        (click)="onAddAmendment()">
+        <i class="fas fa-plus me-1"></i>Add Amendment
+      </button>
+    </div>
+  </div>
+  } @else {
+
+  }
+
+</div>
+}
+
+}

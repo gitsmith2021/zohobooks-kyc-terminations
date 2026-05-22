@@ -1,0 +1,772 @@
+{
+  "_meta": {
+    "name": "Unite EMR 3.0 Design System",
+    "version": "3.0.0",
+    "source": "Brand Guidelines v2.1 (2025) \u2014 Unite 3.0 colour scheme. Figma file Unite-UI-Ripul decoded for component specs.",
+    "generated": "2026-05-15",
+    "description": "Complete design token and component specification for Unite EMR 3.0. Use this file as the authoritative reference when building any UI module, prototype, or HTML component for the Unite platform.",
+    "font": "Lato (Google Fonts) \u2014 ExtraBold/Bold/Regular",
+    "primaryColor": "#00b8cd",
+    "figmaFile": "Unite-UI-Ripul",
+    "pages": [
+      "Library",
+      "Design"
+    ],
+    "note": "Primary colour updated to #00b8cd (Pantone 3115C) per brand guidelines v2.1. Figma file contained Unite 2.0 colour (#009ddc) which is superseded.",
+    "scssEntry": "styles/design-system/design-system.scss",
+    "sourceOfTruth": {
+      "colors": "Brand Guidelines v2.1 — COLOUR PALETTE page (Unite 3.0)",
+      "uiStructure": "Figma Unite-UI-Ripul (Unite 2.0) — spacing, radius, components only",
+      "typography": "Lato — TYPOGRAPHY FOR WEB APPLICATIONS (brand guidelines)"
+    }
+  },
+  "deprecatedColors": [
+    "#009DDC",
+    "#009ddc"
+  ],
+  "brandPalette": {
+    "primary": {
+      "base": "#00B8CD",
+      "pantone": "3115C",
+      "rgb": "0, 184, 205",
+      "tints": {
+        "10": "mix white 10%",
+        "20": "mix white 20%",
+        "40": "mix white 40%",
+        "60": "mix white 60%",
+        "80": "mix white 80%"
+      }
+    },
+    "secondaryYellow": {
+      "base": "#FDD26E",
+      "pantone": "134C"
+    },
+    "secondaryOrange": {
+      "base": "#FF8400",
+      "pantone": "151C"
+    },
+    "neutralDark": {
+      "base": "#4E4E4E",
+      "pantone": "Cool Gray 11C"
+    },
+    "neutralLight": {
+      "base": "#D9D9D6",
+      "pantone": "Cool Gray 1C"
+    }
+  },
+  "colors": {
+    "primary": {
+      "base": "#00b8cd",
+      "hover": "#008fa0",
+      "light": "#b3e8ef",
+      "subtle": "#e0f7fa",
+      "brand": "#00b8cd"
+    },
+    "secondary": {
+      "teal": "#18a2a7",
+      "tealLight1": "#f0fcfc",
+      "tealLight2": "#e5f9f9",
+      "tealHover": "#e0f2f2",
+      "green": "#a3d257",
+      "greenLight1": "#f8fcf0",
+      "greenLight2": "#f1f7e7",
+      "greenHover": "#ecf1e1"
+    },
+    "branding": {
+      "yellow": "#fdd26e",
+      "orange": "#ff8400"
+    },
+    "grey": {
+      "1": "#4e4e4e",
+      "2": "#808080",
+      "3": "#b3b3b3",
+      "4": "#e6e6e6",
+      "5": "#f7f7f7",
+      "neutralDark": "#4e4e4e",
+      "neutralLight": "#d9d9d6"
+    },
+    "status": {
+      "green": "#00ba00",
+      "orange": "#ff8400",
+      "red": "#f10000",
+      "burgandy": "#840000",
+      "yellow": "#ffc200",
+      "highlight": "#ffd2c4"
+    },
+    "alert": {
+      "background": "#fff6f6",
+      "border": "#ff3c5a"
+    },
+    "utility": {
+      "white": "#ffffff",
+      "black": "#000000",
+      "highlight": "#fffbf5",
+      "transparent": "transparent"
+    },
+    "pain": {
+      "0": "#8ccdd3",
+      "2": "#c5d19d",
+      "4": "#f8d65c",
+      "6": "#f1ab65",
+      "8": "#f09369",
+      "10": "#ed6d6c"
+    },
+    "surfaces": {
+      "page": "#f7f7f7",
+      "surface": "#ffffff",
+      "sidebar": "#4e4e4e",
+      "header": "#ffffff",
+      "disabled": "#e6e6e6",
+      "overlay": "rgba(0,0,0,0.45)"
+    },
+    "text": {
+      "primary": "#4e4e4e",
+      "secondary": "#808080",
+      "placeholder": "#b3b3b3",
+      "disabled": "#b3b3b3",
+      "onPrimary": "#ffffff",
+      "onSidebar": "#ffffff",
+      "link": "#00b8cd",
+      "linkHover": "#008fa0"
+    },
+    "borders": {
+      "default": "#e6e6e6",
+      "medium": "#b3b3b3",
+      "dark": "#808080",
+      "focus": "#00b8cd",
+      "header": "#e6e6e6"
+    }
+  },
+  "typography": {
+    "fontFamily": "'Lato', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+    "fontImport": "https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700;900&display=swap",
+    "weights": {
+      "regular": 400,
+      "bold": 700,
+      "extrabold": 900
+    },
+    "scale": {
+      "10": "10px",
+      "12": "12px",
+      "14": "14px",
+      "16": "16px",
+      "18": "18px",
+      "20": "20px",
+      "24": "24px",
+      "30": "30px",
+      "36": "36px"
+    },
+    "lineHeights": {
+      "tight": 1.2,
+      "snug": 1.35,
+      "normal": 1.5,
+      "relaxed": 1.6
+    },
+    "ramp": [
+      {
+        "name": "20-extrabold",
+        "size": "20px",
+        "weight": 900,
+        "use": "Page titles, major headings"
+      },
+      {
+        "name": "18-extrabold",
+        "size": "18px",
+        "weight": 900,
+        "use": "Card titles, modal headings"
+      },
+      {
+        "name": "16-extrabold",
+        "size": "16px",
+        "weight": 900,
+        "use": "Component headings"
+      },
+      {
+        "name": "16-bold",
+        "size": "16px",
+        "weight": 700,
+        "use": "Table headers, labels"
+      },
+      {
+        "name": "16-regular",
+        "size": "16px",
+        "weight": 400,
+        "use": "Body text"
+      },
+      {
+        "name": "14-extrabold",
+        "size": "14px",
+        "weight": 900,
+        "use": "Default bold"
+      },
+      {
+        "name": "14-bold",
+        "size": "14px",
+        "weight": 700,
+        "use": "Button text, form labels"
+      },
+      {
+        "name": "14-regular",
+        "size": "14px",
+        "weight": 400,
+        "use": "Default body"
+      },
+      {
+        "name": "12-bold",
+        "size": "12px",
+        "weight": 700,
+        "use": "Navigation labels, button text"
+      },
+      {
+        "name": "12-regular",
+        "size": "12px",
+        "weight": 400,
+        "use": "Input text \u2014 Figma confirmed"
+      },
+      {
+        "name": "10-extrabold",
+        "size": "10px",
+        "weight": 900,
+        "use": "Micro labels, table header uppercase"
+      },
+      {
+        "name": "10-regular",
+        "size": "10px",
+        "weight": 400,
+        "use": "Form labels, hints, breadcrumbs \u2014 Figma confirmed"
+      }
+    ],
+    "aliases": {
+      "formLabel": {
+        "size": "10px",
+        "weight": 400,
+        "color": "#808080"
+      },
+      "formHint": {
+        "size": "10px",
+        "weight": 400,
+        "color": "#808080"
+      },
+      "inputText": {
+        "size": "12px",
+        "weight": 400,
+        "color": "#4e4e4e"
+      },
+      "navActive": {
+        "size": "12px",
+        "weight": 700,
+        "color": "#00b8cd"
+      },
+      "navDefault": {
+        "size": "12px",
+        "weight": 700,
+        "color": "#ffffff"
+      }
+    }
+  },
+  "spacing": {
+    "1": "4px",
+    "2": "8px",
+    "3": "12px",
+    "4": "16px",
+    "5": "20px",
+    "6": "24px",
+    "8": "32px",
+    "10": "40px",
+    "12": "48px",
+    "16": "64px",
+    "20": "80px"
+  },
+  "borderRadius": {
+    "none": "0",
+    "xs": "2px",
+    "sm": "4px",
+    "md": "8px",
+    "lg": "12px",
+    "xl": "16px",
+    "2xl": "20px",
+    "full": "9999px",
+    "components": {
+      "button": "4px",
+      "input": "4px",
+      "card": "8px",
+      "modal": "12px",
+      "badge": "9999px",
+      "avatar": "50%"
+    }
+  },
+  "shadows": {
+    "sm": "0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04)",
+    "md": "0 4px 12px rgba(0,0,0,0.08), 0 2px 4px rgba(0,0,0,0.04)",
+    "lg": "0 8px 24px rgba(0,0,0,0.10), 0 4px 8px rgba(0,0,0,0.06)",
+    "xl": "0 16px 48px rgba(0,0,0,0.12)",
+    "focus": "0 0 0 3px rgba(0,184,205,0.25)",
+    "error": "0 0 0 3px rgba(241,0,0,0.20)"
+  },
+  "components": {
+    "button": {
+      "sizes": {
+        "sm": {
+          "height": "22px",
+          "fontSize": "10px",
+          "padding": "0 12px"
+        },
+        "md": {
+          "height": "30px",
+          "fontSize": "12px",
+          "padding": "0 16px"
+        },
+        "lg": {
+          "height": "40px",
+          "fontSize": "14px",
+          "padding": "0 24px"
+        }
+      },
+      "borderRadius": "4px",
+      "fontWeight": 700,
+      "variants": {
+        "primary": {
+          "default": {
+            "bg": "#00b8cd",
+            "border": "#00b8cd",
+            "color": "#fff"
+          },
+          "hover": {
+            "bg": "#008fa0",
+            "border": "#008fa0",
+            "color": "#fff"
+          },
+          "inactive": {
+            "bg": "#e6e6e6",
+            "border": "#e6e6e6",
+            "color": "#b3b3b3"
+          },
+          "disabled": {
+            "bg": "#b3e8ef",
+            "border": "#b3e8ef",
+            "color": "#008fa0"
+          }
+        },
+        "secondary": {
+          "default": {
+            "bg": "#fff",
+            "border": "#00b8cd",
+            "color": "#00b8cd"
+          },
+          "hover": {
+            "bg": "#fff",
+            "border": "#008fa0",
+            "color": "#008fa0"
+          },
+          "inactive": {
+            "bg": "#fff",
+            "border": "#e6e6e6",
+            "color": "#b3b3b3"
+          },
+          "disabled": {
+            "bg": "#fff",
+            "border": "#b3e8ef",
+            "color": "#b3e8ef"
+          }
+        },
+        "tertiary": {
+          "default": {
+            "bg": "transparent",
+            "border": "transparent",
+            "color": "#00b8cd"
+          },
+          "hover": {
+            "bg": "rgba(0,184,205,0.06)",
+            "color": "#00b8cd"
+          },
+          "inactive": {
+            "color": "#b3b3b3"
+          }
+        },
+        "negative": {
+          "default": {
+            "bg": "transparent",
+            "border": "transparent",
+            "color": "#f10000"
+          },
+          "hover": {
+            "bg": "#fff6f6"
+          }
+        }
+      }
+    },
+    "input": {
+      "height": "33px",
+      "fontSize": "12px",
+      "fontWeight": 400,
+      "color": "#4e4e4e",
+      "bg": "#ffffff",
+      "borderColor": "#e6e6e6",
+      "borderWidth": "1px",
+      "borderRadius": "4px",
+      "padding": "0 12px",
+      "placeholderColor": "#b3b3b3",
+      "states": {
+        "default": {
+          "border": "#e6e6e6"
+        },
+        "hover": {
+          "border": "#b3b3b3"
+        },
+        "focus": {
+          "border": "#00b8cd",
+          "boxShadow": "0 0 0 3px rgba(0,184,205,0.25)"
+        },
+        "error": {
+          "border": "#f10000",
+          "boxShadow": "0 0 0 3px rgba(241,0,0,0.20)"
+        },
+        "readOnly": {
+          "bg": "#f0fcfc"
+        },
+        "disabled": {
+          "bg": "#e6e6e6",
+          "color": "#b3b3b3"
+        }
+      },
+      "label": {
+        "fontSize": "10px",
+        "fontWeight": 400,
+        "color": "#808080"
+      },
+      "hint": {
+        "fontSize": "10px",
+        "fontWeight": 400,
+        "color": "#808080"
+      }
+    },
+    "toggle": {
+      "track": {
+        "width": "36px",
+        "height": "20px",
+        "borderRadius": "9999px",
+        "off": "#e6e6e6",
+        "on": "#00b8cd"
+      },
+      "thumb": {
+        "size": "16px",
+        "bg": "#ffffff"
+      }
+    },
+    "checkbox": {
+      "size": "16px",
+      "borderRadius": "2px",
+      "accentColor": "#00b8cd"
+    },
+    "navigation": {
+      "header": {
+        "height": "40px",
+        "bg": "#ffffff",
+        "borderBottom": "1px solid #e6e6e6"
+      },
+      "sidebar": {
+        "width": "40px",
+        "widthExpanded": "200px",
+        "bg": "#4e4e4e",
+        "iconSize": "20px",
+        "itemHeight": "40px",
+        "active": {
+          "bg": "rgba(0,184,205,0.25)",
+          "borderLeft": "2px solid #00b8cd",
+          "color": "#fff"
+        },
+        "default": {
+          "color": "#fff",
+          "opacity": 0.7
+        }
+      },
+      "breadcrumb": {
+        "height": "12px",
+        "fontSize": "10px",
+        "fontWeight": 400,
+        "color": "#808080",
+        "activeColor": "#4e4e4e"
+      },
+      "moduleTabs": {
+        "class": "module-tabs",
+        "itemClass": "module-tabs__item",
+        "height": "25px",
+        "active": { "bg": "#4e4e4e", "color": "#ffffff" },
+        "inactive": { "color": "#00b8cd" }
+      },
+      "appTopbar": {
+        "class": "app-topbar",
+        "rowHeight": "48px",
+        "subRowHeight": "36px",
+        "utilities": ["btn--pill", "topbar-link"],
+        "pageActions": ["btn--secondary", "btn--primary"]
+      }
+    },
+    "formPatterns": {
+      "floatingField": {
+        "wrapper": "form-field--floating",
+        "label": "form-field__label",
+        "height": "49px",
+        "filledClass": "is-filled"
+      },
+      "grid": {
+        "class": "form-grid",
+        "columns": ["form-grid--2", "form-grid--3", "form-grid--4"]
+      },
+      "layout": {
+        "wrapper": "form-layout",
+        "main": "form-layout__main",
+        "rail": "form-layout__rail",
+        "railWidth": "220px"
+      },
+      "panel": {
+        "class": "form-panel",
+        "header": "form-panel__header",
+        "title": "form-panel__title",
+        "body": "form-panel__body"
+      },
+      "uploadDropzone": "upload-dropzone",
+      "profilePhoto": "profile-photo"
+    },
+    "accordion": {
+      "border": "1px solid #e6e6e6",
+      "borderRadius": "8px",
+      "header": {
+        "height": "60px",
+        "padding": "0 16px",
+        "fontSize": "14px",
+        "fontWeight": 700
+      }
+    },
+    "card": {
+      "bg": "#ffffff",
+      "border": "1px solid #e6e6e6",
+      "borderRadius": "8px",
+      "header": {
+        "padding": "12px 16px"
+      },
+      "body": {
+        "padding": "16px"
+      },
+      "footer": {
+        "padding": "12px 16px",
+        "bg": "#f7f7f7"
+      }
+    },
+    "badge": {
+      "borderRadius": "9999px",
+      "fontSize": "10px",
+      "fontWeight": 700,
+      "padding": "2px 8px",
+      "variants": {
+        "primary": {
+          "bg": "#b3e8ef",
+          "color": "#008fa0"
+        },
+        "success": {
+          "bg": "#e6fce6",
+          "color": "#00ba00"
+        },
+        "warning": {
+          "bg": "#fff3e0",
+          "color": "#ff8400"
+        },
+        "error": {
+          "bg": "#fff6f6",
+          "color": "#f10000"
+        },
+        "burgandy": {
+          "bg": "#f5e0e0",
+          "color": "#840000"
+        },
+        "yellow": {
+          "bg": "#fff8e0",
+          "color": "#a07800"
+        },
+        "neutral": {
+          "bg": "#e6e6e6",
+          "color": "#4e4e4e"
+        },
+        "teal": {
+          "bg": "#e5f9f9",
+          "color": "#0d7075"
+        },
+        "green": {
+          "bg": "#f1f7e7",
+          "color": "#5a7a1e"
+        }
+      }
+    },
+    "table": {
+      "border": "1px solid #e6e6e6",
+      "borderRadius": "8px",
+      "header": {
+        "bg": "#f7f7f7",
+        "fontSize": "10px",
+        "fontWeight": 900,
+        "color": "#808080",
+        "textTransform": "uppercase"
+      },
+      "row": {
+        "fontSize": "12px",
+        "color": "#4e4e4e",
+        "borderBottom": "1px solid #e6e6e6",
+        "hover": {
+          "bg": "#f7f7f7"
+        }
+      }
+    },
+    "alert": {
+      "borderRadius": "8px",
+      "fontSize": "12px",
+      "padding": "12px 16px",
+      "variants": {
+        "error": {
+          "bg": "#fff6f6",
+          "border": "#ff3c5a",
+          "color": "#f10000"
+        },
+        "warning": {
+          "bg": "#fff3e0",
+          "border": "#ff8400",
+          "color": "#ff8400"
+        },
+        "success": {
+          "bg": "#e6fce6",
+          "border": "#00ba00",
+          "color": "#00ba00"
+        },
+        "info": {
+          "bg": "#f0fcfc",
+          "border": "#00b8cd",
+          "color": "#008fa0"
+        }
+      }
+    },
+    "modal": {
+      "borderRadius": "12px",
+      "maxWidth": {
+        "sm": "400px",
+        "md": "540px",
+        "lg": "720px",
+        "xl": "960px"
+      },
+      "header": {
+        "padding": "16px 20px",
+        "borderBottom": "1px solid #e6e6e6",
+        "fontSize": "16px",
+        "fontWeight": 900
+      },
+      "body": {
+        "padding": "20px"
+      },
+      "footer": {
+        "padding": "12px 20px",
+        "bg": "#f7f7f7"
+      }
+    },
+    "avatar": {
+      "borderRadius": "50%",
+      "bg": "#b3e8ef",
+      "color": "#008fa0",
+      "fontWeight": 900,
+      "sizes": {
+        "xs": {
+          "w": "24px",
+          "h": "24px"
+        },
+        "sm": {
+          "w": "32px",
+          "h": "32px"
+        },
+        "md": {
+          "w": "40px",
+          "h": "40px"
+        },
+        "lg": {
+          "w": "64px",
+          "h": "64px"
+        },
+        "xl": {
+          "w": "120px",
+          "h": "120px",
+          "borderRadius": "8px"
+        }
+      }
+    },
+    "painScale": {
+      "colors": {
+        "0": "#8ccdd3",
+        "2": "#c5d19d",
+        "4": "#f8d65c",
+        "6": "#f1ab65",
+        "8": "#f09369",
+        "10": "#ed6d6c"
+      },
+      "faceSize": "32px",
+      "fontSize": "10px",
+      "fontWeight": 900
+    },
+    "icons": {
+      "size": "20px",
+      "colors": {
+        "default": "#4e4e4e",
+        "primary": "#00b8cd",
+        "onSidebar": "#ffffff",
+        "muted": "#808080"
+      }
+    }
+  },
+  "layout": {
+    "containerMax": "1280px",
+    "breakpoints": {
+      "sm": "640px",
+      "md": "960px",
+      "lg": "1280px",
+      "xl": "1440px"
+    },
+    "appShell": {
+      "sidebar": "40px (collapsed) / 200px (expanded)",
+      "header": "40px"
+    },
+    "zIndex": {
+      "base": 0,
+      "raised": 10,
+      "dropdown": 100,
+      "sticky": 200,
+      "overlay": 300,
+      "modal": 400,
+      "toast": 600,
+      "tooltip": 700
+    }
+  },
+  "transitions": {
+    "fast": "100ms ease",
+    "base": "200ms ease",
+    "slow": "300ms ease",
+    "bounce": "300ms cubic-bezier(0.34, 1.56, 0.64, 1)"
+  },
+  "codingGuidelines": {
+    "colorMode": "light only",
+    "fontUsage": "Always import Lato from Google Fonts. ExtraBold (900) for headings, Bold (700) for labels/buttons, Regular (400) for body.",
+    "buttonRules": [
+      "Primary: solid #00b8cd, white text, 30px height, 4px radius",
+      "Secondary: white fill, 1px #00b8cd border, 30px height",
+      "Tertiary: no bg, no border, 22px height"
+    ],
+    "inputRules": [
+      "Border: #e6e6e6 (1px)",
+      "Focus: #00b8cd + 3px ring",
+      "Height: 33px",
+      "Font: 12px input text, 10px labels/hints"
+    ],
+    "colorRules": [
+      "Primary: #00b8cd (Pantone 3115C \u2014 brand guidelines v2.1)",
+      "Hover: #008fa0",
+      "Page bg: #f7f7f7",
+      "Surface: #ffffff",
+      "Sidebar: #4e4e4e",
+      "IMPORTANT: #009ddc was Unite 2.0 \u2014 do NOT use in Unite 3.0"
+    ]
+  }
+}

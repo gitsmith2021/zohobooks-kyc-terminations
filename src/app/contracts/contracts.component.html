@@ -1,0 +1,853 @@
+<!-- ═══════════════════════════════════════════════════════════════
+     CONTRACTS PAGE
+     ═══════════════════════════════════════════════════════════════ -->
+<div class="ct-shell">
+
+  <!-- Breadcrumb -->
+  <div class="page-breadcrumb text-muted mb-2" style="font-size: 13px; font-weight: 500;">
+    Home / <span class="text-primary">Contracts</span>
+  </div>
+
+  <!-- ── KPI Strip ──────────────────────────────────────────────────────── -->
+  <div class="ct-metrics">
+
+    <div class="ct-metric-card">
+      <div class="ct-metric-icon icon-neutral"><i class="fas fa-file-alt"></i></div>
+      <div class="ct-metric-body">
+        <div class="ct-metric-val">{{ draftCount }}</div>
+        <div class="ct-metric-lbl">Draft</div>
+      </div>
+    </div>
+
+    <div class="ct-metric-card">
+      <div class="ct-metric-icon icon-info"><i class="fas fa-edit"></i></div>
+      <div class="ct-metric-body">
+        <div class="ct-metric-val">{{ amendedCount }}</div>
+        <div class="ct-metric-lbl">Amendments Added</div>
+      </div>
+    </div>
+
+    <div class="ct-metric-card">
+      <div class="ct-metric-icon icon-warning"><i class="fas fa-check-circle"></i></div>
+      <div class="ct-metric-body">
+        <div class="ct-metric-val">{{ readyCount }}</div>
+        <div class="ct-metric-lbl">Ready to Send</div>
+      </div>
+    </div>
+
+    <div class="ct-metric-card">
+      <div class="ct-metric-icon icon-primary"><i class="fas fa-paper-plane"></i></div>
+      <div class="ct-metric-body">
+        <div class="ct-metric-val">{{ sentCount }}</div>
+        <div class="ct-metric-lbl">Contract Sent</div>
+      </div>
+    </div>
+
+    <div class="ct-metric-card">
+      <div class="ct-metric-icon icon-success"><i class="fas fa-signature"></i></div>
+      <div class="ct-metric-body">
+        <div class="ct-metric-val">{{ signedCount }}</div>
+        <div class="ct-metric-lbl">Contract Signed</div>
+      </div>
+    </div>
+
+  </div>
+  <!-- /KPI -->
+
+  <!-- ── Grid Card ──────────────────────────────────────────────────────── -->
+  <div class="ct-grid-card">
+
+    <!-- Header -->
+    <div class="ct-grid-header">
+      <div>
+        <h6 class="ct-grid-title">Contract Management</h6>
+        <small class="ct-grid-sub">{{ records.length }} clinics across all contract lifecycle stages</small>
+      </div>
+      <div class="ct-grid-actions">
+        <button kendoButton themeColor="primary" fillMode="outline" class="grid-icon-btn" title="Export">
+          <i class="fas fa-download"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Filter and Search Actions -->
+    <div class="filter-action-bar">
+      <div class="search-box">
+        <i class="fas fa-search search-icon"></i>
+        <input 
+          type="text" 
+          class="filter-input search-input" 
+          placeholder="Search clinic, contact, email, reference or sales person..." 
+          [(ngModel)]="searchQuery" 
+          (input)="applyFilter()"
+        />
+        @if (searchQuery) {
+          <button class="clear-btn" (click)="searchQuery = ''; applyFilter()">
+            <i class="fas fa-times"></i>
+          </button>
+        }
+      </div>
+      
+      <div class="dropdown-filters">
+        <div class="filter-group date-filter-group">
+          <span class="filter-label">Filter by Date</span>
+          <kendo-multiselect
+            [data]="dateFilterOptions"
+            [(value)]="selectedDateFilters"
+            (valueChange)="applyFilter()"
+            placeholder="All Dates / Months"
+            [checkboxes]="true"
+            [autoClose]="false"
+            class="kendo-filter-multiselect"
+          >
+          </kendo-multiselect>
+        </div>
+
+        <div class="filter-group status-filter-group">
+          <span class="filter-label">Status</span>
+          <kendo-multiselect
+            [data]="availableStatuses"
+            [(value)]="selectedStatuses"
+            (valueChange)="applyFilter()"
+            placeholder="All Statuses"
+            [checkboxes]="true"
+            [autoClose]="false"
+            class="kendo-filter-multiselect"
+          >
+          </kendo-multiselect>
+        </div>
+      </div>
+    </div>
+
+    <!-- Kendo Grid -->
+    <kendo-grid [data]="gridData" [pageSize]="gridState.take!" [skip]="gridState.skip!" [sort]="gridState.sort!"
+      [sortable]="{ allowUnsort: true, mode: 'single' }"
+      [pageable]="{ buttonCount: 5, pageSizes: [10, 20, 50], info: true }" [selectable]="selectableSettings"
+      kendoGridSelectBy="id" [(selectedKeys)]="selectedKeys" (dataStateChange)="onStateChange($event)" class="ct-grid">
+
+      <!-- Checkbox -->
+      <kendo-grid-checkbox-column [width]="46" [showSelectAll]="true" [locked]="true"></kendo-grid-checkbox-column>
+
+      <!-- Clinic -->
+      <kendo-grid-column field="companyName" title="Clinic / Contact" [width]="220" [locked]="true">
+        <ng-template kendoGridHeaderTemplate let-column>
+          {{ column.title }} <i class="fas fa-sort ms-1"></i>
+        </ng-template>
+        <ng-template kendoGridCellTemplate let-dataItem>
+          <div class="cell-clinic">
+            <div class="clinic-avatar">{{ dataItem.companyName.charAt(0) }}</div>
+            <div>
+              <div class="clinic-name-row">
+                <span class="clinic-name">{{ dataItem.companyName }}</span>
+                <span class="clinic-info-trigger">
+                  <i class="fas fa-info-circle info-icon"></i>
+                  <!-- Premium Glassmorphic Hover Card -->
+                  <div class="clinic-hover-card">
+                    <div class="chc-header">
+                      <span class="chc-plan">{{ dataItem.subscriptionPlan }}</span>
+                      <span class="chc-ref">{{ dataItem.contractRef }}</span>
+                    </div>
+                    <div class="chc-divider"></div>
+                    <div class="chc-grid">
+                      <div class="chc-metric">
+                        <span class="chc-lbl"><i class="fas fa-hospital-alt text-primary"></i> Clinics</span>
+                        <span class="chc-val">{{ dataItem.clinicCount }}</span>
+                      </div>
+                      <div class="chc-metric">
+                        <span class="chc-lbl"><i class="fas fa-users text-warning"></i> Users</span>
+                        <span class="chc-val">{{ dataItem.activeUsers }}</span>
+                      </div>
+                    </div>
+                    @if (dataItem.boughtAddOns?.length > 0) {
+                      <div class="chc-section">
+                        <div class="chc-lbl-sec"><i class="fas fa-cubes text-info"></i> Active Add-ons</div>
+                        <div class="chc-addons-list">
+                          @for (addon of dataItem.boughtAddOns; track addon) {
+                            <span class="chc-addon-tag">{{ addon }}</span>
+                          }
+                        </div>
+                      </div>
+                    }
+                    <div class="chc-divider"></div>
+                    <div class="chc-footer">
+                      <span class="chc-rep-lbl">Sales Representative</span>
+                      <span class="chc-rep-val">{{ dataItem.salesRepresentative }}</span>
+                    </div>
+                  </div>
+                </span>
+              </div>
+              <div class="clinic-contact">{{ dataItem.contactName }}</div>
+            </div>
+          </div>
+        </ng-template>
+      </kendo-grid-column>
+
+      <!-- Contract Ref -->
+      <kendo-grid-column field="contractRef" title="Contract Ref" [width]="130">
+        <ng-template kendoGridHeaderTemplate let-column>
+          {{ column.title }} <i class="fas fa-sort ms-1"></i>
+        </ng-template>
+        <ng-template kendoGridCellTemplate let-dataItem>
+          <span class="ref-tag">{{ dataItem.contractRef }}</span>
+        </ng-template>
+      </kendo-grid-column>
+
+
+      <!-- Amendments -->
+      <kendo-grid-column field="amendments.length" title="Amendments" [width]="115">
+        <ng-template kendoGridHeaderTemplate let-column>
+          {{ column.title }} <i class="fas fa-sort ms-1"></i>
+        </ng-template>
+        <ng-template kendoGridCellTemplate let-dataItem>
+          @if (dataItem.amendments.length > 0) {
+          <span class="amend-count" style="cursor:pointer" (click)="openAmendDialog(dataItem)">
+            <i class="fas fa-file-pen"></i> {{ dataItem.amendments.length }}
+          </span>
+          } @else {
+          <span class="cell-muted">None</span>
+          }
+        </ng-template>
+      </kendo-grid-column>
+
+      <!-- Sent On -->
+      <kendo-grid-column field="contractSentOn" title="Sent On" [width]="125" filter="date">
+        <ng-template kendoGridHeaderTemplate let-column>
+          {{ column.title }} <i class="fas fa-sort ms-1"></i>
+        </ng-template>
+        <ng-template kendoGridCellTemplate let-dataItem>
+          @if (dataItem.contractSentOn) {
+          <span class="cell-date">{{ dataItem.contractSentOn | date:'dd MMM yyyy' }}</span>
+          } @else {
+          <span class="cell-muted">—</span>
+          }
+        </ng-template>
+      </kendo-grid-column>
+
+      <!-- Signed On -->
+      <kendo-grid-column field="contractSignedOn" title="Signed On" [width]="125" filter="date">
+        <ng-template kendoGridHeaderTemplate let-column>
+          {{ column.title }} <i class="fas fa-sort ms-1"></i>
+        </ng-template>
+        <ng-template kendoGridCellTemplate let-dataItem>
+          @if (dataItem.contractSignedOn) {
+          <span class="cell-date cell-date--signed">
+            <i class="fas fa-check-circle" style="font-size:10px;margin-right:3px"></i>
+            {{ dataItem.contractSignedOn | date:'dd MMM yyyy' }}
+          </span>
+          } @else {
+          <span class="cell-muted">—</span>
+          }
+        </ng-template>
+      </kendo-grid-column>
+
+      <!-- Sales Person -->
+      <kendo-grid-column field="salesPerson" title="Sales Person" [width]="150">
+        <ng-template kendoGridHeaderTemplate let-column>
+          {{ column.title }} <i class="fas fa-sort ms-1"></i>
+        </ng-template>
+        <ng-template kendoGridCellTemplate let-dataItem>
+          <span class="cell-manager">{{ dataItem.salesPerson }}</span>
+        </ng-template>
+      </kendo-grid-column>
+
+      <!-- Contract Status -->
+      <kendo-grid-column field="contractStatus" title="Contract Status" [width]="180">
+        <ng-template kendoGridHeaderTemplate let-column>
+          {{ column.title }} <i class="fas fa-sort ms-1"></i>
+        </ng-template>
+        <ng-template kendoGridCellTemplate let-dataItem>
+          <span class="cs-status-badge" [ngClass]="getStatusClass(dataItem.contractStatus)">
+            <i [class]="getStatusIcon(dataItem.contractStatus) + ' cs-badge-icon'"></i>
+            {{ dataItem.contractStatus }}
+          </span>
+        </ng-template>
+      </kendo-grid-column>
+
+      <!-- Actions -->
+      <kendo-grid-column title="Actions" [width]="200" [sortable]="false">
+        <ng-template kendoGridHeaderTemplate let-column>
+          {{ column.title }}
+        </ng-template>
+        <ng-template kendoGridCellTemplate let-dataItem>
+          <div class="cell-actions">
+            @if (canSend(dataItem)) {
+            <button kendoButton [size]="'small'" themeColor="primary" fillMode="solid" title="Send Contract"
+              (click)="openSendDialog(dataItem)">
+              <i class="fas fa-paper-plane me-1"></i>Send
+            </button>
+            }
+            @if (canAddAmendment(dataItem)) {
+            <button kendoButton [size]="'small'" themeColor="primary" fillMode="outline" title="Add Amendment"
+              (click)="openAmendDialog(dataItem)">
+              <i class="fas fa-file-pen me-1"></i>Amend
+            </button>
+            }
+            @if (dataItem.contractStatus === 'Contract Signed') {
+            <button kendoButton [size]="'small'" fillMode="outline" class="action-icon-btn--signed"
+              title="Contract Signed" (click)="openContractPanel(dataItem)">
+              <i class="fas fa-file-contract me-1"></i>View
+            </button>
+            } @else if (dataItem.contractStatus === 'Contract Terminated') {
+            <button kendoButton [size]="'small'" fillMode="outline" class="action-icon-btn--terminated"
+              title="Contract Terminated" (click)="openContractPanel(dataItem)">
+              <i class="fas fa-times-circle me-1"></i>View
+            </button>
+            } @else if (dataItem.contractStatus === 'Contract Expired') {
+            <button kendoButton [size]="'small'" fillMode="outline" class="action-icon-btn--expired"
+              title="Contract Expired" (click)="openContractPanel(dataItem)">
+              <i class="fas fa-calendar-times me-1"></i>View
+            </button>
+            } @else {
+            <button kendoButton [size]="'small'" fillMode="outline" class="action-icon-btn--view" title="View Contract"
+              (click)="openContractPanel(dataItem)">
+              <i class="fas fa-eye me-1"></i>View
+            </button>
+            }
+          </div>
+        </ng-template>
+      </kendo-grid-column>
+
+    </kendo-grid>
+  </div>
+  <!-- /Grid Card -->
+
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SEND CONTRACT DIALOG
+     ═══════════════════════════════════════════════════════════════ -->
+@if (sendDialogOpen && selectedRecord) {
+<kendo-dialog title="Send Contract" [minWidth]="480" [width]="620" (close)="closeSendDialog()">
+
+  <div class="dlg-body">
+
+    <!-- Clinic strip -->
+    <div class="dlg-clinic-strip">
+      <div class="clinic-avatar clinic-avatar-lg">{{ selectedRecord.companyName.charAt(0) }}</div>
+      <div>
+        <div class="dlg-clinic-name">{{ selectedRecord.companyName }}</div>
+        <div class="dlg-clinic-contact">
+          <i class="fas fa-user-md"></i> {{ selectedRecord.contactName }}
+          &nbsp;·&nbsp; <i class="fas fa-tag"></i> {{ selectedRecord.contractRef }}
+        </div>
+      </div>
+      <div class="dlg-clinic-manager">
+        <div class="dlg-mgr-lbl">Sales Person</div>
+        <div class="dlg-mgr-val">{{ selectedRecord.salesPerson }}</div>
+      </div>
+    </div>
+
+    <!-- Contract lifecycle -->
+    <div class="ct-lifecycle">
+      @for (step of lifecycleSteps; track step; let last = $last) {
+      <div class="lifecycle-step" [class.done]="isStepDone(selectedRecord, step)"
+        [class.active]="isStepActive(selectedRecord, step)">
+        <div class="lifecycle-dot"></div>
+        <div class="lifecycle-label">{{ step }}</div>
+      </div>
+      @if (!last) { <div class="lifecycle-line"></div> }
+      }
+    </div>
+
+    <!-- Approach selector -->
+    <div class="dlg-section-title"><i class="fas fa-route"></i> Dispatch Approach</div>
+
+    <div class="approach-options">
+      <label class="approach-option" [class.selected]="selectedApproach === 1"
+        (click)="selectedApproach = 1; disclaimerAcknowledged = false">
+        <div class="approach-radio"><span [class.filled]="selectedApproach === 1"></span></div>
+        <div class="approach-content">
+          <div class="approach-title">
+            <i class="fas fa-shield-alt text-success"></i>
+            Approach 1 — Send After Subscription Payment
+            <span class="approach-default-tag">Default</span>
+          </div>
+          <div class="approach-desc">Contract is issued only after subscription payment is confirmed.</div>
+          @if (!selectedRecord.subscriptionPaid) {
+          <div class="approach-warn">
+            <i class="fas fa-exclamation-triangle"></i>
+            Subscription payment not yet confirmed for this clinic.
+          </div>
+          }
+        </div>
+      </label>
+
+      <label class="approach-option" [class.selected]="selectedApproach === 2" (click)="selectedApproach = 2">
+        <div class="approach-radio"><span [class.filled]="selectedApproach === 2"></span></div>
+        <div class="approach-content">
+          <div class="approach-title">
+            <i class="fas fa-exclamation-triangle text-warning"></i>
+            Approach 2 — Send Before Subscription Payment
+            <span class="approach-override-tag">Authorised Override</span>
+          </div>
+          <div class="approach-desc">Send contract prior to subscription payment. Requires mandatory disclaimer.</div>
+        </div>
+      </label>
+    </div>
+
+    <!-- Approach 2 disclaimer + justification -->
+    @if (selectedApproach === 2) {
+    <div class="disclaimer-box">
+      <div class="disclaimer-header">
+        <i class="fas fa-exclamation-circle"></i>
+        Mandatory Disclaimer — Included in Contract
+      </div>
+      <div class="disclaimer-text">
+        "This contract shall become effective only upon the customer going live and once the
+        subscription payment is successfully completed."
+      </div>
+    </div>
+
+    <label class="dlg-label">
+      Override Justification <span class="text-required">*</span>
+    </label>
+    <textarea class="dlg-textarea" rows="2" [(ngModel)]="overrideJustification"
+      placeholder="Record the reason for sending before payment (e.g. senior management approval)...">
+        </textarea>
+
+    <label class="dlg-acknowledge">
+      <input type="checkbox" [(ngModel)]="disclaimerAcknowledged" />
+      <span>I acknowledge the mandatory disclaimer will be included in this contract.</span>
+    </label>
+    }
+
+    <!-- Amendments summary -->
+    @if (selectedRecord.amendments.length > 0) {
+    <div class="dlg-section-title" style="margin-top:12px">
+      <i class="fas fa-edit"></i> Customer-Specific Amendments
+      <span class="doc-count">{{ selectedRecord.amendments.length }}</span>
+    </div>
+    <div class="amend-summary">
+      @for (a of selectedRecord.amendments; track a.id) {
+      <div class="amend-row">
+        <i class="fas fa-circle amend-dot"></i>
+        <div class="amend-text">{{ a.description }}</div>
+        <span class="amend-meta">{{ a.author }} · {{ a.addedOn | date:'dd MMM' }}</span>
+      </div>
+      }
+    </div>
+    }
+
+  </div>
+
+  <kendo-dialog-actions layout="stretched">
+    <button kendoButton themeColor="primary" fillMode="solid"
+      [disabled]="selectedApproach === 2 && (!disclaimerAcknowledged || !overrideJustification.trim())"
+      (click)="confirmSend()">
+      <i class="fas fa-paper-plane me-2"></i>Send Contract
+    </button>
+  </kendo-dialog-actions>
+
+</kendo-dialog>
+}
+
+
+<!-- ═══════════════════════════════════════════════════════════════
+     CONTRACT PREVIEW SLIDE PANEL
+     ═══════════════════════════════════════════════════════════════ -->
+@if (contractPanelOpen && contractPanelRecord) {
+<div class="slide-panel-overlay" (click)="closeContractPanel()"></div>
+<div class="slide-panel slide-panel--wide slide-in" style="display:flex;flex-direction:column">
+
+  <!-- Header -->
+  <div class="nkp-header">
+    <div class="nkp-header-left">
+      <div class="nkp-header-icon"><i class="fas fa-file-contract"></i></div>
+      <div>
+        <h5 class="nkp-title">Contract Preview — {{ contractPanelRecord.companyName }}</h5>
+        <div class="nkp-subtitle">
+          {{ contractPanelRecord.contractRef }}&nbsp;&nbsp;·&nbsp;&nbsp;Unitecare Software Solutions FZE &times; {{
+          contractPanelRecord.companyName }}
+        </div>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;flex-shrink:0">
+      <span class="cs-status-badge" [ngClass]="getStatusClass(contractPanelRecord.contractStatus)">
+        <i [class]="getStatusIcon(contractPanelRecord.contractStatus) + ' cs-badge-icon'"></i>
+        {{ contractPanelRecord.contractStatus }}
+      </span>
+      <button class="nkp-close-btn" (click)="closeContractPanel()"><i class="fas fa-times"></i></button>
+    </div>
+  </div>
+
+  <!-- PDF-like Viewer -->
+  <div class="cp-viewer">
+    <div class="cp-paper">
+
+      <!-- Watermark for terminated contracts -->
+      @if (contractPanelRecord.contractStatus === 'Contract Terminated') {
+      <div class="cp-watermark">TERMINATED</div>
+      }
+
+      <!-- Letterhead -->
+      <div class="cp-letterhead">
+        <div class="cp-logo-block">
+          <div class="cp-logo-icon"><i class="fas fa-hospital-alt"></i></div>
+          <div>
+            <div class="cp-logo-name">Unitecare Software Solutions FZE</div>
+            <div class="cp-logo-tagline">Healthcare Technology &amp; Contract Management · Dubai, UAE</div>
+          </div>
+        </div>
+        <div class="cp-letterhead-right">
+          <div class="cp-ref-badge">{{ contractPanelRecord.contractRef }}</div>
+          <div class="cp-ref-date">Dated: {{ contractStartDate(contractPanelRecord) | date:'dd MMMM yyyy' }}</div>
+        </div>
+      </div>
+
+      <!-- Title -->
+      <div class="cp-title-block">
+        <div class="cp-doc-title">HEALTHCARE SOFTWARE SERVICES AGREEMENT</div>
+        <div class="cp-doc-subtitle">Contracts · Digital Services Platform</div>
+      </div>
+
+      <!-- Parties -->
+      <div class="cp-section">
+        <div class="cp-section-label">Parties to the Agreement</div>
+        <div class="cp-parties-grid">
+          <div class="cp-party">
+            <div class="cp-party-role">Service Provider</div>
+            <div class="cp-party-name">Unitecare Software Solutions FZE</div>
+            <div class="cp-party-detail">Freezone Authority, Dubai, United Arab Emirates</div>
+            <div class="cp-party-detail">License No: FZE-2019-04521</div>
+          </div>
+          <div class="cp-party-and">AND</div>
+          <div class="cp-party">
+            <div class="cp-party-role">Client</div>
+            <div class="cp-party-name">{{ contractPanelRecord.companyName }}</div>
+            <div class="cp-party-detail">{{ contractPanelRecord.contactName }}, Authorised Signatory</div>
+            <div class="cp-party-detail">Dubai, United Arab Emirates</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Scope of Services -->
+      <div class="cp-section">
+        <div class="cp-section-label">Scope of Services</div>
+        <div class="cp-clause-list">
+          <div class="cp-clause"><span class="cp-clause-num">1.</span><span>Contracts Management Platform — Full
+              lifecycle contract management, digital signing, version control, and cloud archival on the Contracts
+              platform.</span></div>
+          <div class="cp-clause"><span class="cp-clause-num">2.</span><span>KYC Verification &amp; Document Management —
+              Regulatory compliance, identity verification, document collection, and automated renewal tracking for all
+              clinic-level onboarding.</span></div>
+          <div class="cp-clause"><span class="cp-clause-num">3.</span><span>Healthcare Regulatory Compliance Support —
+              DHA/MOH licensing advisory, trade license monitoring, and documentation assistance aligned with UAE
+              federal requirements.</span></div>
+          <div class="cp-clause"><span class="cp-clause-num">4.</span><span>Technical Support &amp; SLA Coverage —
+              Priority support desk with guaranteed 4-hour response SLA and 99.5% platform uptime commitment.</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Customer Amendments (if any) -->
+      @if (contractPanelRecord.amendments.length > 0) {
+      <div class="cp-section">
+        <div class="cp-section-label">Customer-Specific Amendments</div>
+        <div class="cp-clause-list">
+          @for (a of contractPanelRecord.amendments; track a.id; let i = $index) {
+          <div class="cp-clause">
+            <span class="cp-clause-num">{{ i + 1 }}.</span>
+            <span>{{ a.description }}<span class="cp-amend-meta"> — Added by {{ a.author }}, {{ a.addedOn | date:'dd MMM
+                yyyy' }}</span></span>
+          </div>
+          }
+        </div>
+      </div>
+      }
+
+      <!-- Approach 2 disclaimer -->
+      @if (contractPanelRecord.approach === 2) {
+      <div class="cp-section">
+        <div class="cp-section-label">Special Conditions</div>
+        <div class="cp-disclaimer">
+          "This contract shall become effective only upon the customer going live and once the subscription payment is
+          successfully completed."
+        </div>
+      </div>
+      }
+
+      <!-- Contract Terms -->
+      <div class="cp-section">
+        <div class="cp-section-label">Contract Terms</div>
+        <div class="cp-terms-grid">
+          <div class="cp-term">
+            <div class="cp-term-lbl">Contract Period</div>
+            <div class="cp-term-val">{{ contractStartDate(contractPanelRecord) | date:'dd MMM yyyy' }} — {{
+              contractEndDate(contractPanelRecord) | date:'dd MMM yyyy' }}</div>
+          </div>
+          <div class="cp-term">
+            <div class="cp-term-lbl">Annual Contract Value</div>
+            <div class="cp-term-val">{{ contractAnnualValue(contractPanelRecord) }}</div>
+          </div>
+          <div class="cp-term">
+            <div class="cp-term-lbl">Payment Schedule</div>
+            <div class="cp-term-val">Quarterly Installments (4 × AED)</div>
+          </div>
+          <div class="cp-term">
+            <div class="cp-term-lbl">Renewal Clause</div>
+            <div class="cp-term-val">Auto-renew with 60-day prior written notice</div>
+          </div>
+          <div class="cp-term">
+            <div class="cp-term-lbl">Governing Law</div>
+            <div class="cp-term-val">UAE Federal Law &amp; DIFC Regulations</div>
+          </div>
+          <div class="cp-term">
+            <div class="cp-term-lbl">Termination Notice</div>
+            <div class="cp-term-val">30-day notice; 60 days for no-fault termination</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Signatures -->
+      <div class="cp-section cp-section--last">
+        <div class="cp-section-label">Authorised Signatures</div>
+        <div class="cp-sig-grid">
+
+          <!-- Unitecare -->
+          <div class="cp-sig-block">
+            <div class="cp-sig-line">
+              <div class="cp-sig-cursive">Ahmed Al Marri</div>
+            </div>
+            <div class="cp-sig-name">Ahmed Al Marri</div>
+            <div class="cp-sig-detail">Chief Executive Officer</div>
+            <div class="cp-sig-detail">Unitecare Software Solutions FZE</div>
+            <div class="cp-sig-date">{{ contractStartDate(contractPanelRecord) | date:'dd MMMM yyyy' }}</div>
+          </div>
+
+          <!-- Client -->
+          <div class="cp-sig-block" [class.cp-sig-block--pending]="!contractPanelRecord.contractSignedOn">
+            @if (contractPanelRecord.contractSignedOn) {
+            <div class="cp-sig-line">
+              <div class="cp-sig-cursive">{{ contractPanelRecord.contactName }}</div>
+            </div>
+            } @else {
+            <div class="cp-sig-awaiting">
+              <i class="fas fa-pen-nib"></i>
+              <span>Awaiting Client Signature</span>
+            </div>
+            }
+            <div class="cp-sig-name">{{ contractPanelRecord.contactName }}</div>
+            <div class="cp-sig-detail">Authorised Signatory</div>
+            <div class="cp-sig-detail">{{ contractPanelRecord.companyName }}</div>
+            @if (contractPanelRecord.contractSignedOn) {
+            <div class="cp-sig-date">{{ contractPanelRecord.contractSignedOn | date:'dd MMMM yyyy' }}</div>
+            }
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Page Footer -->
+      <div class="cp-page-footer">
+        <span>{{ contractPanelRecord.contractRef }} — Confidential</span>
+        <span>Unitecare Software Solutions FZE × {{ contractPanelRecord.companyName }}</span>
+        <span>Page 1 of 3</span>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Footer Actions -->
+  <div class="nkp-footer">
+    <button kendoButton themeColor="base" fillMode="outline" (click)="closeContractPanel()">
+      Close
+    </button>
+    <button kendoButton themeColor="base" fillMode="outline" [disabled]="true"
+      title="PDF download available in production">
+      <i class="fas fa-download me-2"></i>Download PDF
+    </button>
+    @if (contractPanelRecord.contractStatus === 'Contract Sent') {
+    <button kendoButton themeColor="warning" fillMode="outline">
+      <i class="fas fa-paper-plane me-2"></i>Send Signature Reminder
+    </button>
+    }
+    @if (contractPanelRecord.contractStatus === 'Contract Signed') {
+    <button kendoButton themeColor="primary" fillMode="outline">
+      <i class="fas fa-file-alt me-2"></i>Request Amendment
+    </button>
+    }
+  </div>
+
+</div>
+}
+
+
+<!-- ═══════════════════════════════════════════════════════════════
+     AMENDMENT SLIDE PANEL
+     ═══════════════════════════════════════════════════════════════ -->
+@if (amendDialogOpen && selectedRecord) {
+<div class="slide-panel-overlay" (click)="closeAmendDialog()"></div>
+<div class="slide-panel slide-panel--wide slide-in" style="display:flex;flex-direction:column">
+
+  <!-- Header -->
+  <div class="nkp-header">
+    <div class="nkp-header-left">
+      <div class="nkp-header-icon"><i class="fas fa-file-pen"></i></div>
+      <div>
+        <h5 class="nkp-title">Amendments — {{ selectedRecord.companyName }}</h5>
+        <div class="nkp-subtitle">{{ selectedRecord.contractRef }}&nbsp;&nbsp;·&nbsp;&nbsp;{{
+          selectedRecord.amendments.length }} amendment{{ selectedRecord.amendments.length !== 1 ? 's' : '' }} on record
+        </div>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;flex-shrink:0">
+      <span class="cs-status-badge" [ngClass]="getStatusClass(selectedRecord.contractStatus)">
+        <i [class]="getStatusIcon(selectedRecord.contractStatus) + ' cs-badge-icon'"></i>
+        {{ selectedRecord.contractStatus }}
+      </span>
+      <button class="nkp-close-btn" (click)="closeAmendDialog()"><i class="fas fa-times"></i></button>
+    </div>
+  </div>
+
+  <!-- Amendment Navigator -->
+  @if (selectedRecord.amendments.length > 0) {
+  <div class="amend-nav-bar">
+    <span class="amend-nav-label">Amendments</span>
+    <div class="amend-nav-tabs">
+      @for (a of selectedRecord.amendments; track a.id; let i = $index) {
+      <button class="amend-nav-tab" [class.active]="amendPanelActiveIdx === i" (click)="amendPanelActiveIdx = i">
+        <i class="fas fa-file-pen"></i>
+        Amendment {{ i + 1 }}
+      </button>
+      }
+    </div>
+  </div>
+  }
+
+  <!-- PDF-style Viewer -->
+  <div class="cp-viewer">
+    @if (selectedRecord.amendments.length === 0) {
+    <div class="amend-empty-state">
+      <i class="fas fa-file-pen"></i>
+      <div>No amendments added yet.</div>
+      <div style="font-size:12px;color:#a1aab2;margin-top:4px">Use the form below to add the first amendment.</div>
+    </div>
+    } @else {
+    <div class="cp-paper">
+
+      <!-- Letterhead -->
+      <div class="cp-letterhead">
+        <div class="cp-logo-block">
+          <div class="cp-logo-icon"><i class="fas fa-hospital-alt"></i></div>
+          <div>
+            <div class="cp-logo-name">Unitecare Software Solutions FZE</div>
+            <div class="cp-logo-tagline">Healthcare Technology &amp; Contract Management · Dubai, UAE</div>
+          </div>
+        </div>
+        <div class="cp-letterhead-right">
+          <div class="cp-ref-badge">{{ selectedRecord.contractRef }}</div>
+          <div class="cp-ref-date">Amendment {{ amendPanelActiveIdx + 1 }} of {{ selectedRecord.amendments.length }}
+          </div>
+        </div>
+      </div>
+
+      <!-- Amendment Title -->
+      <div class="cp-title-block">
+        <div class="cp-doc-title">CONTRACT AMENDMENT NOTICE</div>
+        <div class="cp-doc-subtitle">{{ selectedRecord.companyName }} · Amendment {{ amendPanelActiveIdx + 1 }}</div>
+      </div>
+
+      <!-- Parties -->
+      <div class="cp-section">
+        <div class="cp-section-label">Parties to the Amendment</div>
+        <div class="cp-parties-grid">
+          <div class="cp-party">
+            <div class="cp-party-role">Service Provider</div>
+            <div class="cp-party-name">Unitecare Software Solutions FZE</div>
+            <div class="cp-party-detail">Freezone Authority, Dubai, UAE</div>
+          </div>
+          <div class="cp-party-and">AND</div>
+          <div class="cp-party">
+            <div class="cp-party-role">Client</div>
+            <div class="cp-party-name">{{ selectedRecord.companyName }}</div>
+            <div class="cp-party-detail">{{ selectedRecord.contactName }}, Authorised Signatory</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Amendment Body -->
+      <div class="cp-section">
+        <div class="cp-section-label">Amendment Details</div>
+        <div class="amend-paper-body">
+          <div class="amend-paper-clause">
+            <span class="cp-clause-num">1.</span>
+            <span>{{ selectedRecord.amendments[amendPanelActiveIdx].description }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Meta -->
+      <div class="cp-section">
+        <div class="cp-section-label">Amendment Record</div>
+        <div class="cp-terms-grid">
+          <div class="cp-term">
+            <div class="cp-term-lbl">Raised By</div>
+            <div class="cp-term-val">{{ selectedRecord.amendments[amendPanelActiveIdx].author }}</div>
+          </div>
+          <div class="cp-term">
+            <div class="cp-term-lbl">Date Added</div>
+            <div class="cp-term-val">{{ selectedRecord.amendments[amendPanelActiveIdx].addedOn | date:'dd MMMM yyyy' }}
+            </div>
+          </div>
+          <div class="cp-term">
+            <div class="cp-term-lbl">Parent Contract</div>
+            <div class="cp-term-val">{{ selectedRecord.contractRef }}</div>
+          </div>
+          <div class="cp-term">
+            <div class="cp-term-lbl">Amendment No.</div>
+            <div class="cp-term-val">{{ amendPanelActiveIdx + 1 }} of {{ selectedRecord.amendments.length }}</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Signatures -->
+      <div class="cp-section cp-section--last">
+        <div class="cp-section-label">Authorised Signatures</div>
+        <div class="cp-sig-grid">
+          <div class="cp-sig-block">
+            <div class="cp-sig-line">
+              <div class="cp-sig-cursive">Ahmed Al Marri</div>
+            </div>
+            <div class="cp-sig-name">Ahmed Al Marri</div>
+            <div class="cp-sig-detail">Chief Executive Officer</div>
+            <div class="cp-sig-detail">Unitecare Software Solutions FZE</div>
+          </div>
+          <div class="cp-sig-block cp-sig-block--pending">
+            <div class="cp-sig-awaiting"><i class="fas fa-pen-nib"></i><span>Awaiting Client Signature</span></div>
+            <div class="cp-sig-name">{{ selectedRecord.contactName }}</div>
+            <div class="cp-sig-detail">Authorised Signatory</div>
+            <div class="cp-sig-detail">{{ selectedRecord.companyName }}</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Page Footer -->
+      <div class="cp-page-footer">
+        <span>{{ selectedRecord.contractRef }} — Amendment {{ amendPanelActiveIdx + 1 }}</span>
+        <span>Unitecare Software Solutions FZE × {{ selectedRecord.companyName }}</span>
+        <span>Confidential</span>
+      </div>
+
+    </div>
+    }
+  </div>
+
+  <!-- Footer: Add Amendment (only when editable) -->
+  @if (canAddAmendment(selectedRecord)) {
+  <div class="amend-add-footer">
+    <textarea class="amend-add-textarea" rows="2" [(ngModel)]="newAmendDesc"
+      placeholder="Describe the amendment (e.g. custom pricing, special SLA, additional clause)..."></textarea>
+    <div style="display:flex;justify-content:flex-end;gap:8px">
+      <button kendoButton themeColor="primary" fillMode="solid" [disabled]="!newAmendDesc.trim()"
+        (click)="addAmendment()">
+        <i class="fas fa-plus me-1"></i>Add Amendment
+      </button>
+    </div>
+  </div>
+  } @else {
+
+  }
+
+</div>
+}

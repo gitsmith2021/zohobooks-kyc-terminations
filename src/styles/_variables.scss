@@ -1,0 +1,33 @@
+// ═══════════════════════════════════════════════════════════════════════════
+//  SHARED DESIGN TOKENS
+//  Import this file in every component SCSS via:
+//    @use '../../styles/variables' as *;
+// ═══════════════════════════════════════════════════════════════════════════
+
+// ── Colours ──────────────────────────────────────────────────────────────────
+$accent : #00B8CD;
+$accent-hover : #039aab;
+$warning : #ffc107;
+$warning-text : #856404;
+$orange : #f64e60;
+$success : #00A674;
+$border : #d9d9d9;
+$body-bg : #F6F6F6;
+$text : #3e5569;
+$text-muted : #a1aab2;
+
+// ── Sizing ────────────────────────────────────────────────────────────────────
+$card-r : 7px;
+$sidebar-width : 250px;
+
+// ── Typography ────────────────────────────────────────────────────────────────
+$font : 'Lato',
+system-ui,
+sans-serif;
+$font-serif : 'Georgia',
+'Times New Roman',
+serif;
+$font-cursive : 'Brush Script MT',
+'Segoe Script',
+'Lucida Handwriting',
+cursive;

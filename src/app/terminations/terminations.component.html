@@ -1,0 +1,757 @@
+<!-- ═══════════════════════════════════════════════════════════════
+     TERMINATIONS MODULE — PREMIUM SYSTEM
+     ═══════════════════════════════════════════════════════════════ -->
+<div class="tm-shell">
+
+  <!-- Breadcrumb -->
+  <div class="page-breadcrumb text-muted mb-2" style="font-size:13px;font-weight:500">
+    Home / <span class="text-primary">Terminations</span>
+  </div>
+
+  <!-- Primary Sub-View Toggle -->
+  <div class="tm-view-toggle" style="display:flex;gap:12px;border-bottom:1px solid #e2e8f0;padding-bottom:12px;margin-bottom:16px;flex-shrink:0">
+    <button kendoButton [themeColor]="activeSubView === 'requests' ? 'primary' : 'base'" 
+      [fillMode]="activeSubView === 'requests' ? 'solid' : 'flat'" (click)="activeSubView = 'requests'"
+      style="border-radius: 8px; font-weight: 600; padding: 8px 16px;">
+      <i class="fas fa-list me-2"></i>Termination Requests Management
+    </button>
+    <button kendoButton [themeColor]="activeSubView === 'handover' ? 'primary' : 'base'" 
+      [fillMode]="activeSubView === 'handover' ? 'solid' : 'flat'" (click)="activeSubView = 'handover'"
+      style="border-radius: 8px; font-weight: 600; padding: 8px 16px;">
+      <i class="fas fa-shield-alt me-2 text-primary"></i>Customer Data Handover Portal
+    </button>
+  </div>
+
+  <!-- ── SUB-VIEW 1: REQUESTS MANAGEMENT ───────────────────────────────── -->
+  @if (activeSubView === 'requests') {
+    <!-- KPI Strip -->
+    <div class="tm-metrics">
+      <div class="tm-metric-card">
+        <div class="tm-metric-icon icon-requested"><i class="fas fa-exclamation-circle"></i></div>
+        <div class="tm-metric-body">
+          <div class="tm-metric-val">{{ requestedCount }}</div>
+          <div class="tm-metric-lbl">Requested</div>
+        </div>
+      </div>
+
+      <div class="tm-metric-card">
+        <div class="tm-metric-icon icon-review"><i class="fas fa-search"></i></div>
+        <div class="tm-metric-body">
+          <div class="tm-metric-val">{{ reviewCount }}</div>
+          <div class="tm-metric-lbl">Under Review</div>
+        </div>
+      </div>
+
+      <div class="tm-metric-card">
+        <div class="tm-metric-icon icon-notice"><i class="fas fa-hourglass-half"></i></div>
+        <div class="tm-metric-body">
+          <div class="tm-metric-val">{{ noticeCount }}</div>
+          <div class="tm-metric-lbl">Notice Period</div>
+        </div>
+      </div>
+
+      <div class="tm-metric-card">
+        <div class="tm-metric-icon icon-approved"><i class="fas fa-check-circle"></i></div>
+        <div class="tm-metric-body">
+          <div class="tm-metric-val">{{ approvedCount }}</div>
+          <div class="tm-metric-lbl">Approved</div>
+        </div>
+      </div>
+
+      <div class="tm-metric-card">
+        <div class="tm-metric-icon icon-terminated"><i class="fas fa-times-circle"></i></div>
+        <div class="tm-metric-body">
+          <div class="tm-metric-val">{{ terminatedCount }}</div>
+          <div class="tm-metric-lbl">Terminated</div>
+        </div>
+      </div>
+
+      <div class="tm-metric-card">
+        <div class="tm-metric-icon icon-calloff"><i class="fas fa-undo"></i></div>
+        <div class="tm-metric-body">
+          <div class="tm-metric-val">{{ callOffCount }}</div>
+          <div class="tm-metric-lbl">Called Off</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Grid Card -->
+    <div class="tm-grid-card">
+      <!-- Header -->
+      <div class="tm-grid-header">
+        <div>
+          <h6 class="tm-grid-title">Termination Requests Dashboard</h6>
+          <small class="tm-grid-sub">{{ records.length }} contract terminations across the customer lifecycle</small>
+        </div>
+        <div class="tm-grid-actions">
+          <button kendoButton themeColor="primary" fillMode="solid" (click)="openRaiseDialog()"
+            style="border-radius:6px; font-weight:600;">
+            <i class="fas fa-plus-circle me-2"></i>Raise Termination Request
+          </button>
+          <button kendoButton themeColor="primary" fillMode="outline" class="grid-icon-btn" title="Export">
+            <i class="fas fa-download"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Filter and Search Actions -->
+      <div class="filter-action-bar">
+        <div class="search-box">
+          <i class="fas fa-search search-icon"></i>
+          <input 
+            type="text" 
+            class="filter-input search-input" 
+            placeholder="Search clinic, contact, sales person or reference..." 
+            [(ngModel)]="searchQuery" 
+            (input)="applyFilter()"
+          />
+          @if (searchQuery) {
+            <button class="clear-btn" (click)="searchQuery = ''; applyFilter()">
+              <i class="fas fa-times"></i>
+            </button>
+          }
+        </div>
+        
+        <div class="dropdown-filters">
+          <div class="filter-group date-filter-group">
+            <span class="filter-label">Filter by Date</span>
+            <kendo-multiselect
+              [data]="dateFilterOptions"
+              [(value)]="selectedDateFilters"
+              (valueChange)="applyFilter()"
+              placeholder="All Dates / Months"
+              [checkboxes]="true"
+              [autoClose]="false"
+              class="kendo-filter-multiselect"
+            >
+            </kendo-multiselect>
+          </div>
+
+          <div class="filter-group status-filter-group">
+            <span class="filter-label">Status</span>
+            <kendo-multiselect
+              [data]="availableStatuses"
+              [(value)]="selectedStatuses"
+              (valueChange)="applyFilter()"
+              placeholder="All Statuses"
+              [checkboxes]="true"
+              [autoClose]="false"
+              class="kendo-filter-multiselect"
+            >
+            </kendo-multiselect>
+          </div>
+        </div>
+      </div>
+
+      <!-- Kendo Grid -->
+      <kendo-grid [data]="gridData" [pageSize]="gridState.take!" [skip]="gridState.skip!"
+        [sort]="gridState.sort!" [sortable]="{ allowUnsort: true, mode: 'single' }"
+        [pageable]="{ buttonCount: 5, pageSizes: [10, 20, 50], info: true }"
+        [selectable]="selectableSettings" kendoGridSelectBy="id"
+        [(selectedKeys)]="selectedKeys" (dataStateChange)="onStateChange($event)"
+        class="tm-grid">
+
+        <kendo-grid-checkbox-column [width]="46" [showSelectAll]="true" [locked]="true">
+        </kendo-grid-checkbox-column>
+
+        <!-- Clinic -->
+        <kendo-grid-column field="companyName" title="Clinic / Contact" [width]="220" [locked]="true">
+          <ng-template kendoGridHeaderTemplate let-column>
+            {{ column.title }} <i class="fas fa-sort ms-1"></i>
+          </ng-template>
+          <ng-template kendoGridCellTemplate let-dataItem>
+            <div class="cell-clinic">
+              <div class="clinic-avatar">{{ dataItem.companyName.charAt(0) }}</div>
+              <div>
+                <div class="clinic-name">{{ dataItem.companyName }}</div>
+                <div class="clinic-contact">{{ dataItem.contactName }}</div>
+              </div>
+            </div>
+          </ng-template>
+        </kendo-grid-column>
+
+        <!-- Contract Ref -->
+        <kendo-grid-column field="contractRef" title="Contract Ref" [width]="130">
+          <ng-template kendoGridHeaderTemplate let-column>
+            {{ column.title }} <i class="fas fa-sort ms-1"></i>
+          </ng-template>
+          <ng-template kendoGridCellTemplate let-dataItem>
+            <span class="ref-tag">{{ dataItem.contractRef }}</span>
+          </ng-template>
+        </kendo-grid-column>
+
+        <!-- Reason -->
+        <kendo-grid-column field="terminationReason" title="Reason" [width]="240">
+          <ng-template kendoGridHeaderTemplate let-column>
+            {{ column.title }} <i class="fas fa-sort ms-1"></i>
+          </ng-template>
+          <ng-template kendoGridCellTemplate let-dataItem>
+            <span class="cell-reason" title="{{ dataItem.terminationReason }}">{{ dataItem.terminationReason }}</span>
+          </ng-template>
+        </kendo-grid-column>
+
+        <!-- Requested On -->
+        <kendo-grid-column field="requestedOn" title="Requested On" [width]="130" filter="date">
+          <ng-template kendoGridHeaderTemplate let-column>
+            {{ column.title }} <i class="fas fa-sort ms-1"></i>
+          </ng-template>
+          <ng-template kendoGridCellTemplate let-dataItem>
+            <span class="cell-date">{{ dataItem.requestedOn | date:'dd MMM yyyy' }}</span>
+          </ng-template>
+        </kendo-grid-column>
+
+        <!-- Notice End -->
+        <kendo-grid-column field="noticeEndDate" title="Notice Ends" [width]="130" filter="date">
+          <ng-template kendoGridHeaderTemplate let-column>
+            {{ column.title }} <i class="fas fa-sort ms-1"></i>
+          </ng-template>
+          <ng-template kendoGridCellTemplate let-dataItem>
+            <span class="cell-date" [class.cell-date--urgent]="dataItem.terminationStatus === 'Notice Period'">
+              {{ dataItem.noticeEndDate | date:'dd MMM yyyy' }}
+            </span>
+          </ng-template>
+        </kendo-grid-column>
+
+        <!-- Sales Person -->
+        <kendo-grid-column field="salesPerson" title="Sales Person" [width]="130">
+          <ng-template kendoGridHeaderTemplate let-column>
+            {{ column.title }} <i class="fas fa-sort ms-1"></i>
+          </ng-template>
+          <ng-template kendoGridCellTemplate let-dataItem>
+            <span class="cell-manager">{{ dataItem.salesPerson }}</span>
+          </ng-template>
+        </kendo-grid-column>
+
+        <!-- Status -->
+        <kendo-grid-column field="terminationStatus" title="Status" [width]="175">
+          <ng-template kendoGridHeaderTemplate let-column>
+            {{ column.title }} <i class="fas fa-sort ms-1"></i>
+          </ng-template>
+          <ng-template kendoGridCellTemplate let-dataItem>
+            <span class="tm-status-badge" [ngClass]="getStatusClass(dataItem.terminationStatus)">
+              <i [class]="getStatusIcon(dataItem.terminationStatus) + ' tm-badge-icon'"></i>
+              {{ dataItem.terminationStatus }}
+            </span>
+          </ng-template>
+        </kendo-grid-column>
+
+        <!-- Actions -->
+        <kendo-grid-column title="Actions" [width]="130" [sortable]="false">
+          <ng-template kendoGridHeaderTemplate let-column>{{ column.title }}</ng-template>
+          <ng-template kendoGridCellTemplate let-dataItem>
+            <div class="cell-actions">
+              @if (isActionable(dataItem.terminationStatus)) {
+              <button kendoButton [size]="'small'" themeColor="error" fillMode="outline"
+                title="Review Termination" (click)="openPanel(dataItem)">
+                <i class="fas fa-gavel me-1"></i>Review
+              </button>
+              }
+              @if (dataItem.terminationStatus === 'Termination Approved') {
+              <button kendoButton [size]="'small'" fillMode="outline"
+                class="tm-btn-approved" title="View / Finalise" (click)="openPanel(dataItem)">
+                <i class="fas fa-check-double me-1"></i>Finalise
+              </button>
+              }
+              @if (dataItem.terminationStatus === 'Terminated') {
+              <button kendoButton [size]="'small'" fillMode="outline"
+                class="tm-btn-terminated" title="View Record" (click)="openPanel(dataItem)">
+                <i class="fas fa-times-circle me-1"></i>View
+              </button>
+              }
+              @if (dataItem.terminationStatus === 'Call-Off') {
+              <button kendoButton [size]="'small'" fillMode="outline"
+                class="tm-btn-calloff" title="View Call-Off" (click)="openPanel(dataItem)">
+                <i class="fas fa-undo me-1"></i>View
+              </button>
+              }
+            </div>
+          </ng-template>
+        </kendo-grid-column>
+      </kendo-grid>
+    </div>
+  }
+
+  <!-- ── SUB-VIEW 2: SECURE DATA HANDOVER PORTAL ───────────────────────── -->
+  @if (activeSubView === 'handover') {
+    <div class="handover-portal-container" style="max-width: 750px; margin: 20px auto; background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.04); overflow: hidden;">
+      
+      <!-- Portal Header -->
+      <div class="portal-header" style="background: linear-gradient(135deg, #1e293b, #0f172a); color: #fff; padding: 28px 24px; text-align: center; position: relative;">
+        <div style="position: absolute; top: 12px; left: 16px; font-size: 11px; color: #94a3b8; font-weight: 700; letter-spacing: 0.5px;">
+          <i class="fas fa-shield-alt text-success me-1"></i> SECURE DIGITAL ACCESS HANDOVER
+        </div>
+        <div class="portal-icon" style="width: 54px; height: 54px; border-radius: 50%; background: rgba(255,255,255,0.08); display: flex; align-items: center; justify-content: center; margin: 10px auto 14px; font-size: 22px; color: #38bdf8;">
+          <i class="fas fa-key"></i>
+        </div>
+        <h4 style="margin: 0; font-weight: 700; font-size: 19px; letter-spacing: -0.3px;">Customer Data Handover Hub</h4>
+        <p style="margin: 6px 0 0; color: #94a3b8; font-size: 13px;">Secure self-service patient data retrieval for approved clinic terminations</p>
+      </div>
+      
+      <!-- Portal Body -->
+      <div class="portal-body" style="padding: 30px;">
+        
+        <!-- Step 1: Request OTP Form -->
+        @if (handoverStep === 'request') {
+          <div class="portal-form" style="max-width: 480px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px;">
+            <p style="text-align: center; color: #4b5563; font-size: 13px; line-height: 1.6; margin-bottom: 5px;">
+              To comply with DHA data storage guidelines and DIFC data privacy standards, clinical patient records can only be retrieved after verifying authorized account credentials. Enter the terminated clinic's details to send a secure verification code (OTP).
+            </p>
+            
+            <div class="form-group">
+              <label style="font-weight: 600; display: block; margin-bottom: 6px; color: #374151;">Select Terminated Clinic <span class="text-danger">*</span></label>
+              <select class="form-select nkp-select" [(ngModel)]="handoverClinicName" style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 13.5px;">
+                <option value="">-- Choose Clinic --</option>
+                <option>Sunrise Family Clinic</option>
+                <option>Crescent Urgent Care</option>
+                <option>Nightingale Medical Group</option>
+                <option>Gulf Spine Institute</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label style="font-weight: 600; display: block; margin-bottom: 6px; color: #374151;">Authorized Corporate Email <span class="text-danger">*</span></label>
+              <input type="email" class="nkp-input" [(ngModel)]="handoverEmail" placeholder="e.g. compliance@clinic.ae" style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 13.5px;">
+            </div>
+
+            <div style="margin-top: 10px;">
+              <button kendoButton themeColor="primary" fillMode="solid" [disabled]="!handoverClinicName || !handoverEmail || otpLoading" (click)="requestOtp()" 
+                style="width: 100%; padding: 12px; border-radius: 8px; font-weight: 600; font-size: 14px;">
+                @if (otpLoading) {
+                  <i class="fas fa-spinner fa-spin me-2"></i>Generating Secure Token...
+                } @else {
+                  <i class="fas fa-paper-plane me-2"></i>Send Verification Code (OTP)
+                }
+              </button>
+            </div>
+          </div>
+        }
+
+        <!-- Step 2: Enter OTP Form -->
+        @if (handoverStep === 'otp') {
+          <div class="portal-form" style="max-width: 420px; margin: 0 auto; text-align: center; display: flex; flex-direction: column; gap: 20px;">
+            <div class="otp-sent-alert" style="background: rgba(14, 165, 233, 0.08); border: 1px solid rgba(14, 165, 233, 0.2); border-radius: 8px; padding: 14px; text-align: left; font-size: 13px; display: flex; gap: 10px;">
+              <i class="fas fa-info-circle text-info" style="font-size: 18px; margin-top: 2px;"></i>
+              <div>
+                <div style="font-weight: 600; color: #0284c7;">Security Token Sent</div>
+                <div style="color: #4b5563; margin-top: 3px;">A 6-digit passcode has been generated for <strong>{{ handoverEmail }}</strong>. For testing, you can enter the master bypass code: <strong style="font-family: monospace; color: #0f172a; background: #e2e8f0; padding: 1px 4px; border-radius: 3px;">123456</strong>.</div>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label style="font-weight: 600; display: block; margin-bottom: 12px; color: #374151; font-size: 14px;">Enter the 6-Digit Code</label>
+              <input type="text" class="nkp-input text-center" [(ngModel)]="enteredOtp" placeholder="000000" maxlength="6" 
+                style="width: 180px; padding: 10px; border-radius: 8px; border: 2px solid #cbd5e1; font-size: 22px; font-weight: 700; letter-spacing: 4px; outline: none; margin: 0 auto; text-align: center;">
+              @if (otpError) {
+                <div class="text-danger" style="font-size: 12.5px; margin-top: 8px; font-weight: 600;">
+                  <i class="fas fa-exclamation-circle me-1"></i>Invalid passcode. Please try again.
+                </div>
+              }
+            </div>
+
+            <div style="display: flex; gap: 8px; margin-top: 10px;">
+              <button kendoButton themeColor="base" fillMode="outline" (click)="resetHandover()" style="flex: 1; padding: 12px;">
+                Cancel
+              </button>
+              <button kendoButton themeColor="primary" fillMode="solid" [disabled]="enteredOtp.length !== 6 || otpLoading" (click)="verifyOtp()" style="flex: 1; padding: 12px;">
+                @if (otpLoading) {
+                  <i class="fas fa-spinner fa-spin me-2"></i>Verifying...
+                } @else {
+                  <i class="fas fa-shield-check me-2"></i>Verify &amp; Decrypt Data
+                }
+              </button>
+            </div>
+          </div>
+        }
+
+        <!-- Step 3: Success & Download Archive Screen -->
+        @if (handoverStep === 'success') {
+          <div class="portal-success" style="max-width: 500px; margin: 0 auto; text-align: center; display: flex; flex-direction: column; gap: 24px;">
+            <div class="success-icon-wrap" style="width: 60px; height: 60px; border-radius: 50%; background: rgba(16, 185, 129, 0.1); color: #10b981; display: flex; align-items: center; justify-content: center; margin: 0 auto; font-size: 28px;">
+              <i class="fas fa-check-circle"></i>
+            </div>
+            
+            <div>
+              <h4 style="margin: 0; font-weight: 700; color: #0f172a; font-size: 17px;">Security Verification Successful</h4>
+              <p style="margin: 6px 0 0; color: #4b5563; font-size: 13px;">Credentials verified. Encrypted patient records package is prepared for secure download.</p>
+            </div>
+
+            <!-- Archive Metadata Card -->
+            <div class="archive-card" style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; text-align: left; display: flex; align-items: center; gap: 14px;">
+              <div style="font-size: 32px; color: #64748b;"><i class="fas fa-file-archive"></i></div>
+              <div style="flex: 1; min-width: 0;">
+                <div style="font-weight: 600; font-size: 13px; color: #0f172a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ handoverArchiveMeta.fileName }}</div>
+                <div style="font-size: 11.5px; color: #64748b; margin-top: 3px; display: flex; gap: 10px;">
+                  <span><strong>Size:</strong> {{ handoverArchiveMeta.fileSize }}</span>
+                  <span><strong>Patients:</strong> {{ handoverArchiveMeta.recordsCount }} records</span>
+                </div>
+                <div style="font-size: 10.5px; color: #94a3b8; margin-top: 4px;">Generated on {{ handoverArchiveMeta.generatedAt | date:'dd MMM yyyy, hh:mm a' }}</div>
+              </div>
+            </div>
+
+            <div style="background: rgba(255, 193, 7, 0.05); border: 1px solid rgba(255, 193, 7, 0.2); border-radius: 6px; padding: 10px; text-align: left; font-size: 11.5px; color: #b27b00; display: flex; gap: 6px;">
+              <i class="fas fa-exclamation-triangle" style="margin-top: 1px; flex-shrink:0;"></i>
+              <span><strong>DHA Compliance Warning:</strong> This secure link will expire in 24 hours. The patient records package must be stored on local DESC-compliant servers as per UAE federal regulations.</span>
+            </div>
+
+            <div style="display: flex; gap: 8px; margin-top: 10px;">
+              <button kendoButton themeColor="base" fillMode="outline" (click)="resetHandover()" style="flex: 1; padding: 12px;">
+                Done &amp; Exit
+              </button>
+              <a href="#" (click)="$event.preventDefault(); alert('Downloading secure customer handover patient files...')" style="text-decoration: none; flex: 1.5;">
+                <button kendoButton themeColor="primary" fillMode="solid" style="width: 100%; padding: 12px; font-weight: 600;">
+                  <i class="fas fa-download me-2"></i>Download Handover Package
+                </button>
+              </a>
+            </div>
+          </div>
+        }
+
+      </div>
+    </div>
+  }
+
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     TERMINATION DETAIL SLIDE PANEL
+     ═══════════════════════════════════════════════════════════════ -->
+@if (panelOpen && selectedRecord) {
+<div class="slide-panel-overlay" (click)="closePanel()"></div>
+<div class="slide-panel slide-panel--wide slide-in" style="display:flex;flex-direction:column">
+
+  <!-- Header -->
+  <div class="nkp-header">
+    <div class="nkp-header-left">
+      <div class="nkp-header-icon tm-panel-icon"><i class="fas fa-gavel"></i></div>
+      <div>
+        <h5 class="nkp-title">Termination Review — {{ selectedRecord.companyName }}</h5>
+        <div class="nkp-subtitle">
+          {{ selectedRecord.contractRef }}&nbsp;&nbsp;·&nbsp;&nbsp;Sales Person: {{ selectedRecord.salesPerson }}
+        </div>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;flex-shrink:0">
+      <span class="tm-status-badge" [ngClass]="getStatusClass(selectedRecord.terminationStatus)">
+        <i [class]="getStatusIcon(selectedRecord.terminationStatus) + ' tm-badge-icon'"></i>
+        {{ selectedRecord.terminationStatus }}
+      </span>
+      <button class="nkp-close-btn" (click)="closePanel()"><i class="fas fa-times"></i></button>
+    </div>
+  </div>
+
+  <!-- Scrollable Body -->
+  <div class="nkp-body">
+
+    <!-- Clinic Strip -->
+    <div class="tm-clinic-strip">
+      <div class="clinic-avatar clinic-avatar-lg">{{ selectedRecord.companyName.charAt(0) }}</div>
+      <div style="flex:1">
+        <div class="tm-strip-name">{{ selectedRecord.companyName }}</div>
+        <div class="tm-strip-contact">
+          <i class="fas fa-user-md"></i> {{ selectedRecord.contactName }}
+          &nbsp;·&nbsp;
+          <i class="fas fa-map-marker-alt"></i> {{ selectedRecord.emirate }}
+          &nbsp;·&nbsp;
+          <i class="fas fa-tag"></i> {{ selectedRecord.contractRef }}
+        </div>
+      </div>
+      <div class="tm-strip-value">
+        <div class="tm-strip-val-lbl">Annual Value</div>
+        <div class="tm-strip-val">{{ selectedRecord.annualValue }}</div>
+      </div>
+    </div>
+
+    <!-- Lifecycle Stepper -->
+    <div class="tm-lifecycle">
+      @for (step of ['Termination Requested','Under Review','Notice Period','Termination Approved','Terminated']; track step; let last = $last) {
+      <div class="tm-lc-step"
+        [class.done]="isStepDone(step)"
+        [class.active]="selectedRecord.terminationStatus === step"
+        [class.calloff]="selectedRecord.terminationStatus === 'Call-Off'">
+        <div class="tm-lc-dot"></div>
+        <div class="tm-lc-label">{{ step }}</div>
+      </div>
+      @if (!last) { <div class="tm-lc-line"></div> }
+      }
+    </div>
+
+    <!-- Notice Period Stats -->
+    <div class="tm-notice-grid">
+      <div class="tm-notice-stat">
+        <div class="tm-notice-lbl">Requested On</div>
+        <div class="tm-notice-val">{{ selectedRecord.requestedOn | date:'dd MMM yyyy' }}</div>
+      </div>
+      <div class="tm-notice-stat tm-notice-stat--warn">
+        <div class="tm-notice-lbl">Notice Ends</div>
+        <div class="tm-notice-val">{{ selectedRecord.noticeEndDate | date:'dd MMM yyyy' }}</div>
+      </div>
+      <div class="tm-notice-stat" [class.tm-notice-stat--urgent]="daysRemaining <= 7">
+        <div class="tm-notice-lbl">Days Remaining</div>
+        <div class="tm-notice-val" [class.text-danger]="daysRemaining <= 7">{{ daysRemaining }}</div>
+      </div>
+      <div class="tm-notice-stat">
+        <div class="tm-notice-lbl">Sales Person</div>
+        <div class="tm-notice-val">{{ selectedRecord.salesPerson }}</div>
+      </div>
+    </div>
+
+    <!-- Reason -->
+    <div class="tm-section-title"><i class="fas fa-comment-alt"></i> Reason for Termination</div>
+    <div class="tm-reason-box">{{ selectedRecord.terminationReason }}</div>
+
+    <!-- Call-Off Remark (if called off) -->
+    @if (selectedRecord.terminationStatus === 'Call-Off' && selectedRecord.callOffRemark) {
+    <div class="tm-section-title" style="margin-top:14px"><i class="fas fa-undo"></i> Call-Off Remark</div>
+    <div class="tm-calloff-box">{{ selectedRecord.callOffRemark }}</div>
+    }
+
+    <!-- Handover Checklist -->
+    <div class="tm-section-title" style="margin-top:14px"><i class="fas fa-tasks"></i> Handover Checklist</div>
+    <div class="tm-checklist">
+      <div class="tm-check-row">
+        <i class="fas fa-times-circle tm-check-icon tm-check-icon--pending"></i>
+        <span>Outstanding invoices cleared</span>
+        <span class="tm-check-badge tm-check-badge--pending">Pending</span>
+      </div>
+      <div class="tm-check-row">
+        <i class="fas fa-times-circle tm-check-icon tm-check-icon--pending"></i>
+        <span>Patient data handover &amp; deletion request submitted</span>
+        <span class="tm-check-badge tm-check-badge--pending">Pending</span>
+      </div>
+      <div class="tm-check-row">
+        <i class="fas fa-check-circle tm-check-icon tm-check-icon--done"></i>
+        <span>Health Authority deregistration scheduled</span>
+        <span class="tm-check-badge tm-check-badge--done">Scheduled</span>
+      </div>
+      <div class="tm-check-row">
+        <i class="fas fa-times-circle tm-check-icon tm-check-icon--pending"></i>
+        <span>Final medical license audit completed</span>
+        <span class="tm-check-badge tm-check-badge--pending">Pending</span>
+      </div>
+    </div>
+
+    <!-- ── Customer Retention Discount Panel ───────────────────────────── -->
+    @if (isActionable(selectedRecord.terminationStatus) && selectedRecord.terminationStatus !== 'Notice Period') {
+      <div class="tm-section-title" style="margin-top:14px"><i class="fas fa-percentage text-success"></i> Customer Retention Program</div>
+      <div class="tm-retention-card" style="background: rgba(16, 185, 129, 0.04); border: 1px solid rgba(16, 185, 129, 0.15); border-radius: 8px; padding: 14px; margin-top: 8px;">
+        
+        @if (discountStatus === 'idle') {
+          <div style="font-size: 12.5px; color: #4b5563; margin-bottom: 12px; line-height: 1.5;">
+            Offer a strategic retention discount. Presenting a discount automatically pauses the termination workflow and routes for Management Approval.
+          </div>
+          <div style="display: flex; gap: 8px; margin-bottom: 10px;">
+            <button kendoButton themeColor="success" fillMode="outline" (click)="proposeDiscount(10)" style="font-size:12px">10% Discount</button>
+            <button kendoButton themeColor="success" fillMode="outline" (click)="proposeDiscount(20)" style="font-size:12px">20% Discount</button>
+            <button kendoButton themeColor="success" fillMode="outline" (click)="proposeDiscount(30)" style="font-size:12px">30% Discount</button>
+          </div>
+          
+          <div style="display: flex; align-items: center; gap: 8px; margin-top: 8px; border-top: 1px solid rgba(16, 185, 129, 0.1); padding-top: 10px;">
+            <span style="font-size: 12px; color: #4b5563;">Custom Discount:</span>
+            <input type="number" class="nkp-input" [(ngModel)]="customDiscount" placeholder="e.g. 15" min="1" max="90" 
+              style="width: 75px; padding: 5px 8px; border-radius: 4px; border: 1px solid #cbd5e1; font-size: 12px; outline:none">
+            <span style="font-size: 13px;">%</span>
+            <button kendoButton themeColor="success" fillMode="solid" [disabled]="!customDiscount || customDiscount < 1 || customDiscount > 90" 
+              (click)="proposeDiscount(customDiscount!)" style="padding: 4px 10px; font-size: 12px; border-radius:4px">
+              Propose
+            </button>
+          </div>
+        }
+
+        @if (discountStatus === 'pending_approval') {
+          <div class="discount-pending-box" style="background: rgba(255, 193, 7, 0.08); border: 1px solid rgba(255, 193, 7, 0.25); border-radius: 6px; padding: 12px; display: flex; flex-direction: column; gap: 6px;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <span style="font-weight: 700; color: #b27b00; font-size: 12.5px;"><i class="fas fa-hourglass-half me-1"></i> Proposing {{ discountLevel }}% Retention Discount</span>
+              <span class="tm-check-badge tm-check-badge--pending" style="font-size:10px">Awaiting Approval</span>
+            </div>
+            <p style="font-size: 12px; color: #6b7280; margin: 0; line-height: 1.5;">Proposals greater than 10% require management authorization. Use the simulator below to mock approval.</p>
+            <div style="display: flex; gap: 6px; margin-top: 4px;">
+              <button kendoButton themeColor="success" fillMode="solid" (click)="simulateDiscountApproval()" style="font-size:11.5px; padding:3px 10px;">
+                @if (otpLoading) {
+                  <i class="fas fa-spinner fa-spin me-1"></i>Approving...
+                } @else {
+                  <i class="fas fa-check me-1"></i>Simulate Manager Approval
+                }
+              </button>
+              <button kendoButton themeColor="base" fillMode="outline" (click)="discountStatus = 'idle'" style="font-size:11.5px; padding:3px 10px;">
+                Cancel
+              </button>
+            </div>
+          </div>
+        }
+
+        @if (discountStatus === 'approved') {
+          <div class="discount-approved-box" style="background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.25); border-radius: 6px; padding: 12px; display: flex; flex-direction: column; gap: 8px;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <span style="font-weight: 700; color: #10b981; font-size: 12.5px;"><i class="fas fa-check-circle me-1"></i> {{ discountLevel }}% Discount Approved</span>
+              <span class="tm-check-badge tm-check-badge--done" style="font-size:10px">Authorized</span>
+            </div>
+            <p style="font-size: 12px; color: #4b5563; margin: 0; line-height: 1.4;">
+              The sales manager has signed off on the retention program. Click below to apply the discount rate, call off the termination, and restore this account to active status.
+            </p>
+            <div style="margin-top: 4px;">
+              <button kendoButton themeColor="success" fillMode="solid" (click)="applyRetentionDiscount()" style="width: 100%; font-weight:600; padding:8px 0; border-radius:6px">
+                <i class="fas fa-undo me-1"></i>Apply Discount &amp; Restore Contract
+              </button>
+            </div>
+          </div>
+        }
+
+      </div>
+    }
+
+    <!-- Reviewer Notes -->
+    @if (isActionable(selectedRecord.terminationStatus) || selectedRecord.terminationStatus === 'Termination Approved') {
+    <div class="tm-section-title" style="margin-top:14px"><i class="fas fa-pen"></i> Reviewer Notes <span style="font-weight:400;color:#a1aab2">(optional)</span></div>
+    <textarea class="tm-textarea" rows="2" [(ngModel)]="reviewerNotes"
+      placeholder="Add compliance notes or observations about this termination request..."></textarea>
+    }
+
+    <!-- Call-Off Form -->
+    @if (showCallOffForm) {
+    <div class="tm-calloff-form">
+      <div class="tm-calloff-warning">
+        <i class="fas fa-exclamation-triangle"></i>
+        <div>
+          <div style="font-weight:600;margin-bottom:3px">This will cancel the active termination workflow</div>
+          <div style="font-size:12px;color:#6c757d">The contract status will be restored to <strong>Contract Signed</strong>. This action is permanently logged.</div>
+        </div>
+      </div>
+      <div class="tm-section-title"><i class="fas fa-pen text-primary"></i> Reason for Calling Off <span style="color:#f97316">*</span></div>
+      <textarea class="tm-textarea" [class.tm-textarea--error]="callOffRemarkError" rows="3"
+        [(ngModel)]="callOffRemark" (input)="callOffRemarkError = false"
+        placeholder="Provide a mandatory explanation — e.g. customer resolved outstanding issues, management decision to retain the account..."></textarea>
+      @if (callOffRemarkError) {
+      <div class="tm-field-error"><i class="fas fa-exclamation-circle"></i> A remark is mandatory before calling off a termination.</div>
+      }
+    </div>
+    }
+
+  </div>
+  <!-- /Body -->
+
+  <!-- Footer Actions -->
+  <div class="nkp-footer">
+
+    @if (!showCallOffForm) {
+      @if (selectedRecord.terminationStatus === 'Termination Requested') {
+      <button kendoButton themeColor="warning" fillMode="outline" (click)="showCallOffForm = true">
+        <i class="fas fa-undo me-1"></i>Call-Off
+      </button>
+      <button kendoButton themeColor="primary" fillMode="solid" (click)="moveToReview()">
+        <i class="fas fa-search me-1"></i>Move to Review
+      </button>
+      }
+      @if (selectedRecord.terminationStatus === 'Under Review') {
+      <button kendoButton themeColor="warning" fillMode="outline" (click)="showCallOffForm = true">
+        <i class="fas fa-undo me-1"></i>Call-Off
+      </button>
+      <button kendoButton themeColor="primary" fillMode="solid" (click)="moveToNotice()">
+        <i class="fas fa-hourglass-half me-1"></i>Initiate Notice Period
+      </button>
+      }
+      @if (selectedRecord.terminationStatus === 'Notice Period') {
+      <button kendoButton themeColor="warning" fillMode="outline" (click)="showCallOffForm = true">
+        <i class="fas fa-undo me-1"></i>Call-Off
+      </button>
+      <button kendoButton themeColor="error" fillMode="solid" (click)="approveTermination()">
+        <i class="fas fa-check me-1"></i>Approve Termination
+      </button>
+      }
+      @if (selectedRecord.terminationStatus === 'Termination Approved') {
+      <button kendoButton themeColor="error" fillMode="solid" (click)="finaliseTermination()">
+        <i class="fas fa-times-circle me-1"></i>Finalise Termination
+      </button>
+      }
+    } @else {
+      <button kendoButton themeColor="base" fillMode="outline" (click)="showCallOffForm = false">
+        <i class="fas fa-arrow-left me-1"></i>Back
+      </button>
+      <button kendoButton themeColor="primary" fillMode="solid" (click)="confirmCallOff()">
+        <i class="fas fa-undo me-1"></i>Confirm Call-Off
+      </button>
+    }
+  </div>
+
+</div>
+}
+
+<!-- ═══════════════════════════════════════════════════════════════
+     RAISE TERMINATION REQUEST DIALOG (MODAL)
+     ═══════════════════════════════════════════════════════════════ -->
+@if (raiseDialogOpen) {
+<div class="slide-panel-overlay" (click)="raiseDialogOpen = false"></div>
+<div class="raise-dialog slide-in-top" style="position:fixed; top:5%; left:50%; transform:translateX(-50%); width:600px; background:#fff; z-index:1050; border-radius:12px; box-shadow:0 10px 30px rgba(0,0,0,0.15); display:flex; flex-direction:column; overflow:hidden">
+  
+  <div class="nkp-header">
+    <div class="nkp-header-left">
+      <div class="nkp-header-icon" style="background: rgba(246,78,96,.1); color: #f64e60;">
+        <i class="fas fa-plus-circle"></i>
+      </div>
+      <div>
+        <h5 class="nkp-title">Raise Termination Request</h5>
+        <div class="nkp-subtitle">Initiate a formal contract termination workflow</div>
+      </div>
+    </div>
+    <button class="nkp-close-btn" (click)="raiseDialogOpen = false">
+      <i class="fas fa-times"></i>
+    </button>
+  </div>
+  
+  <div class="nkp-body" style="padding: 20px 24px; gap: 14px; display:flex; flex-direction:column">
+    
+    <!-- Clinic Selection -->
+    <div class="form-group">
+      <label class="form-label" style="font-weight: 700; margin-bottom: 6px; display: block; color:#3e5569">Select Clinic <span class="text-danger">*</span></label>
+      <select class="form-select nkp-select" [(ngModel)]="newTermination.companyName" (change)="onClinicSelected($event)" 
+        style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1; font-size:13px; outline:none">
+        <option value="">-- Select Active Signed Clinic --</option>
+        @for (c of eligibleClinics; track c.companyName) {
+          <option [value]="c.companyName">{{ c.companyName }} ({{ c.contractRef }})</option>
+        }
+      </select>
+    </div>
+
+    @if (newTermination.companyName) {
+      <div class="clinic-details-card" style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; margin-top: 4px;">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 12.5px;">
+          <div><span style="color:#64748b">Contact Name:</span> <strong>{{ newTermination.contactName }}</strong></div>
+          <div><span style="color:#64748b">Emirate:</span> <strong>{{ newTermination.emirate }}</strong></div>
+          <div><span style="color:#64748b">Contract Ref:</span> <span class="ref-tag" style="padding:1px 6px">{{ newTermination.contractRef }}</span></div>
+          <div><span style="color:#64748b">Annual Value:</span> <strong>{{ newTermination.annualValue }}</strong></div>
+          <div style="grid-column: span 2; border-top:1px solid #e2e8f0; padding-top:6px; margin-top:4px">
+            <span style="color:#64748b">Sales Person:</span> <strong>{{ newTermination.salesPerson }}</strong>
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- Notice Days -->
+    <div class="form-group">
+      <label class="form-label" style="font-weight: 700; margin-bottom: 6px; display: block; color:#3e5569">Notice Period <span class="text-danger">*</span></label>
+      <select class="form-select nkp-select" [(ngModel)]="newTermination.noticeDays" 
+        style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1; font-size:13px; outline:none">
+        <option [value]="15">15 Days (Accelerated)</option>
+        <option [value]="30">30 Days (Standard Contractual)</option>
+        <option [value]="60">60 Days (Extended)</option>
+        <option [value]="90">90 Days (Enterprise)</option>
+      </select>
+    </div>
+
+    <!-- Reason -->
+    <div class="form-group">
+      <label class="form-label" style="font-weight: 700; margin-bottom: 6px; display: block; color:#3e5569">Reason for Termination <span class="text-danger">*</span></label>
+      <textarea class="tm-textarea" rows="3" [(ngModel)]="newTermination.reason" 
+        placeholder="Specify details, client communication summary, or reasons for exit..." 
+        style="margin-bottom: 0; min-height: 80px;"></textarea>
+    </div>
+
+  </div>
+
+  <div class="nkp-footer" style="padding: 12px 24px; border-top: 1px solid #e9ecef; display: flex; justify-content: flex-end; gap: 8px;">
+    <button kendoButton themeColor="error" fillMode="solid" [disabled]="!newTermination.companyName || !newTermination.reason" (click)="submitTermination()">
+      <i class="fas fa-check-circle me-1"></i>Submit Termination
+    </button>
+  </div>
+
+</div>
+}

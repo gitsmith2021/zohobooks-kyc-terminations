@@ -1,0 +1,52 @@
+The project title is KYC's contracts and determinations. 
+
+First, let's talk about KYCs. The Accounts Team inside the Unitecare office will have access to this KYC Panel. I need an option to preview a KYC form. I need an option to build a KYC form. While building, I should be able to do it like a form builder. Then I should be able to save it as a new version. So in KYC, I should be able to see how many KYC forms have been sent to customers. How many KYC forms have come back from the customer to us? So these forms that have come back to us will be kept under a status called "under review." So a person from the accounts team will verify whether the KYC details submitted by the customer are valid or not. If the accounts personnel finds that the data is invalid, then there has to be an option to note that point in the form and send it back to the customer. There has to be an option to approve KYC, resend KYC, Request KYC Correction and reject KYC. It has to be an option for the reviewer to submit any comments and save the form. I need all the submitted KYC forms to be listed in a table, use Kendo Grid. I need search options, filter options, filter by date, month, and I need options to filter the table data based on the status. I should be able to see KPA cards on the top of the screen, like:
+- How many KYCs have been sent
+- How many are under review
+- How many KYCs have been completed
+- How many KYCs are about to expire soon (maybe within 30 days).
+
+So I should be able to get notified about all the KYC's that are about to expire, and I should have an option to re-send the new KYC to that customer. 
+
+
+The second module is all about the contracts: I need a page to view all the active business units and the number of contracts that were sent, the number of contracts that are active. The number of contracts that are signed, the number of contracts that are not signed, and the number of contracts that are about to expire. I would need a Kendo table and this will have filters like the search, date range filters. I should be able to sort the table based on the status of the contract. Here too, there will be a listing of:
+- the customer name
+- the contract signed date
+- the contract execution date
+- the contract end date 
+- the status of the contract. 
+
+Here I have two approaches: the first approach is that the customer is expected to make the subscription payment, and the Zoho contract will be automatically sent to them. The second approach is for exceptional customers. In this approach, we will not wait for the payment from the customer, but we will be sending the ZOHO contract. But here in the second approach, we will say a "Mandatory Disclaimer (Approach 2) - "This contract shall become effective only upon the customer going live and once the subscription payment is successfully completed." We need to mention the salesperson's name in the table. The statuses of the contract can be:
+- sent
+- signed
+- active
+- expired
+
+Under signed, it'll be two statuses like "pending with Unite" or "pending with the customer". 
+
+I need an information icon somewhere in the table. While hovering on it, I should be able to see 
+- the customer's plan details
+- The add-ons that he has bought
+- The number of users
+- The number of clinics that he has selected
+- The subscription plan that he will be continuing with us
+
+The contracts, once submitted to Unite, can be previewed using a PDF Viewer or a DOC viewer. The contract will have an annexure of two pages at the bottom. So we can have an option to download a print the contract.
+
+The third module is called the Terminations module.
+
+The person from the accounts team can raise a termination request on behalf of the customer. And this request has to be logged in the terminations table with remarks. The status of the termination requests can also be placed in the termination style. Statuses can be approved or called off,  Pending for accounts clearance. So, the termination request, once approved by the management, would undergo a 30-day notice period. The accounts team has access to, in such a way that they can offer discounts to the customer, and that will come to the management's approval. Once approved by the management, they can apply the discounts for the customer before termination or being called off. Once the termination is completed, then the after-termination process kicks in. The data handover has to be done, and this will be a separate page with a simple form filled in by the customer and submitting it. The customer will receive an OTP, and they have to key in the OTP sent to their registered email ID, and on successful submission, will show them the download link for all their files with us.
+
+The final module will be the audit log.
+
+Here we are thinking of a customer's entire history, right from the beginning of joining Unite till the end. I'm thinking of a history view, a timeline view on when the customer joined us, when the first contract was signed, when the first contract was renewed, when the KYC's were signed, when the KYC's were renewed, when did we send the email reminders to the customer, when did we make any changes to the customer's account? When did the customer submit a request for termination, and what was a comment made by the accounts team on conversing with the customer, when did the notice period start? When did the notice period end? Did the customer receive the No Due Certificate from the accounts team? When did the customer receive the download link? When did the customer actually download the files etc.. So this page has to be for each and every customer inside Unite. Apart from this, there has to be a conventional log system that any SaaS software would have in terms of contract signature, KYC signature, and terminations requested by the customer.
+
+There has to be a notification section somewhere in the panel on top where each and every indication, like:
+- A KYC request has been approved
+- A KYC form has been sent
+- A contract was just signed by ABC clinic
+- DEF clinic just raised a termination request
+These kinds of notifications should be present on top of all the screens so that I should be able to see them and navigate to that particular customer's record.
+
+
+

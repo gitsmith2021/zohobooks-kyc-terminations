@@ -1,0 +1,39 @@
+<aside class="sidebar" [class.collapsed]="sidebarCollapsed">
+
+  <div class="sidebar-brand">
+    <div class="brand-icon"><i class="fas fa-hospital"></i></div>
+    <div class="brand-text-wrap">
+      <div class="brand-title">Clinic KYC</div>
+      <div class="brand-subtitle">Contract Suite</div>
+    </div>
+  </div>
+
+  <hr class="sidebar-divider" />
+
+  <nav class="sidebar-nav">
+    @for (item of navItems; track item.id) {
+    <div class="sidebar-link" [class.active]="activeNav === item.id" (click)="setNav(item.id)" role="button"
+      [attr.title]="sidebarCollapsed ? item.label : null">
+      <i [class]="item.icon + ' nav-icon'"></i>
+      <span class="nav-label">{{ item.label }}</span>
+      @if (item.id === 'kyc' && kycUnderReviewCount > 0) {
+      <span class="nav-badge badge-warning-pill">{{ kycUnderReviewCount }}</span>
+      }
+      @if (item.id === 'terminations' && terminationCount > 0) {
+      <span class="nav-badge badge-danger-pill">{{ terminationCount }}</span>
+      }
+    </div>
+    }
+  </nav>
+
+  <hr class="sidebar-divider" />
+
+  <div class="sidebar-user">
+    <div class="user-avatar">AH</div>
+    <div class="user-info">
+      <div class="user-name">Ali Hassan</div>
+      <div class="user-role">Healthcare Contract Manager</div>
+    </div>
+  </div>
+
+</aside>

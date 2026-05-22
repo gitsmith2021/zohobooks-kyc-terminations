@@ -1,0 +1,55 @@
+{
+  "collection": "Unite 3.0",
+  "mode": "Light",
+  "description": "Figma variable definitions to apply in Unite-UI-Ripul. Replace all #009DDC bindings with primary/500.",
+  "deprecatedColors": ["#009DDC", "#009ddc"],
+  "variables": {
+    "color/primary/500": { "hex": "#00B8CD", "replaces": "#009DDC" },
+    "color/primary/400": { "hex": "#008FA0", "alias": "hover" },
+    "color/primary/100": { "hex": "#B3E8EF", "alias": "light" },
+    "color/primary/50": { "hex": "#E0F7FA", "alias": "subtle" },
+    "color/brand/yellow/500": { "hex": "#FDD26E" },
+    "color/brand/orange/500": { "hex": "#FF8400" },
+    "color/neutral/dark/500": { "hex": "#4E4E4E" },
+    "color/neutral/light/500": { "hex": "#D9D9D6" },
+    "color/grey/1": { "hex": "#4E4E4E" },
+    "color/grey/2": { "hex": "#808080" },
+    "color/grey/3": { "hex": "#B3B3B3" },
+    "color/grey/4": { "hex": "#E6E6E6" },
+    "color/grey/5": { "hex": "#F7F7F7" },
+    "color/status/green": { "hex": "#00BA00" },
+    "color/status/red": { "hex": "#F10000" },
+    "color/status/orange": { "hex": "#FF8400" },
+    "color/surface/page": { "hex": "#F7F7F7" },
+    "color/surface/default": { "hex": "#FFFFFF" },
+    "color/surface/sidebar": { "hex": "#4E4E4E" },
+    "color/border/default": { "hex": "#E6E6E6" },
+    "color/border/focus": { "hex": "#00B8CD" }
+  },
+  "radius": {
+    "radius-small": 4,
+    "radius-medium": 8,
+    "radius-large": 12,
+    "radius-xlarge": 16
+  },
+  "typography": {
+    "fontFamily": "Lato",
+    "weights": [300, 400, 700, 900],
+    "sizes": [10, 12, 14, 16, 18, 20]
+  },
+  "componentHeights": {
+    "button-md": 30,
+    "button-sm": 22,
+    "input": 33,
+    "header": 40,
+    "sidebar-collapsed": 40
+  },
+  "remapInstructions": [
+    "Open Figma file: Unite-UI-Ripul",
+    "Local variables: create collection 'Unite 3.0' with values above",
+    "Find & replace fill/stroke #009DDC → color/primary/500 (#00B8CD)",
+    "Re-bind button primary-default, secondary stroke, nav active, input focus",
+    "Add page 'Design System 3.0' with color swatches + component states",
+    "Publish library for team use"
+  ]
+}

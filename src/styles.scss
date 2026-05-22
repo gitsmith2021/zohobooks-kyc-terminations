@@ -1,0 +1,186 @@
+// Kendo Default Theme
+@use "@progress/kendo-theme-default/scss/all.scss" as *;
+
+// Bootstrap 5
+@import "bootstrap/dist/css/bootstrap.min.css";
+
+// ── Override Kendo primary to teal — all derived oklch vars cascade from this ─
+:root {
+  --kendo-color-primary: #00b8cd;
+}
+
+// Global resets
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  touch-action: auto !important; /* Ensure browser zooming and scrolling work */
+}
+
+// ── Remove cell focus border / outline ────────────────────────────────────────
+.k-grid td:focus,
+.k-grid td.k-state-focused,
+.k-grid td.k-focus,
+.k-grid .k-table-td:focus,
+.k-grid .k-table-td.k-focus,
+.k-grid .k-table-td.k-state-focused {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+// Kendo Default uses a pseudo-element inset ring for focus — remove it
+.k-grid td::after,
+.k-grid .k-table-td::after {
+  display: none !important;
+}
+
+// ── Hide filter / column-menu icons on all grids ──────────────────────────────
+.k-grid-header .k-grid-filter,
+.k-grid-header .k-column-menu,
+.k-grid-header .k-header-column-menu,
+.k-grid-header .k-grid-filter-menu {
+  display: none !important;
+}
+
+// ── Thin scrollbars (global) ──────────────────────────────────────────────────
+// Firefox
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #d1d5db transparent;
+}
+
+// Chrome / Edge / Safari
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 99px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
+}
+
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+// ── Global grid header — typography ───────────────────────────────────────────
+.k-grid .k-grid-header .k-header,
+.k-grid .k-grid-header th {
+  background-color: #4e4e4e !important;
+  color: #ffffff !important;
+  border-color: #3e444a !important;
+}
+
+.k-grid-header .k-cell-inner,
+.k-grid-header .k-column-title,
+.k-grid-header .k-link {
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  color: #ffffff !important;
+  text-transform: none !important;
+  letter-spacing: normal !important;
+}
+
+// ── Global Kendo button — styling overrides ───────────────────────────────────
+.k-button,
+.k-button-text,
+.k-button-inner {
+  font-size: 12px !important;
+  font-weight: 600 !important;
+}
+
+.k-button {
+  border-width: 1px !important;
+  border-radius: 6px !important;
+  padding: 6px 14px !important;
+}
+
+/* Primary Button Solid */
+.k-button-solid-primary {
+  background-color: #00b8cd !important;
+  border-color: #00b8cd !important;
+  color: #ffffff !important;
+}
+.k-button-solid-primary:hover,
+.k-button-solid-primary.k-hover {
+  background-color: #00a0b2 !important;
+  border-color: #00a0b2 !important;
+}
+
+/* Primary Button Outline */
+.k-button-outline-primary {
+  color: #00b8cd !important;
+  border-color: #00b8cd !important;
+}
+.k-button-outline-primary:hover,
+.k-button-outline-primary.k-hover {
+  background-color: rgba(0, 184, 205, 0.1) !important;
+  color: #00a0b2 !important;
+  border-color: #00a0b2 !important;
+}
+
+/* Global Text Primary */
+.text-primary {
+  color: #00b8cd !important;
+}
+
+/* Global Background Primary */
+.bg-primary {
+  background-color: #00b8cd !important;
+}
+
+// ── Global grid checkbox — primary border ─────────────────────────────────────
+.k-grid .k-checkbox {
+  border-color: #00B8CD !important;
+  border-radius: 3px;
+}
+
+.k-grid .k-checkbox:checked,
+.k-grid .k-checkbox.k-checked {
+  background-color: #00B8CD !important;
+  border-color: #00B8CD !important;
+}
+
+.k-grid .k-checkbox:focus,
+.k-grid .k-checkbox:focus-visible {
+  box-shadow: 0 0 0 3px rgba(0, 184, 205, 0.2) !important;
+}
+
+// ── Global grid cell content — uniform font size ──────────────────────────────
+.k-grid td,
+.k-grid .k-table-td,
+.k-grid .clinic-name,
+.k-grid .clinic-contact,
+.k-grid .cell-contact,
+.k-grid .cell-date,
+.k-grid .cell-muted,
+.k-grid .cell-manager,
+.k-grid .kyc-status-badge,
+.k-grid .status-badge,
+.k-grid .cs-status-badge,
+.k-grid .approved-pill,
+.k-grid .rejected-pill,
+.k-grid .expired-pill,
+.k-grid .signed-pill,
+.k-grid .terminated-pill,
+.k-grid .ref-tag,
+.k-grid .approach-badge,
+.k-grid .amend-count {
+  font-size: 12px !important;
+}
