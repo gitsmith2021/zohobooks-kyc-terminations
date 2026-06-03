@@ -602,6 +602,261 @@ export class ContractDashboardComponent implements OnInit {
     }));
   }
 
+  get adminAttentionCount(): number {
+    return this.expiredKycCount +
+      this.kycUnderReviewCount +
+      this.pendingSigCount +
+      this.terminationTotalActive +
+      this.outboxPendingCount;
+  }
+
+  get kycHealthPercent(): number {
+    return Math.round((this.kycApprovedCount / (this.kycPipelineTotal || 1)) * 100);
+  }
+
+  get contractConversionPercent(): number {
+    return Math.round((this.contractsActiveSigned / (this.contractsTotal || 1)) * 100);
+  }
+
+  get exitRiskPercent(): number {
+    return Math.round((this.terminationTotalActive / (this.customers.length || 1)) * 100);
+  }
+
+  get pipelineReadyCount(): number {
+    return this.contractsReadyDispatch + this.pendingSigCount;
+  }
+
+  get projectedRenewalsCount(): number {
+    return this.kycAboutToExpireCount + this.expiredKycCount;
+  }
+
+  get averageTerminationAgeDays(): number {
+    const items = this.noticePeriodRecords.filter(r => r.terminationDate);
+    if (!items.length) return 0;
+    const total = items.reduce((sum, r) => {
+      const date = r.terminationDate?.getTime() ?? Date.now();
+      return sum + Math.max(0, Math.round((Date.now() - date) / 86_400_000));
+    }, 0);
+    return Math.round(total / items.length);
+  }
+
+  get dashboardActionItems(): Array<{
+    label: string;
+    meta: string;
+    count: number;
+    icon: string;
+    tone: string;
+    nav: string;
+  }> {
+    return [
+      {
+        label: 'Expired KYC renewals',
+        meta: 'Send renewal links and unblock compliance.',
+        count: this.expiredKycCount,
+        icon: 'fas fa-exclamation-triangle',
+        tone: 'danger',
+        nav: 'kyc',
+      },
+      {
+        label: 'KYC submissions awaiting review',
+        meta: 'Reviewer queue across submitted and under-review records.',
+        count: this.kycUnderReviewCount,
+        icon: 'fas fa-search',
+        tone: 'primary',
+        nav: 'kyc',
+      },
+      {
+        label: 'Contracts awaiting signature',
+        meta: 'Follow up with clinics before SLA drift.',
+        count: this.pendingSigCount,
+        icon: 'fas fa-pen-nib',
+        tone: 'warning',
+        nav: 'contracts',
+      },
+      {
+        label: 'Active termination cases',
+        meta: `${this.averageTerminationAgeDays} day average case age.`,
+        count: this.terminationTotalActive,
+        icon: 'fas fa-door-open',
+        tone: 'danger',
+        nav: 'terminations',
+      },
+      {
+        label: 'Outbox approvals pending',
+        meta: 'Dispatches waiting for final admin approval.',
+        count: this.outboxPendingCount,
+        icon: 'fas fa-paper-plane',
+        tone: 'primary',
+        nav: 'outboxApprovals',
+      },
+    ].filter(item => item.count > 0);
+  }
+
+  get workflowStages(): Array<{ label: string; count: number; percent: number; tone: string }> {
+    const total = this.customers.length || 1;
+    return [
+      { label: 'KYC Review', count: this.kycUnderReviewCount, tone: 'primary' },
+      { label: 'KYC Cleared', count: this.kycApprovedCount, tone: 'success' },
+      { label: 'Contracted', count: this.contractsTotal, tone: 'contract' },
+      { label: 'Expired KYC', count: this.expiredKycCount, tone: 'danger' },
+      { label: 'Under Exit', count: this.terminationTotalActive, tone: 'warning' },
+    ].map(stage => ({
+      ...stage,
+      percent: Math.round((stage.count / total) * 100),
+    }));
+  }
+
+  get trendCards(): Array<{
+    label: string;
+    value: number | string;
+    detail: string;
+    icon: string;
+    tone: 'primary' | 'success' | 'warning' | 'danger';
+  }> {
+    return [
+      {
+        label: 'Compliance health',
+        value: `${this.kycHealthPercent}%`,
+        detail: `${this.kycApprovedCount} approved of ${this.kycPipelineTotal} KYC records`,
+        icon: 'fas fa-shield-alt',
+        tone: 'success',
+      },
+      {
+        label: 'Contract conversion',
+        value: `${this.contractConversionPercent}%`,
+        detail: `${this.contractsActiveSigned} active, ${this.pendingSigCount} awaiting signature`,
+        icon: 'fas fa-file-signature',
+        tone: 'primary',
+      },
+      {
+        label: '30-day renewal load',
+        value: this.projectedRenewalsCount,
+        detail: `${this.kycAboutToExpireCount} expiring soon and ${this.expiredKycCount} already expired`,
+        icon: 'fas fa-calendar-check',
+        tone: 'warning',
+      },
+      {
+        label: 'Exit exposure',
+        value: `${this.exitRiskPercent}%`,
+        detail: `${this.terminationTotalActive} active cases across ${this.customers.length} clinics`,
+        icon: 'fas fa-chart-line',
+        tone: 'danger',
+      },
+    ];
+  }
+
+  // ── UAE Bubble Map ─────────────────────────────────────────────────────────
+  uaeTooltip: { name: string; count: number; x: number; y: number } | null = null;
+
+  private get _maxEmirateCount(): number {
+    return Math.max(this.dubaiCount, this.abuDhabiCount, this.sharjahCount, this.ajmanCount, 1);
+  }
+
+  getEmirateCount(id: string): number {
+    const map: Record<string, number> = {
+      'AEDU': this.dubaiCount,
+      'AEAZ': this.abuDhabiCount,
+      'AESH': this.sharjahCount,
+      'AEAJ': this.ajmanCount,
+    };
+    return map[id] ?? 0;
+  }
+
+  getEmirateRadius(id: string): number {
+    const count = this.getEmirateCount(id);
+    if (count === 0) return 0;
+    return Math.round(28 + (count / this._maxEmirateCount) * 65);
+  }
+
+  onEmirateEnter(name: string, id: string): void {
+    if (this.mapIsDragging) return;
+    this.uaeTooltip = { name, count: this.getEmirateCount(id), x: -999, y: -999 };
+  }
+
+  hideUaeTooltip(): void { this.uaeTooltip = null; }
+
+  // ── Pan / Zoom ──────────────────────────────────────────────────────────────
+  mapPanZoom = { x: 0, y: 0, scale: 1 };
+  mapIsDragging = false;
+  private _mapDragStart = { x: 0, y: 0, tx: 0, ty: 0 };
+  private readonly _MAP_W = 1000;
+  private readonly _MAP_H = 788;
+  private readonly _MAP_MIN = 0.85;
+  private readonly _MAP_MAX = 7;
+
+  get mapTransform(): string {
+    const { x, y, scale } = this.mapPanZoom;
+    return `translate(${x.toFixed(1)} ${y.toFixed(1)}) scale(${scale.toFixed(5)})`;
+  }
+
+  onMapWheel(event: WheelEvent): void {
+    event.preventDefault();
+    const rect = (event.currentTarget as HTMLElement).getBoundingClientRect();
+    const cx = ((event.clientX - rect.left) / rect.width)  * this._MAP_W;
+    const cy = ((event.clientY - rect.top)  / rect.height) * this._MAP_H;
+    const factor = event.deltaY < 0 ? 1.14 : 1 / 1.14;
+    const newScale = Math.min(this._MAP_MAX, Math.max(this._MAP_MIN, this.mapPanZoom.scale * factor));
+    const ratio = newScale / this.mapPanZoom.scale;
+    this.mapPanZoom = {
+      x: cx - (cx - this.mapPanZoom.x) * ratio,
+      y: cy - (cy - this.mapPanZoom.y) * ratio,
+      scale: newScale,
+    };
+  }
+
+  onMapDragStart(event: MouseEvent): void {
+    if (event.button !== 0) return;
+    event.preventDefault();
+    this.mapIsDragging = true;
+    const rect = (event.currentTarget as HTMLElement).getBoundingClientRect();
+    this._mapDragStart = {
+      x:  ((event.clientX - rect.left) / rect.width)  * this._MAP_W,
+      y:  ((event.clientY - rect.top)  / rect.height) * this._MAP_H,
+      tx: this.mapPanZoom.x,
+      ty: this.mapPanZoom.y,
+    };
+  }
+
+  onMapDragMove(event: MouseEvent): void {
+    if (this.mapIsDragging) {
+      this.uaeTooltip = null;
+      const rect = (event.currentTarget as HTMLElement).getBoundingClientRect();
+      const cx = ((event.clientX - rect.left) / rect.width)  * this._MAP_W;
+      const cy = ((event.clientY - rect.top)  / rect.height) * this._MAP_H;
+      this.mapPanZoom = {
+        ...this.mapPanZoom,
+        x: this._mapDragStart.tx + (cx - this._mapDragStart.x),
+        y: this._mapDragStart.ty + (cy - this._mapDragStart.y),
+      };
+      return;
+    }
+    if (this.uaeTooltip) {
+      const rect = (event.currentTarget as HTMLElement).getBoundingClientRect();
+      this.uaeTooltip = {
+        ...this.uaeTooltip,
+        x: event.clientX - rect.left + 14,
+        y: event.clientY - rect.top  - 52,
+      };
+    }
+  }
+
+  onMapDragEnd(): void { this.mapIsDragging = false; }
+
+  mapZoomIn():    void { this._mapZoomCenter(1.3); }
+  mapZoomOut():   void { this._mapZoomCenter(1 / 1.3); }
+  mapZoomReset(): void { this.mapPanZoom = { x: 0, y: 0, scale: 1 }; }
+
+  private _mapZoomCenter(factor: number): void {
+    const cx = this._MAP_W / 2, cy = this._MAP_H / 2;
+    const newScale = Math.min(this._MAP_MAX, Math.max(this._MAP_MIN, this.mapPanZoom.scale * factor));
+    const ratio = newScale / this.mapPanZoom.scale;
+    this.mapPanZoom = {
+      x: cx - (cx - this.mapPanZoom.x) * ratio,
+      y: cy - (cy - this.mapPanZoom.y) * ratio,
+      scale: newScale,
+    };
+  }
+
   // ── Status Helpers ─────────────────────────────────────────────────────────
   getStatusClass(status: string): string {
     const map: Record<string, string> = {
