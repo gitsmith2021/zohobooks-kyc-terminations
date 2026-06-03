@@ -1,17 +1,25 @@
-# Checkpoint files
-.angular/
-.claude/
-.gemini/
-.system_generated/
-
-# Dependency directories
+# Dependencies
 node_modules/
 
-# Build outputs
+# Angular cache and build output
+.angular/
 dist/
 tmp/
 out-tsc/
 bazel-out/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Runtime and temp files
+.system_generated/
+*.tmp
+*.temp
+~$*
 
 # IDEs and editors
 .idea/
@@ -27,11 +35,12 @@ Thumbs.db
 Desktop.ini
 .DS_Store
 
-# Log files
-*.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
+# Local/reference documents
+*.docx
+*.pdf
+IMPLEMENTATION_PLAN.txt
 
-# Lockfiles and temporary files
-~$*.docx
+# Local assistant/tooling folders
+.claude/
+.gemini/
+figma.config.json

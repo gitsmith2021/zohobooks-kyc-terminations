@@ -1,18 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { KycReviewPanel } from './kyc-review-panel';
+import { KycReviewPanelComponent } from './kyc-review-panel';
 
-describe('KycReviewPanel', () => {
-  let component: KycReviewPanel;
-  let fixture: ComponentFixture<KycReviewPanel>;
+describe('KycReviewPanelComponent', () => {
+  let component: KycReviewPanelComponent;
+  let fixture: ComponentFixture<KycReviewPanelComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [KycReviewPanel]
+      imports: [KycReviewPanelComponent]
     })
     .compileComponents();
 
-    fixture = TestBed.createComponent(KycReviewPanel);
+    fixture = TestBed.createComponent(KycReviewPanelComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

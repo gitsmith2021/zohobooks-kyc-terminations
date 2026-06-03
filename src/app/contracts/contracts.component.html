@@ -8,128 +8,148 @@
     Home / <span class="text-primary">Contracts</span>
   </div>
 
-  <!-- ── KPI Strip ──────────────────────────────────────────────────────── -->
-  <div class="ct-metrics">
+  <!-- ── Page Filters ──────────────────────────────────────────────────────── -->
+  <div class="ct-page-filters">
+    <div class="ct-page-filter-fields">
 
-    <div class="ct-metric-card">
-      <div class="ct-metric-icon icon-neutral"><i class="fas fa-file-alt"></i></div>
-      <div class="ct-metric-body">
-        <div class="ct-metric-val">{{ draftCount }}</div>
-        <div class="ct-metric-lbl">Draft</div>
+      <!-- Search Box -->
+      <div class="search-box">
+        <i class="fas fa-search search-icon"></i>
+        <input type="text" class="filter-input search-input" placeholder="Search Here" [(ngModel)]="searchQuery"
+          (input)="applyFilter()" />
+        @if (searchQuery) {
+        <button class="clear-btn" (click)="searchQuery = ''; applyFilter()">
+          <i class="fas fa-times"></i>
+        </button>
+        }
       </div>
+
+      <!-- Date Button Group -->
+      <div class="date-btn-group">
+        <button type="button" class="date-btn" [class.active]="selectedDateFilters.includes('MTD')"
+          (click)="toggleDateFilter('MTD')">MTD</button>
+        <button type="button" class="date-btn" [class.active]="selectedDateFilters.includes('Last Month')"
+          (click)="toggleDateFilter('Last Month')">Last Month</button>
+        <button type="button" class="date-btn" [class.active]="selectedDateFilters.includes('Last Quarter')"
+          (click)="toggleDateFilter('Last Quarter')">Last Quarter</button>
+        <button type="button" class="date-btn" [class.active]="selectedDateFilters.includes('Last 6 Months')"
+          (click)="toggleDateFilter('Last 6 Months')">Last 6 Months</button>
+        <button type="button" class="date-btn" [class.active]="selectedDateFilters.includes('YTD')"
+          (click)="toggleDateFilter('YTD')">YTD</button>
+        <button type="button" class="date-btn" [class.active]="selectedDateFilters.includes('As of Date')"
+          (click)="toggleDateFilter('As of Date')">As of Date</button>
+      </div>
+
+      <!-- Date Range picker -->
+      <div class="filter-group date-range-group">
+        <kendo-daterange class="kendo-filter-daterange">
+          <i class="fa-regular fa-calendar date-range-icon"></i>
+          <kendo-dateinput kendoDateRangeStartInput [(value)]="dateRangeFilter.start" (valueChange)="applyFilter()"
+            placeholder="dd/mm/yyyy" format="dd/MM/yyyy"></kendo-dateinput>
+          <span class="date-sep">-</span>
+          <kendo-daterange-popup></kendo-daterange-popup>
+          <kendo-dateinput kendoDateRangeEndInput [(value)]="dateRangeFilter.end" (valueChange)="applyFilter()"
+            placeholder="dd/mm/yyyy" format="dd/MM/yyyy"></kendo-dateinput>
+        </kendo-daterange>
+      </div>
+
+
+      <!-- Clear filter button -->
+      @if (isFilterApplied) {
+      <button class="clear-filter-btn animate-fade-in" (click)="clearAllFilters()" title="Clear All Filters">
+        <i class="fas fa-times"></i>
+      </button>
+      }
     </div>
 
-    <div class="ct-metric-card">
-      <div class="ct-metric-icon icon-info"><i class="fas fa-edit"></i></div>
-      <div class="ct-metric-body">
-        <div class="ct-metric-val">{{ amendedCount }}</div>
-        <div class="ct-metric-lbl">Amendments Added</div>
-      </div>
+    <!-- Right Side Actions -->
+    <div class="ct-page-filter-actions">
+      <button kendoButton themeColor="base" fillMode="flat" class="density-btn"
+        [class.is-compact]="gridDensity === 'compact'"
+        (click)="toggleDensity()"
+        [title]="gridDensity === 'compact' ? 'Switch to comfortable view' : 'Switch to compact view'">
+        <i [class]="gridDensity === 'compact' ? 'fas fa-expand-alt' : 'fas fa-compress-alt'"></i>
+      </button>
+      <button kendoButton themeColor="base" fillMode="outline" class="action-btn outline"
+        (click)="outboxReviewOpen = true">
+        <i class="fas fa-paper-plane me-1"></i>Outbox Review
+      </button>
+      <button kendoButton themeColor="primary" fillMode="outline" class="grid-icon-btn action-btn outline"
+        [disabled]="selectedKeys.length === 0" title="Export selected">
+        <i class="fas fa-download"></i>
+      </button>
+      <button kendoButton themeColor="primary" fillMode="solid" class="action-btn solid"
+        [disabled]="selectedKeys.length === 0" (click)="bulkSendContracts()">
+        <i class="fas fa-paper-plane me-1"></i>Send Again
+        @if (selectedKeys.length > 0) {
+        <span class="bulk-send-count">{{ selectedKeys.length }}</span>
+        }
+      </button>
     </div>
-
-    <div class="ct-metric-card">
-      <div class="ct-metric-icon icon-warning"><i class="fas fa-check-circle"></i></div>
-      <div class="ct-metric-body">
-        <div class="ct-metric-val">{{ readyCount }}</div>
-        <div class="ct-metric-lbl">Ready to Send</div>
-      </div>
-    </div>
-
-    <div class="ct-metric-card">
-      <div class="ct-metric-icon icon-primary"><i class="fas fa-paper-plane"></i></div>
-      <div class="ct-metric-body">
-        <div class="ct-metric-val">{{ sentCount }}</div>
-        <div class="ct-metric-lbl">Contract Sent</div>
-      </div>
-    </div>
-
-    <div class="ct-metric-card">
-      <div class="ct-metric-icon icon-success"><i class="fas fa-signature"></i></div>
-      <div class="ct-metric-body">
-        <div class="ct-metric-val">{{ signedCount }}</div>
-        <div class="ct-metric-lbl">Contract Signed</div>
-      </div>
-    </div>
-
   </div>
-  <!-- /KPI -->
+
+  <!-- ══════════════════════════════════════════════════════════════
+       KPI METRICS — VERSION 3
+       ══════════════════════════════════════════════════════════════ -->
+  <div class="ct-kpi-v3">
+    <div class="ct-kpi-v3-grid">
+      <!-- 1. Total Customers -->
+      <button type="button" class="ct-kpi-v3-metric ct-kpi-v3-metric--total"
+        [class.active]="activeMetricFilter === 'all'" (click)="setMetricFilter('all')">
+        <span class="ct-kpi-v3-label"><i class="fas fa-users me-2"></i>Total Customers</span>
+        <strong>{{ totalCount }}</strong>
+      </button>
+
+      <!-- 2. Valid Contracts -->
+      <button type="button" class="ct-kpi-v3-metric ct-kpi-v3-metric--valid"
+        [class.active]="activeMetricFilter === 'active'" (click)="setMetricFilter('active')">
+        <span class="ct-kpi-v3-label"><i class="fas fa-signature me-2"></i>Valid Contracts</span>
+        <strong>{{ activeCount }}</strong>
+      </button>
+
+      <!-- 3. Pending with Customer -->
+      <button type="button" class="ct-kpi-v3-metric ct-kpi-v3-metric--pending"
+        [class.active]="activeMetricFilter === 'pending-customer'" (click)="setMetricFilter('pending-customer')">
+        <span class="ct-kpi-v3-label"><i class="fas fa-paper-plane me-2"></i>Pending with Customer</span>
+        <strong>{{ pendingWithCustomerCount }}</strong>
+      </button>
+
+      <!-- 4. Nearing Expiry -->
+      <button type="button" class="ct-kpi-v3-metric ct-kpi-v3-metric--expiring"
+        [class.active]="activeMetricFilter === 'about-to-expire'" (click)="setMetricFilter('about-to-expire')">
+        <span class="ct-kpi-v3-label"><i class="fas fa-clock me-2"></i>Nearing Expiry</span>
+        <strong>{{ aboutToExpireCount }}</strong>
+      </button>
+
+      <!-- 5. Renewal Email Sent -->
+      <button type="button" class="ct-kpi-v3-metric ct-kpi-v3-metric--renewal"
+        [class.active]="activeMetricFilter === 'renewal-email-sent'" (click)="setMetricFilter('renewal-email-sent')">
+        <span class="ct-kpi-v3-label"><i class="fas fa-rotate-right me-2"></i>Renewal Email Sent</span>
+        <strong>{{ renewalEmailSentCount }}</strong>
+      </button>
+
+      <!-- 6. Terminated -->
+      <button type="button" class="ct-kpi-v3-metric ct-kpi-v3-metric--terminated"
+        [class.active]="activeMetricFilter === 'terminated'" (click)="setMetricFilter('terminated')">
+        <span class="ct-kpi-v3-label"><i class="fas fa-times-circle me-2"></i>Terminated</span>
+        <strong>{{ terminatedCount }}</strong>
+      </button>
+    </div>
+  </div>
 
   <!-- ── Grid Card ──────────────────────────────────────────────────────── -->
   <div class="ct-grid-card">
 
-    <!-- Header -->
-    <div class="ct-grid-header">
-      <div>
-        <h6 class="ct-grid-title">Contract Management</h6>
-        <small class="ct-grid-sub">{{ records.length }} clinics across all contract lifecycle stages</small>
-      </div>
-      <div class="ct-grid-actions">
-        <button kendoButton themeColor="primary" fillMode="outline" class="grid-icon-btn" title="Export">
-          <i class="fas fa-download"></i>
-        </button>
-      </div>
-    </div>
-
-    <!-- Filter and Search Actions -->
-    <div class="filter-action-bar">
-      <div class="search-box">
-        <i class="fas fa-search search-icon"></i>
-        <input 
-          type="text" 
-          class="filter-input search-input" 
-          placeholder="Search clinic, contact, email, reference or sales person..." 
-          [(ngModel)]="searchQuery" 
-          (input)="applyFilter()"
-        />
-        @if (searchQuery) {
-          <button class="clear-btn" (click)="searchQuery = ''; applyFilter()">
-            <i class="fas fa-times"></i>
-          </button>
-        }
-      </div>
-      
-      <div class="dropdown-filters">
-        <div class="filter-group date-filter-group">
-          <span class="filter-label">Filter by Date</span>
-          <kendo-multiselect
-            [data]="dateFilterOptions"
-            [(value)]="selectedDateFilters"
-            (valueChange)="applyFilter()"
-            placeholder="All Dates / Months"
-            [checkboxes]="true"
-            [autoClose]="false"
-            class="kendo-filter-multiselect"
-          >
-          </kendo-multiselect>
-        </div>
-
-        <div class="filter-group status-filter-group">
-          <span class="filter-label">Status</span>
-          <kendo-multiselect
-            [data]="availableStatuses"
-            [(value)]="selectedStatuses"
-            (valueChange)="applyFilter()"
-            placeholder="All Statuses"
-            [checkboxes]="true"
-            [autoClose]="false"
-            class="kendo-filter-multiselect"
-          >
-          </kendo-multiselect>
-        </div>
-      </div>
-    </div>
-
-    <!-- Kendo Grid -->
-    <kendo-grid [data]="gridData" [pageSize]="gridState.take!" [skip]="gridState.skip!" [sort]="gridState.sort!"
-      [sortable]="{ allowUnsort: true, mode: 'single' }"
-      [pageable]="{ buttonCount: 5, pageSizes: [10, 20, 50], info: true }" [selectable]="selectableSettings"
-      kendoGridSelectBy="id" [(selectedKeys)]="selectedKeys" (dataStateChange)="onStateChange($event)" class="ct-grid">
+    <kendo-grid [data]="gridData" [sort]="gridState.sort!" [sortable]="{ allowUnsort: true, mode: 'single' }"
+      [selectable]="selectableSettings" kendoGridSelectBy="id" [(selectedKeys)]="selectedKeys"
+      (dataStateChange)="onStateChange($event)" [resizable]="true" [navigable]="true" class="ct-grid"
+      [class.k-grid--compact]="gridDensity === 'compact'">
 
       <!-- Checkbox -->
       <kendo-grid-checkbox-column [width]="46" [showSelectAll]="true" [locked]="true"></kendo-grid-checkbox-column>
 
       <!-- Clinic -->
-      <kendo-grid-column field="companyName" title="Clinic / Contact" [width]="220" [locked]="true">
+      <kendo-grid-column field="companyName" title="Clinic / Contact" [width]="280" [locked]="true">
         <ng-template kendoGridHeaderTemplate let-column>
           {{ column.title }} <i class="fas fa-sort ms-1"></i>
         </ng-template>
@@ -138,46 +158,30 @@
             <div class="clinic-avatar">{{ dataItem.companyName.charAt(0) }}</div>
             <div>
               <div class="clinic-name-row">
+                @if (dataItem.isVip) {
+                <i class="fas fa-crown vip-crown" title="VIP Customer"></i>
+                }
                 <span class="clinic-name">{{ dataItem.companyName }}</span>
-                <span class="clinic-info-trigger">
+                <span class="clinic-info-trigger" (click)="toggleHoverCard($event, dataItem)"
+                  [class.active]="hoverRecord?.id === dataItem.id">
                   <i class="fas fa-info-circle info-icon"></i>
-                  <!-- Premium Glassmorphic Hover Card -->
-                  <div class="clinic-hover-card">
-                    <div class="chc-header">
-                      <span class="chc-plan">{{ dataItem.subscriptionPlan }}</span>
-                      <span class="chc-ref">{{ dataItem.contractRef }}</span>
-                    </div>
-                    <div class="chc-divider"></div>
-                    <div class="chc-grid">
-                      <div class="chc-metric">
-                        <span class="chc-lbl"><i class="fas fa-hospital-alt text-primary"></i> Clinics</span>
-                        <span class="chc-val">{{ dataItem.clinicCount }}</span>
-                      </div>
-                      <div class="chc-metric">
-                        <span class="chc-lbl"><i class="fas fa-users text-warning"></i> Users</span>
-                        <span class="chc-val">{{ dataItem.activeUsers }}</span>
-                      </div>
-                    </div>
-                    @if (dataItem.boughtAddOns?.length > 0) {
-                      <div class="chc-section">
-                        <div class="chc-lbl-sec"><i class="fas fa-cubes text-info"></i> Active Add-ons</div>
-                        <div class="chc-addons-list">
-                          @for (addon of dataItem.boughtAddOns; track addon) {
-                            <span class="chc-addon-tag">{{ addon }}</span>
-                          }
-                        </div>
-                      </div>
-                    }
-                    <div class="chc-divider"></div>
-                    <div class="chc-footer">
-                      <span class="chc-rep-lbl">Sales Representative</span>
-                      <span class="chc-rep-val">{{ dataItem.salesRepresentative }}</span>
-                    </div>
-                  </div>
                 </span>
               </div>
               <div class="clinic-contact">{{ dataItem.contactName }}</div>
             </div>
+          </div>
+        </ng-template>
+      </kendo-grid-column>
+
+      <!-- Contact Details -->
+      <kendo-grid-column field="email" title="Contact Details" [width]="210">
+        <ng-template kendoGridHeaderTemplate let-column>
+          {{ column.title }} <i class="fas fa-sort ms-1"></i>
+        </ng-template>
+        <ng-template kendoGridCellTemplate let-dataItem>
+          <div class="cell-contact">
+            <div><i class="fas fa-envelope contact-icon"></i>{{ dataItem.email }}</div>
+            <div><i class="fas fa-phone contact-icon"></i>{{ dataItem.mobile }}</div>
           </div>
         </ng-template>
       </kendo-grid-column>
@@ -189,23 +193,6 @@
         </ng-template>
         <ng-template kendoGridCellTemplate let-dataItem>
           <span class="ref-tag">{{ dataItem.contractRef }}</span>
-        </ng-template>
-      </kendo-grid-column>
-
-
-      <!-- Amendments -->
-      <kendo-grid-column field="amendments.length" title="Amendments" [width]="115">
-        <ng-template kendoGridHeaderTemplate let-column>
-          {{ column.title }} <i class="fas fa-sort ms-1"></i>
-        </ng-template>
-        <ng-template kendoGridCellTemplate let-dataItem>
-          @if (dataItem.amendments.length > 0) {
-          <span class="amend-count" style="cursor:pointer" (click)="openAmendDialog(dataItem)">
-            <i class="fas fa-file-pen"></i> {{ dataItem.amendments.length }}
-          </span>
-          } @else {
-          <span class="cell-muted">None</span>
-          }
         </ng-template>
       </kendo-grid-column>
 
@@ -251,35 +238,37 @@
       </kendo-grid-column>
 
       <!-- Contract Status -->
-      <kendo-grid-column field="contractStatus" title="Contract Status" [width]="180">
+      <kendo-grid-column field="contractStatus" title="Contract Status" [width]="220">
         <ng-template kendoGridHeaderTemplate let-column>
           {{ column.title }} <i class="fas fa-sort ms-1"></i>
         </ng-template>
         <ng-template kendoGridCellTemplate let-dataItem>
-          <span class="cs-status-badge" [ngClass]="getStatusClass(dataItem.contractStatus)">
-            <i [class]="getStatusIcon(dataItem.contractStatus) + ' cs-badge-icon'"></i>
-            {{ dataItem.contractStatus }}
+          @if (getDisplayStatus(dataItem)) {
+          <span class="cs-status-badge" [ngClass]="getStatusClass(getDisplayStatus(dataItem))">
+            <i [class]="getStatusIcon(getDisplayStatus(dataItem)) + ' cs-badge-icon'"></i>
+            {{ getDisplayStatus(dataItem) }}
+            @if (getHistoryCount(dataItem) > 1) {
+            <span class="cs-history-count">{{ getHistoryCount(dataItem) }}</span>
+            }
           </span>
+          } @else {
+          <span class="cell-muted">—</span>
+          }
         </ng-template>
       </kendo-grid-column>
 
       <!-- Actions -->
-      <kendo-grid-column title="Actions" [width]="200" [sortable]="false">
+      <kendo-grid-column title="Actions" [width]="200" [sortable]="false" class="col-freeze-right"
+        headerClass="col-freeze-right">
         <ng-template kendoGridHeaderTemplate let-column>
           {{ column.title }}
         </ng-template>
         <ng-template kendoGridCellTemplate let-dataItem>
           <div class="cell-actions">
             @if (canSend(dataItem)) {
-            <button kendoButton [size]="'small'" themeColor="primary" fillMode="solid" title="Send Contract"
+            <button kendoButton [size]="'small'" themeColor="primary" fillMode="solid" title="Resend Contract"
               (click)="openSendDialog(dataItem)">
-              <i class="fas fa-paper-plane me-1"></i>Send
-            </button>
-            }
-            @if (canAddAmendment(dataItem)) {
-            <button kendoButton [size]="'small'" themeColor="primary" fillMode="outline" title="Add Amendment"
-              (click)="openAmendDialog(dataItem)">
-              <i class="fas fa-file-pen me-1"></i>Amend
+              <i class="fas fa-paper-plane me-1"></i>Resend
             </button>
             }
             @if (dataItem.contractStatus === 'Contract Signed') {
@@ -291,11 +280,6 @@
             <button kendoButton [size]="'small'" fillMode="outline" class="action-icon-btn--terminated"
               title="Contract Terminated" (click)="openContractPanel(dataItem)">
               <i class="fas fa-times-circle me-1"></i>View
-            </button>
-            } @else if (dataItem.contractStatus === 'Contract Expired') {
-            <button kendoButton [size]="'small'" fillMode="outline" class="action-icon-btn--expired"
-              title="Contract Expired" (click)="openContractPanel(dataItem)">
-              <i class="fas fa-calendar-times me-1"></i>View
             </button>
             } @else {
             <button kendoButton [size]="'small'" fillMode="outline" class="action-icon-btn--view" title="View Contract"
@@ -313,12 +297,55 @@
 
 </div>
 
+<!-- ── Clinic Info Card (fixed overlay — escapes grid overflow clipping) ── -->
+@if (hoverRecord) {
+<div class="clinic-hover-card" [class.ready]="hoverCardReady" [style.top]="hoverCardStyle.top"
+  [style.left]="hoverCardStyle.left">
+
+  <!-- Header: plan + ref + close -->
+  <div class="chc-header">
+    <span class="chc-plan">{{ hoverRecord.subscriptionPlan }}</span>
+    <span class="chc-ref">{{ hoverRecord.contractRef }}</span>
+    <button class="chc-close" (click)="hoverRecord = null; hoverCardReady = false" title="Close">
+      <i class="fas fa-times"></i>
+    </button>
+  </div>
+
+  <!-- Highlighted counts -->
+  <div class="chc-counts">
+    <div class="chc-count-block">
+      <div class="chc-count-val">{{ hoverRecord.clinicCount }}</div>
+      <div class="chc-count-lbl">Clinics</div>
+    </div>
+    <div class="chc-count-divider"></div>
+    <div class="chc-count-block">
+      <div class="chc-count-val">{{ hoverRecord.activeUsers }}</div>
+      <div class="chc-count-lbl">Active Users</div>
+    </div>
+  </div>
+
+  <!-- Add-ons -->
+  @if (hoverRecord.boughtAddOns?.length) {
+  <div class="chc-divider"></div>
+  <div class="chc-section">
+    <div class="chc-lbl-sec"><i class="fas fa-cubes"></i> Active Add-ons</div>
+    <div class="chc-addons-list">
+      @for (addon of hoverRecord.boughtAddOns!; track addon) {
+      <span class="chc-addon-tag">{{ addon }}</span>
+      }
+    </div>
+  </div>
+  }
+
+</div>
+}
+
 
 <!-- ═══════════════════════════════════════════════════════════════
      SEND CONTRACT DIALOG
      ═══════════════════════════════════════════════════════════════ -->
 @if (sendDialogOpen && selectedRecord) {
-<kendo-dialog title="Send Contract" [minWidth]="480" [width]="620" (close)="closeSendDialog()">
+<kendo-dialog title="Resend Contract" [minWidth]="440" [width]="520" (close)="closeSendDialog()">
 
   <div class="dlg-body">
 
@@ -338,104 +365,19 @@
       </div>
     </div>
 
-    <!-- Contract lifecycle -->
-    <div class="ct-lifecycle">
-      @for (step of lifecycleSteps; track step; let last = $last) {
-      <div class="lifecycle-step" [class.done]="isStepDone(selectedRecord, step)"
-        [class.active]="isStepActive(selectedRecord, step)">
-        <div class="lifecycle-dot"></div>
-        <div class="lifecycle-label">{{ step }}</div>
-      </div>
-      @if (!last) { <div class="lifecycle-line"></div> }
-      }
+    <!-- Info note -->
+    <div class="dlg-resend-note">
+      <i class="fas fa-info-circle"></i>
+      This will resend the contract to <strong>{{ selectedRecord.contactName }}</strong> for signature.
+      The original sent date will be updated to today.
     </div>
-
-    <!-- Approach selector -->
-    <div class="dlg-section-title"><i class="fas fa-route"></i> Dispatch Approach</div>
-
-    <div class="approach-options">
-      <label class="approach-option" [class.selected]="selectedApproach === 1"
-        (click)="selectedApproach = 1; disclaimerAcknowledged = false">
-        <div class="approach-radio"><span [class.filled]="selectedApproach === 1"></span></div>
-        <div class="approach-content">
-          <div class="approach-title">
-            <i class="fas fa-shield-alt text-success"></i>
-            Approach 1 — Send After Subscription Payment
-            <span class="approach-default-tag">Default</span>
-          </div>
-          <div class="approach-desc">Contract is issued only after subscription payment is confirmed.</div>
-          @if (!selectedRecord.subscriptionPaid) {
-          <div class="approach-warn">
-            <i class="fas fa-exclamation-triangle"></i>
-            Subscription payment not yet confirmed for this clinic.
-          </div>
-          }
-        </div>
-      </label>
-
-      <label class="approach-option" [class.selected]="selectedApproach === 2" (click)="selectedApproach = 2">
-        <div class="approach-radio"><span [class.filled]="selectedApproach === 2"></span></div>
-        <div class="approach-content">
-          <div class="approach-title">
-            <i class="fas fa-exclamation-triangle text-warning"></i>
-            Approach 2 — Send Before Subscription Payment
-            <span class="approach-override-tag">Authorised Override</span>
-          </div>
-          <div class="approach-desc">Send contract prior to subscription payment. Requires mandatory disclaimer.</div>
-        </div>
-      </label>
-    </div>
-
-    <!-- Approach 2 disclaimer + justification -->
-    @if (selectedApproach === 2) {
-    <div class="disclaimer-box">
-      <div class="disclaimer-header">
-        <i class="fas fa-exclamation-circle"></i>
-        Mandatory Disclaimer — Included in Contract
-      </div>
-      <div class="disclaimer-text">
-        "This contract shall become effective only upon the customer going live and once the
-        subscription payment is successfully completed."
-      </div>
-    </div>
-
-    <label class="dlg-label">
-      Override Justification <span class="text-required">*</span>
-    </label>
-    <textarea class="dlg-textarea" rows="2" [(ngModel)]="overrideJustification"
-      placeholder="Record the reason for sending before payment (e.g. senior management approval)...">
-        </textarea>
-
-    <label class="dlg-acknowledge">
-      <input type="checkbox" [(ngModel)]="disclaimerAcknowledged" />
-      <span>I acknowledge the mandatory disclaimer will be included in this contract.</span>
-    </label>
-    }
-
-    <!-- Amendments summary -->
-    @if (selectedRecord.amendments.length > 0) {
-    <div class="dlg-section-title" style="margin-top:12px">
-      <i class="fas fa-edit"></i> Customer-Specific Amendments
-      <span class="doc-count">{{ selectedRecord.amendments.length }}</span>
-    </div>
-    <div class="amend-summary">
-      @for (a of selectedRecord.amendments; track a.id) {
-      <div class="amend-row">
-        <i class="fas fa-circle amend-dot"></i>
-        <div class="amend-text">{{ a.description }}</div>
-        <span class="amend-meta">{{ a.author }} · {{ a.addedOn | date:'dd MMM' }}</span>
-      </div>
-      }
-    </div>
-    }
 
   </div>
 
   <kendo-dialog-actions layout="stretched">
-    <button kendoButton themeColor="primary" fillMode="solid"
-      [disabled]="selectedApproach === 2 && (!disclaimerAcknowledged || !overrideJustification.trim())"
-      (click)="confirmSend()">
-      <i class="fas fa-paper-plane me-2"></i>Send Contract
+    <button kendoButton themeColor="base" fillMode="outline" (click)="closeSendDialog()">Cancel</button>
+    <button kendoButton themeColor="primary" fillMode="solid" (click)="confirmSend()">
+      <i class="fas fa-paper-plane me-2"></i>Send Again
     </button>
   </kendo-dialog-actions>
 
@@ -463,10 +405,23 @@
       </div>
     </div>
     <div style="display:flex;align-items:center;gap:10px;flex-shrink:0">
-      <span class="cs-status-badge" [ngClass]="getStatusClass(contractPanelRecord.contractStatus)">
-        <i [class]="getStatusIcon(contractPanelRecord.contractStatus) + ' cs-badge-icon'"></i>
-        {{ contractPanelRecord.contractStatus }}
+      @if (getDisplayStatus(contractPanelRecord)) {
+      <span class="cs-status-badge" [ngClass]="getStatusClass(getDisplayStatus(contractPanelRecord))">
+        <i [class]="getStatusIcon(getDisplayStatus(contractPanelRecord)) + ' cs-badge-icon'"></i>
+        {{ getDisplayStatus(contractPanelRecord) }}
       </span>
+      }
+      @if (filteredRecords.length > 1) {
+      <div class="panel-nav">
+        <button class="panel-nav-btn" [disabled]="panelIndex === 0" (click)="navigatePanel(-1)">
+          <i class="fas fa-chevron-left"></i>
+        </button>
+        <span class="panel-nav-count">{{ panelIndex + 1 }} / {{ filteredRecords.length }}</span>
+        <button class="panel-nav-btn" [disabled]="panelIndex === filteredRecords.length - 1" (click)="navigatePanel(1)">
+          <i class="fas fa-chevron-right"></i>
+        </button>
+      </div>
+      }
       <button class="nkp-close-btn" (click)="closeContractPanel()"><i class="fas fa-times"></i></button>
     </div>
   </div>
@@ -486,133 +441,334 @@
           <div class="cp-logo-icon"><i class="fas fa-hospital-alt"></i></div>
           <div>
             <div class="cp-logo-name">Unitecare Software Solutions FZE</div>
-            <div class="cp-logo-tagline">Healthcare Technology &amp; Contract Management · Dubai, UAE</div>
+            <div class="cp-logo-tagline">Bldg. A5, Office No. 1SP2, DDP, Dubai Silicon Oasis, Dubai, UAE &nbsp;·&nbsp;
+              License No: 3803</div>
           </div>
         </div>
         <div class="cp-letterhead-right">
           <div class="cp-ref-badge">{{ contractPanelRecord.contractRef }}</div>
-          <div class="cp-ref-date">Dated: {{ contractStartDate(contractPanelRecord) | date:'dd MMMM yyyy' }}</div>
+          <div class="cp-ref-date">Effective: {{ contractStartDate(contractPanelRecord) | date:'dd MMMM yyyy' }}</div>
         </div>
       </div>
 
       <!-- Title -->
       <div class="cp-title-block">
-        <div class="cp-doc-title">HEALTHCARE SOFTWARE SERVICES AGREEMENT</div>
-        <div class="cp-doc-subtitle">Contracts · Digital Services Platform</div>
+        <div class="cp-doc-title">MASTER SERVICE AGREEMENT</div>
+        <div class="cp-doc-subtitle">for UNITE EMR APPLICATION</div>
       </div>
 
       <!-- Parties -->
       <div class="cp-section">
         <div class="cp-section-label">Parties to the Agreement</div>
+        <p class="cp-parties-intro">
+          THIS Master Service Agreement is entered into effect in United Arab Emirates on
+          <strong>{{ contractStartDate(contractPanelRecord) | date:'dd MMMM yyyy' }}</strong>
+          (The "Effective Date") by and between the following parties:
+        </p>
         <div class="cp-parties-grid">
           <div class="cp-party">
-            <div class="cp-party-role">Service Provider</div>
+            <div class="cp-party-role">Service Provider (UCSS)</div>
             <div class="cp-party-name">Unitecare Software Solutions FZE</div>
-            <div class="cp-party-detail">Freezone Authority, Dubai, United Arab Emirates</div>
-            <div class="cp-party-detail">License No: FZE-2019-04521</div>
+            <div class="cp-party-detail">Bldg. A5, Office No. 1SP2, DDP, Dubai Silicon Oasis, Dubai, UAE</div>
+            <div class="cp-party-detail">Government of Dubai Service License No: 3803</div>
+            <div class="cp-party-detail">Email: contracts&#64;unite.care</div>
           </div>
           <div class="cp-party-and">AND</div>
           <div class="cp-party">
-            <div class="cp-party-role">Client</div>
+            <div class="cp-party-role">Client / Customer</div>
             <div class="cp-party-name">{{ contractPanelRecord.companyName }}</div>
             <div class="cp-party-detail">{{ contractPanelRecord.contactName }}, Authorised Signatory</div>
-            <div class="cp-party-detail">Dubai, United Arab Emirates</div>
+            <div class="cp-party-detail">{{ contractPanelRecord.email }}</div>
           </div>
         </div>
+        <p class="cp-whereas">
+          WHEREAS UCSS shall provide software implementation services of Unite EMR as mentioned in this Agreement.
+        </p>
+        <p class="cp-whereas"><strong>NOW THEREFORE, THE PARTIES HERETO AGREE AS FOLLOWS:</strong></p>
       </div>
 
-      <!-- Scope of Services -->
+      <!-- Clauses 1–15 -->
       <div class="cp-section">
-        <div class="cp-section-label">Scope of Services</div>
+        <div class="cp-section-label">Agreement Terms &amp; Conditions</div>
         <div class="cp-clause-list">
-          <div class="cp-clause"><span class="cp-clause-num">1.</span><span>Contracts Management Platform — Full
-              lifecycle contract management, digital signing, version control, and cloud archival on the Contracts
-              platform.</span></div>
-          <div class="cp-clause"><span class="cp-clause-num">2.</span><span>KYC Verification &amp; Document Management —
-              Regulatory compliance, identity verification, document collection, and automated renewal tracking for all
-              clinic-level onboarding.</span></div>
-          <div class="cp-clause"><span class="cp-clause-num">3.</span><span>Healthcare Regulatory Compliance Support —
-              DHA/MOH licensing advisory, trade license monitoring, and documentation assistance aligned with UAE
-              federal requirements.</span></div>
-          <div class="cp-clause"><span class="cp-clause-num">4.</span><span>Technical Support &amp; SLA Coverage —
-              Priority support desk with guaranteed 4-hour response SLA and 99.5% platform uptime commitment.</span>
-          </div>
+          <div class="cp-clause"><span class="cp-clause-num">1.</span><span><strong>INTRODUCTION.</strong> According to
+              this Agreement, UCSS is responsible for implementing and maintaining the Unite EMR software on the
+              Microsoft Azure Cloud, maintaining the database and application instance, and backing up the database and
+              relevant files.</span></div>
+          <div class="cp-clause"><span class="cp-clause-num">2.</span><span><strong>PERIOD OF AGREEMENT.</strong> Upon
+              the Effective Date, this Agreement shall come into effect and continue for successive periods unless
+              terminated. Either Party may terminate by giving at least thirty (30) days' written notice, effective on
+              the last day of the Initial Period or any subsequent anniversary.</span></div>
+          <div class="cp-clause"><span class="cp-clause-num">3.</span><span><strong>GOVERNMENT CHANGES.</strong> UCSS
+              includes provision of enhancements related to government legislative changes, making efforts not to charge
+              additional fees for such changes, except where the extent is significant.</span></div>
+          <div class="cp-clause"><span class="cp-clause-num">4.</span><span><strong>INTELLECTUAL PROPERTY RIGHTS /
+                CONFIDENTIALITY.</strong> Both parties commit to maintain confidentiality of any information related to
+              the other's business. The customer agrees not to infringe upon any intellectual property rights owned by
+              UCSS, including patents, copyrights, registered designs, or rights of confidence.</span></div>
+          <div class="cp-clause"><span class="cp-clause-num">5.</span><span><strong>EXCLUSIONS.</strong> This Agreement
+              does not include any implied warranties unless expressly stated. The customer's network security,
+              anti-virus measures, ransomware protection, and backups within their premises are considered part of their
+              infrastructure and are not included in this contract.</span></div>
+          <div class="cp-clause"><span class="cp-clause-num">6.</span><span><strong>CONSEQUENTIAL LOSS.</strong> In no
+              event shall either party be liable to the other for indirect or consequential loss or damage regardless of
+              cause, or for loss of profits, business, revenue, goodwill, or anticipated savings.</span></div>
+          <div class="cp-clause"><span class="cp-clause-num">7.</span><span><strong>TERMINATION.</strong> Either party
+              may terminate this Agreement immediately by providing written notice of thirty (30) days if either party
+              fails to comply with its obligations, becomes bankrupt, insolvent, enters receivership, or ceases to carry
+              on business.</span></div>
+          <div class="cp-clause"><span class="cp-clause-num">8.</span><span><strong>FORCE MAJEURE.</strong> Neither
+              party shall be held liable for failure or delay due to events beyond reasonable control including acts of
+              God, government actions, war, terrorism, civil unrest, labor disputes, floods, fires, explosions, or
+              natural calamities. If the Force Majeure Event lasts thirty (30) consecutive days or more, either party
+              may terminate upon written notice.</span></div>
+          <div class="cp-clause"><span class="cp-clause-num">9.</span><span><strong>WAIVER.</strong> Failure of one
+              party to enforce any provision does not constitute a waiver of that provision. A waiver must be in writing
+              and signed by both parties.</span></div>
+          <div class="cp-clause"><span class="cp-clause-num">10.</span><span><strong>ASSIGNMENT.</strong> The Customer
+              may not transfer, sell or rent any part of their interest in this Agreement or give any rights to a third
+              party without UCSS's prior written approval.</span></div>
+          <div class="cp-clause"><span class="cp-clause-num">11.</span><span><strong>NOTICES.</strong> Any notices shall
+              be valid if in written form and delivered either by hand, prepaid letter, or email to the address
+              specified in this Agreement.</span></div>
+          <div class="cp-clause"><span class="cp-clause-num">12.</span><span><strong>HEADINGS.</strong> The headings of
+              the clauses are provided for convenience only and shall not affect the meaning or construction of the said
+              clauses.</span></div>
+          <div class="cp-clause"><span class="cp-clause-num">13.</span><span><strong>SEVERABILITY.</strong> If any
+              provision is found to be invalid, illegal, or unenforceable, the validity of the remaining provisions
+              shall not be affected. The parties shall make a good faith effort to replace the invalid provision with a
+              valid one achieving the same purposes.</span></div>
+          <div class="cp-clause"><span class="cp-clause-num">14.</span><span><strong>AMENDMENT.</strong> Any changes to
+              this Agreement can only be made through a written Agreement signed by the authorized representatives of
+              both parties.</span></div>
+          <div class="cp-clause"><span class="cp-clause-num">15.</span><span><strong>GOVERNING LAW.</strong> This
+              Agreement shall be governed by and construed in accordance with the laws of Dubai, United Arab Emirates.
+              Any dispute shall be referred to the courts of Dubai, United Arab Emirates.</span></div>
         </div>
       </div>
 
-      <!-- Customer Amendments (if any) -->
-      @if (contractPanelRecord.amendments.length > 0) {
+      <!-- Section 16: Customer Obligations -->
       <div class="cp-section">
-        <div class="cp-section-label">Customer-Specific Amendments</div>
+        <div class="cp-section-label">16. Obligations of the Customer</div>
         <div class="cp-clause-list">
-          @for (a of contractPanelRecord.amendments; track a.id; let i = $index) {
-          <div class="cp-clause">
-            <span class="cp-clause-num">{{ i + 1 }}.</span>
-            <span>{{ a.description }}<span class="cp-amend-meta"> — Added by {{ a.author }}, {{ a.addedOn | date:'dd MMM
-                yyyy' }}</span></span>
+          <div class="cp-clause"><span class="cp-clause-num">1.</span><span>The Customer shall be responsible for mobile
+              devices, desktops, laptops, printers, and internet connectivity within their facility. Failure of the
+              internet will cause interruption of application access.</span></div>
+          <div class="cp-clause"><span class="cp-clause-num">2.</span><span>The Customer will stay "Active" and
+              "Enrolled" by paying the annual subscription on or before the commencement of the service year. Failure to
+              pay on time will lead to service disruption.</span></div>
+          <div class="cp-clause"><span class="cp-clause-num">3.</span><span>Upon detection of any error or defect, the
+              Customer shall submit a support ticket through the Help Desk or in-app chat with all relevant data. The
+              Authorized Service Contact (ASC) should be the person raising the call. Requests through other channels
+              shall not be considered official.</span></div>
+          <div class="cp-clause"><span class="cp-clause-num">4.</span><span>The Customer shall provide UCSS with ample
+              computer time to locate and remedy defects.</span></div>
+          <div class="cp-clause"><span class="cp-clause-num">5.</span><span>The Customer shall provide remote access to
+              enable UCSS staff to carry out necessary Implementation when required.</span></div>
+          <div class="cp-clause"><span class="cp-clause-num">6.</span><span>Customer shall provide necessary downtime to
+              UCSS for the deployment of Software patches or upgrades whenever necessary.</span></div>
+          <div class="cp-clause"><span class="cp-clause-num">7.</span><span>The Customer must not make any modifications
+              to the licensed product/database structure provided by UCSS without prior written consent from
+              UCSS.</span></div>
+          <div class="cp-clause"><span class="cp-clause-num">8.</span><span>On receiving a fix from UCSS, the Customer
+              is to confirm acceptance of the "Fix" and closure in writing to UCSS.</span></div>
+          <div class="cp-clause"><span class="cp-clause-num">9.</span><span>Customer shall appoint an "Authorized
+              Support Contact" (ASC) to interact with the UCSS team for onboarding, training, go-live, and subsequent
+              support management.</span></div>
+          <div class="cp-clause"><span class="cp-clause-num">10.</span><span>Within 5 working days of signing the
+              contract, the customer shall provide all necessary inputs and data to the UCSS onboarding team for setting
+              up the database.</span></div>
+          <div class="cp-clause"><span class="cp-clause-num">11.</span><span>Upon signing the contract, the customer is
+              expected to implement Unite EMR and go-live within two weeks. UCSS allows for one extension request
+              granting an additional two-week period.</span></div>
+          <div class="cp-clause"><span class="cp-clause-num">12.</span><span>To comply with government regulations, the
+              customer must ensure that all users utilize the application for appropriate data entry purposes.</span>
           </div>
-          }
         </div>
       </div>
-      }
 
-      <!-- Approach 2 disclaimer -->
-      @if (contractPanelRecord.approach === 2) {
+      <!-- Section 17: UCSS Obligations / SLA -->
       <div class="cp-section">
-        <div class="cp-section-label">Special Conditions</div>
-        <div class="cp-disclaimer">
-          "This contract shall become effective only upon the customer going live and once the subscription payment is
-          successfully completed."
+        <div class="cp-section-label">17. Obligation of UCSS — Service Level Agreement (SLA)</div>
+        <div class="cp-clause-list">
+          <div class="cp-clause"><span class="cp-clause-num">1.</span><span><strong>Availability Guarantee:</strong>
+              UCSS guarantees an uptime of at least 99.9% each month, excluding scheduled maintenance and force majeure
+              events.</span></div>
+          <div class="cp-clause"><span class="cp-clause-num">2.</span><span><strong>Support Response Time:</strong> UCSS
+              will respond to support tickets within 2 business days upon receipt, providing either a resolution or an
+              estimated timeframe.</span></div>
+          <div class="cp-clause"><span class="cp-clause-num">3.</span><span><strong>Escalation Procedures:</strong> If a
+              support ticket is not resolved within the initial response time, it will be escalated to a higher level of
+              support until a resolution is achieved.</span></div>
+          <div class="cp-clause"><span class="cp-clause-num">4.</span><span><strong>Maintenance Schedule:</strong> UCSS
+              will notify the customer in advance of any scheduled maintenance causing service interruption, performed
+              during off-peak hours whenever possible.</span></div>
+          <div class="cp-clause"><span class="cp-clause-num">5.</span><span><strong>Backup and Disaster
+                Recovery:</strong> UCSS will maintain a regular backup schedule to ensure data integrity and will have a
+              disaster recovery plan in place to minimize downtime.</span></div>
+          <div class="cp-clause"><span class="cp-clause-num">6.</span><span><strong>Reporting and Monitoring:</strong>
+              UCSS will monitor the service for performance issues and notify the customer of any potential
+              issues.</span></div>
+          <div class="cp-clause"><span class="cp-clause-num">7.</span><span><strong>Support Channels:</strong> Support
+              ticket via Help Desk and/or in-app chat &nbsp;·&nbsp; On-site (emergency): +971-54 704 2150 / +971-50 689
+              2152 &nbsp;·&nbsp; Escalation: latha.ns&#64;unite.care</span></div>
+        </div>
+
+        <div class="cp-sla-table">
+          <div class="cp-sla-header">
+            <span>Priority Type</span>
+            <span>Timeline</span>
+          </div>
+          <div class="cp-sla-row cp-sla-p1">
+            <span><strong>Priority 1 — System Down</strong><br><span class="cp-sla-desc">Bug makes the application
+                inoperable.</span></span>
+            <span class="cp-sla-time">Within 4 working hours</span>
+          </div>
+          <div class="cp-sla-row cp-sla-p2">
+            <span><strong>Priority 2 — Critical</strong><br><span class="cp-sla-desc">Bug impairs a major application
+                feature.</span></span>
+            <span class="cp-sla-time">Within 1 working day</span>
+          </div>
+          <div class="cp-sla-row cp-sla-p3">
+            <span><strong>Priority 3 — Minor Issue</strong><br><span class="cp-sla-desc">Does not impact normal usage
+                but advisable to resolve.</span></span>
+            <span class="cp-sla-time">Within 7 working days</span>
+          </div>
+        </div>
+
+        <div class="cp-clause-list" style="margin-top:10px">
+          <div class="cp-clause"><span class="cp-clause-num">9.</span><span><strong>Data transfer upon
+                termination:</strong> In the unlikely event of contract termination, UCSS will provide patient
+              demographics, medical records, and billing details in a format determined by UCSS. The format may change
+              to accommodate evolving data structures.</span></div>
+          <div class="cp-clause"><span class="cp-clause-num">10.</span><span>UCSS shall be contractually bound to
+              implement and go-live with Unite EMR for the customer in accordance with the Statement of Work (SOW). Any
+              breach by either party may lead to contract termination. If terminated prior to go-live, the customer will
+              not be responsible for subscription fees.</span></div>
         </div>
       </div>
-      }
 
-      <!-- Contract Terms -->
+      <!-- Section 18: Scope -->
       <div class="cp-section">
-        <div class="cp-section-label">Contract Terms</div>
-        <div class="cp-terms-grid">
+        <div class="cp-section-label">18. Scope of Works Covered Under This Agreement</div>
+        <div class="cp-clause-list">
+          <div class="cp-clause"><span class="cp-clause-num">1.</span><span>Schedule an onboarding meeting with the
+              client representative(s) to map customer processes to Unite EMR processes.</span></div>
+          <div class="cp-clause"><span class="cp-clause-num">2.</span><span>Collect the necessary data to set up a
+              customer-specific database for use in the Unite EMR environment.</span></div>
+          <div class="cp-clause"><span class="cp-clause-num">3.</span><span>The modules as mentioned in Appendix 1 are
+              included in the package purchased by the customer.</span></div>
+          <div class="cp-clause"><span class="cp-clause-num">4.</span><span>Configure and deploy the software modules
+              included in the scope for one legal entity in the English language.</span></div>
+          <div class="cp-clause"><span class="cp-clause-num">5.</span><span>All user training shall be provided through
+              Unitecare Learning Management System (LMS), including end-to-end training modules for relevant users
+              identified by the Customer.</span></div>
+          <div class="cp-clause"><span class="cp-clause-num">6.</span><span>Access to the Unite LMS shall be provided
+              for a validity period of three (3) working days from the date the LMS link is shared.</span></div>
+          <div class="cp-clause"><span class="cp-clause-num">7.</span><span>The Customer shall ensure all relevant users
+              complete the training within the LMS access period.</span></div>
+          <div class="cp-clause"><span class="cp-clause-num">8.</span><span>Online go-live support shall be provided for
+              a total duration not exceeding eight (8) hours, over a maximum span of two (2) business days.</span></div>
+          <div class="cp-clause"><span class="cp-clause-num">9.</span><span>Any additional training or support beyond
+              the scope defined above shall be provided remotely and may be subject to mutually agreed commercial
+              terms.</span></div>
+          <div class="cp-clause"><span class="cp-clause-num">10.</span><span>All documentation will be shared as video
+              guides or short clips based on need.</span></div>
+        </div>
+      </div>
+
+      <!-- Section 19: Out of Scope -->
+      <div class="cp-section">
+        <div class="cp-section-label">19. Out of Scope — Not Covered Under This Agreement</div>
+        <p class="cp-whereas" style="margin-bottom:8px">All "Out of Scope" work, if requested, will be delivered on Time
+          and Materials (T&amp;M) basis.</p>
+        <div class="cp-clause-list">
+          <div class="cp-clause"><span class="cp-clause-num">1.</span><span>Additional customizations and
+              integrations/interfaces beyond those agreed in this contract.</span></div>
+          <div class="cp-clause"><span class="cp-clause-num">2.</span><span>Additional on-site training exceeding the
+              4-hour limit specified in this Agreement.</span></div>
+          <div class="cp-clause"><span class="cp-clause-num">3.</span><span>Additional post-go-live support exceeding
+              the 8-hour limit.</span></div>
+          <div class="cp-clause"><span class="cp-clause-num">4.</span><span>Migration of historical transaction data
+              from external systems.</span></div>
+          <div class="cp-clause"><span class="cp-clause-num">5.</span><span>Purchase of a payment gateway account or SMS
+              package.</span></div>
+          <div class="cp-clause"><span class="cp-clause-num">6.</span><span>Integrations with SMS providers other than
+              Elite Buzz &amp; Axiom ME.</span></div>
+          <div class="cp-clause"><span class="cp-clause-num">7.</span><span>Implementation of wireless functionalities,
+              integration with new 3rd party software/hardware (except as agreed), VPN/LAN/leased line setup, and lab
+              equipment integration.</span></div>
+        </div>
+      </div>
+
+      <!-- Section 20: Pricing -->
+      <div class="cp-section">
+        <div class="cp-section-label">20. Pricing and Payments</div>
+        <div class="cp-clause-list">
+          <div class="cp-clause"><span class="cp-clause-num">1.</span><span>The pricing and any other charges arising
+              under this Agreement shall be payable in accordance with the Standard Terms as stated in Appendix 3 of
+              this Agreement.</span></div>
+          <div class="cp-clause"><span class="cp-clause-num">2.</span><span>All prices quoted are in AED (Arab Emirates
+              Dirhams) unless otherwise specified.</span></div>
+        </div>
+        <div class="cp-terms-grid" style="margin-top:10px">
           <div class="cp-term">
-            <div class="cp-term-lbl">Contract Period</div>
+            <div class="cp-term-lbl">Subscription Period</div>
             <div class="cp-term-val">{{ contractStartDate(contractPanelRecord) | date:'dd MMM yyyy' }} — {{
               contractEndDate(contractPanelRecord) | date:'dd MMM yyyy' }}</div>
           </div>
           <div class="cp-term">
             <div class="cp-term-lbl">Annual Contract Value</div>
-            <div class="cp-term-val">{{ contractAnnualValue(contractPanelRecord) }}</div>
+            <div class="cp-term-val">{{ contractAnnualValue(contractPanelRecord) }} (incl. VAT 5%)</div>
           </div>
           <div class="cp-term">
-            <div class="cp-term-lbl">Payment Schedule</div>
-            <div class="cp-term-val">Quarterly Installments (4 × AED)</div>
+            <div class="cp-term-lbl">One-time Onboarding</div>
+            <div class="cp-term-val">100% payable in advance</div>
           </div>
           <div class="cp-term">
-            <div class="cp-term-lbl">Renewal Clause</div>
-            <div class="cp-term-val">Auto-renew with 60-day prior written notice</div>
+            <div class="cp-term-lbl">Subscription Payment</div>
+            <div class="cp-term-val">Due in full before Go-Live</div>
+          </div>
+          <div class="cp-term">
+            <div class="cp-term-lbl">Annual Renewal</div>
+            <div class="cp-term-val">Due 30 days before subscription expiry</div>
           </div>
           <div class="cp-term">
             <div class="cp-term-lbl">Governing Law</div>
-            <div class="cp-term-val">UAE Federal Law &amp; DIFC Regulations</div>
-          </div>
-          <div class="cp-term">
-            <div class="cp-term-lbl">Termination Notice</div>
-            <div class="cp-term-val">30-day notice; 60 days for no-fault termination</div>
+            <div class="cp-term-val">Laws of Dubai, United Arab Emirates</div>
           </div>
         </div>
+        <p class="cp-whereas" style="margin-top:10px">
+          All payments made by the customer are non-refundable. Maintenance Support will commence upon signing of this
+          Agreement, not upon the release of a Purchase Order.
+        </p>
+      </div>
+
+
+      <!-- Closing -->
+      <div class="cp-section">
+        <p class="cp-closing">
+          This Agreement, including all Clauses, Attachments (if any), Addendum and Annexures, is a complete and
+          exclusive statement of the Agreement between the Parties, which supersedes all prior Agreements, proposals,
+          and understandings, whether oral or written, and all other communications between the parties relating to the
+          subject matter of this Agreement.
+        </p>
       </div>
 
       <!-- Signatures -->
-      <div class="cp-section cp-section--last">
-        <div class="cp-section-label">Authorised Signatures</div>
+      <div class="cp-section">
+        <div class="cp-section-label">IN WITNESS WHEREOF — Authorised Signatures</div>
         <div class="cp-sig-grid">
 
-          <!-- Unitecare -->
+          <!-- UCSS -->
           <div class="cp-sig-block">
             <div class="cp-sig-line">
-              <div class="cp-sig-cursive">Ahmed Al Marri</div>
+              <div class="cp-sig-cursive">Founder</div>
             </div>
-            <div class="cp-sig-name">Ahmed Al Marri</div>
-            <div class="cp-sig-detail">Chief Executive Officer</div>
+            <div class="cp-sig-name">Signed for and on behalf of UCSS</div>
+            <div class="cp-sig-detail">Founder</div>
             <div class="cp-sig-detail">Unitecare Software Solutions FZE</div>
-            <div class="cp-sig-date">{{ contractStartDate(contractPanelRecord) | date:'dd MMMM yyyy' }}</div>
+            <div class="cp-sig-date">Date: {{ contractStartDate(contractPanelRecord) | date:'dd MMMM yyyy' }}</div>
           </div>
 
           <!-- Client -->
@@ -628,13 +784,75 @@
             </div>
             }
             <div class="cp-sig-name">{{ contractPanelRecord.contactName }}</div>
+            <div class="cp-sig-detail">Owner — {{ contractPanelRecord.companyName }}</div>
             <div class="cp-sig-detail">Authorised Signatory</div>
-            <div class="cp-sig-detail">{{ contractPanelRecord.companyName }}</div>
             @if (contractPanelRecord.contractSignedOn) {
-            <div class="cp-sig-date">{{ contractPanelRecord.contractSignedOn | date:'dd MMMM yyyy' }}</div>
+            <div class="cp-sig-date">Date: {{ contractPanelRecord.contractSignedOn | date:'dd MMMM yyyy' }}</div>
             }
           </div>
 
+        </div>
+      </div>
+
+      <!-- Appendix 1 -->
+      <div class="cp-section">
+        <div class="cp-section-label cp-appendix-title">Appendix 1 — Modules Included in the Customer Package</div>
+        <div class="cp-modules-grid">
+          <div class="cp-module-group">
+            <div class="cp-module-header">UNITE EMR — Professional Module (School Clinics)</div>
+            <div class="cp-module-item"><i class="fas fa-check"></i> FRONTDESK</div>
+            <div class="cp-module-item"><i class="fas fa-check"></i> NURSES EMR</div>
+            <div class="cp-module-item"><i class="fas fa-check"></i> REPORTS</div>
+            <div class="cp-module-item"><i class="fas fa-check"></i> ADMIN</div>
+            <div class="cp-module-item"><i class="fas fa-check"></i> Appointment Scheduler</div>
+            <div class="cp-module-item"><i class="fas fa-check"></i> Emirates ID Integration</div>
+            <div class="cp-module-item"><i class="fas fa-check"></i> WhatsApp Integration</div>
+            <div class="cp-module-item"><i class="fas fa-check"></i> Digital Consent Form</div>
+            <div class="cp-module-item"><i class="fas fa-check"></i> Internal Chat</div>
+          </div>
+          <div class="cp-module-group">
+            <div class="cp-module-header">Clinical &amp; Nursing Features</div>
+            <div class="cp-module-item"><i class="fas fa-check"></i> Daily Nurse's Activity</div>
+            <div class="cp-module-item"><i class="fas fa-check"></i> Nurse's Notes</div>
+            <div class="cp-module-item"><i class="fas fa-check"></i> Allergies</div>
+            <div class="cp-module-item"><i class="fas fa-check"></i> Vitals</div>
+            <div class="cp-module-item"><i class="fas fa-check"></i> Medications</div>
+            <div class="cp-module-item"><i class="fas fa-check"></i> Pain Scale</div>
+            <div class="cp-module-item"><i class="fas fa-check"></i> Medical History (across clinics)</div>
+            <div class="cp-module-item"><i class="fas fa-check"></i> Case Sheets / Body Charts</div>
+            <div class="cp-module-item"><i class="fas fa-check"></i> Incident Reports</div>
+            <div class="cp-module-item"><i class="fas fa-check"></i> Documents Upload</div>
+            <div class="cp-module-item"><i class="fas fa-check"></i> Template-driven Entry</div>
+          </div>
+          <div class="cp-module-group">
+            <div class="cp-module-header">Admin &amp; Reports</div>
+            <div class="cp-module-item"><i class="fas fa-check"></i> Operational Reports</div>
+            <div class="cp-module-item"><i class="fas fa-check"></i> Statistical Reports</div>
+            <div class="cp-module-item"><i class="fas fa-check"></i> Role-based Access for Users</div>
+            <div class="cp-module-item"><i class="fas fa-check"></i> Daily Monitoring</div>
+            <div class="cp-module-item"><i class="fas fa-check"></i> Master Setup</div>
+            <div class="cp-module-item"><i class="fas fa-check"></i> User Management</div>
+            <div class="cp-module-item"><i class="fas fa-check"></i> Forms Builder</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Appendix 3: Payment Terms -->
+      <div class="cp-section cp-section--last">
+        <div class="cp-section-label cp-appendix-title">Appendix 3 — Payment Terms and Conditions</div>
+        <div class="cp-clause-list">
+          <div class="cp-clause"><span class="cp-clause-num">•</span><span>100% of the one-time cost is to be paid in
+              advance at the time of confirmation.</span></div>
+          <div class="cp-clause"><span class="cp-clause-num">•</span><span>Subscription charges to be paid before
+              Go-Live.</span></div>
+          <div class="cp-clause"><span class="cp-clause-num">•</span><span>Annual Renewal Charges to be paid 30 days
+              before the expiry of the ongoing subscription period.</span></div>
+          <div class="cp-clause"><span class="cp-clause-num">•</span><span>Subscription Duration: 12 months from the
+              Month of Go Live.</span></div>
+          <div class="cp-clause"><span class="cp-clause-num">•</span><span>Failure to pay subscription on time will lead
+              to service disruption.</span></div>
+          <div class="cp-clause"><span class="cp-clause-num">•</span><span>The service agreement must be signed by both
+              parties before the go-live date.</span></div>
         </div>
       </div>
 
@@ -642,7 +860,7 @@
       <div class="cp-page-footer">
         <span>{{ contractPanelRecord.contractRef }} — Confidential</span>
         <span>Unitecare Software Solutions FZE × {{ contractPanelRecord.companyName }}</span>
-        <span>Page 1 of 3</span>
+        <span>Master Service Agreement — Unite EMR</span>
       </div>
 
     </div>
@@ -650,204 +868,61 @@
 
   <!-- Footer Actions -->
   <div class="nkp-footer">
-    <button kendoButton themeColor="base" fillMode="outline" (click)="closeContractPanel()">
-      Close
-    </button>
-    <button kendoButton themeColor="base" fillMode="outline" [disabled]="true"
-      title="PDF download available in production">
-      <i class="fas fa-download me-2"></i>Download PDF
-    </button>
-    @if (contractPanelRecord.contractStatus === 'Contract Sent') {
-    <button kendoButton themeColor="warning" fillMode="outline">
-      <i class="fas fa-paper-plane me-2"></i>Send Signature Reminder
-    </button>
-    }
-    @if (contractPanelRecord.contractStatus === 'Contract Signed') {
-    <button kendoButton themeColor="primary" fillMode="outline">
-      <i class="fas fa-file-alt me-2"></i>Request Amendment
-    </button>
-    }
-  </div>
 
-</div>
-}
-
-
-<!-- ═══════════════════════════════════════════════════════════════
-     AMENDMENT SLIDE PANEL
-     ═══════════════════════════════════════════════════════════════ -->
-@if (amendDialogOpen && selectedRecord) {
-<div class="slide-panel-overlay" (click)="closeAmendDialog()"></div>
-<div class="slide-panel slide-panel--wide slide-in" style="display:flex;flex-direction:column">
-
-  <!-- Header -->
-  <div class="nkp-header">
-    <div class="nkp-header-left">
-      <div class="nkp-header-icon"><i class="fas fa-file-pen"></i></div>
-      <div>
-        <h5 class="nkp-title">Amendments — {{ selectedRecord.companyName }}</h5>
-        <div class="nkp-subtitle">{{ selectedRecord.contractRef }}&nbsp;&nbsp;·&nbsp;&nbsp;{{
-          selectedRecord.amendments.length }} amendment{{ selectedRecord.amendments.length !== 1 ? 's' : '' }} on record
-        </div>
+    <!-- Left: Dots Navigation -->
+    <div class="cp-nav-dots-container">
+      @if (historyList.length > 1) {
+      <div class="cp-nav-dots">
+        @for (entry of historyList; track $index) {
+        <button class="cp-nav-dot" [class.active]="$index === historyIndex"
+          (click)="jumpHistory($index)" [title]="entry.contractRef"></button>
+        }
       </div>
+      }
     </div>
-    <div style="display:flex;align-items:center;gap:10px;flex-shrink:0">
-      <span class="cs-status-badge" [ngClass]="getStatusClass(selectedRecord.contractStatus)">
-        <i [class]="getStatusIcon(selectedRecord.contractStatus) + ' cs-badge-icon'"></i>
-        {{ selectedRecord.contractStatus }}
-      </span>
-      <button class="nkp-close-btn" (click)="closeAmendDialog()"><i class="fas fa-times"></i></button>
-    </div>
-  </div>
 
-  <!-- Amendment Navigator -->
-  @if (selectedRecord.amendments.length > 0) {
-  <div class="amend-nav-bar">
-    <span class="amend-nav-label">Amendments</span>
-    <div class="amend-nav-tabs">
-      @for (a of selectedRecord.amendments; track a.id; let i = $index) {
-      <button class="amend-nav-tab" [class.active]="amendPanelActiveIdx === i" (click)="amendPanelActiveIdx = i">
-        <i class="fas fa-file-pen"></i>
-        Amendment {{ i + 1 }}
+    <!-- Center: Filename / Reference Navigation -->
+    <div class="cp-filename-nav-container">
+      @if (historyList.length > 1) {
+      <button class="cp-nav-btn" [disabled]="historyIndex >= historyList.length - 1"
+        (click)="navigateHistory(1)" title="View older contract">
+        <i class="fas fa-chevron-left"></i>
+      </button>
+      <div class="cp-nav-info">
+        <span class="cp-nav-ref">{{ contractPanelRecord!.contractRef }}</span>
+        <span class="cp-nav-sep">·</span>
+        <span class="cp-nav-period">{{ contractStartDate(contractPanelRecord!) | date:'MMM yyyy' }} – {{ contractEndDate(contractPanelRecord!) | date:'MMM yyyy' }}</span>
+        @if (historyIndex === 0) {
+        <span class="cp-nav-current">Current</span>
+        }
+      </div>
+      <button class="cp-nav-btn" [disabled]="historyIndex <= 0"
+        (click)="navigateHistory(-1)" title="View newer contract">
+        <i class="fas fa-chevron-right"></i>
       </button>
       }
     </div>
-  </div>
-  }
 
-  <!-- PDF-style Viewer -->
-  <div class="cp-viewer">
-    @if (selectedRecord.amendments.length === 0) {
-    <div class="amend-empty-state">
-      <i class="fas fa-file-pen"></i>
-      <div>No amendments added yet.</div>
-      <div style="font-size:12px;color:#a1aab2;margin-top:4px">Use the form below to add the first amendment.</div>
-    </div>
-    } @else {
-    <div class="cp-paper">
-
-      <!-- Letterhead -->
-      <div class="cp-letterhead">
-        <div class="cp-logo-block">
-          <div class="cp-logo-icon"><i class="fas fa-hospital-alt"></i></div>
-          <div>
-            <div class="cp-logo-name">Unitecare Software Solutions FZE</div>
-            <div class="cp-logo-tagline">Healthcare Technology &amp; Contract Management · Dubai, UAE</div>
-          </div>
-        </div>
-        <div class="cp-letterhead-right">
-          <div class="cp-ref-badge">{{ selectedRecord.contractRef }}</div>
-          <div class="cp-ref-date">Amendment {{ amendPanelActiveIdx + 1 }} of {{ selectedRecord.amendments.length }}
-          </div>
-        </div>
-      </div>
-
-      <!-- Amendment Title -->
-      <div class="cp-title-block">
-        <div class="cp-doc-title">CONTRACT AMENDMENT NOTICE</div>
-        <div class="cp-doc-subtitle">{{ selectedRecord.companyName }} · Amendment {{ amendPanelActiveIdx + 1 }}</div>
-      </div>
-
-      <!-- Parties -->
-      <div class="cp-section">
-        <div class="cp-section-label">Parties to the Amendment</div>
-        <div class="cp-parties-grid">
-          <div class="cp-party">
-            <div class="cp-party-role">Service Provider</div>
-            <div class="cp-party-name">Unitecare Software Solutions FZE</div>
-            <div class="cp-party-detail">Freezone Authority, Dubai, UAE</div>
-          </div>
-          <div class="cp-party-and">AND</div>
-          <div class="cp-party">
-            <div class="cp-party-role">Client</div>
-            <div class="cp-party-name">{{ selectedRecord.companyName }}</div>
-            <div class="cp-party-detail">{{ selectedRecord.contactName }}, Authorised Signatory</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Amendment Body -->
-      <div class="cp-section">
-        <div class="cp-section-label">Amendment Details</div>
-        <div class="amend-paper-body">
-          <div class="amend-paper-clause">
-            <span class="cp-clause-num">1.</span>
-            <span>{{ selectedRecord.amendments[amendPanelActiveIdx].description }}</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Meta -->
-      <div class="cp-section">
-        <div class="cp-section-label">Amendment Record</div>
-        <div class="cp-terms-grid">
-          <div class="cp-term">
-            <div class="cp-term-lbl">Raised By</div>
-            <div class="cp-term-val">{{ selectedRecord.amendments[amendPanelActiveIdx].author }}</div>
-          </div>
-          <div class="cp-term">
-            <div class="cp-term-lbl">Date Added</div>
-            <div class="cp-term-val">{{ selectedRecord.amendments[amendPanelActiveIdx].addedOn | date:'dd MMMM yyyy' }}
-            </div>
-          </div>
-          <div class="cp-term">
-            <div class="cp-term-lbl">Parent Contract</div>
-            <div class="cp-term-val">{{ selectedRecord.contractRef }}</div>
-          </div>
-          <div class="cp-term">
-            <div class="cp-term-lbl">Amendment No.</div>
-            <div class="cp-term-val">{{ amendPanelActiveIdx + 1 }} of {{ selectedRecord.amendments.length }}</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Signatures -->
-      <div class="cp-section cp-section--last">
-        <div class="cp-section-label">Authorised Signatures</div>
-        <div class="cp-sig-grid">
-          <div class="cp-sig-block">
-            <div class="cp-sig-line">
-              <div class="cp-sig-cursive">Ahmed Al Marri</div>
-            </div>
-            <div class="cp-sig-name">Ahmed Al Marri</div>
-            <div class="cp-sig-detail">Chief Executive Officer</div>
-            <div class="cp-sig-detail">Unitecare Software Solutions FZE</div>
-          </div>
-          <div class="cp-sig-block cp-sig-block--pending">
-            <div class="cp-sig-awaiting"><i class="fas fa-pen-nib"></i><span>Awaiting Client Signature</span></div>
-            <div class="cp-sig-name">{{ selectedRecord.contactName }}</div>
-            <div class="cp-sig-detail">Authorised Signatory</div>
-            <div class="cp-sig-detail">{{ selectedRecord.companyName }}</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Page Footer -->
-      <div class="cp-page-footer">
-        <span>{{ selectedRecord.contractRef }} — Amendment {{ amendPanelActiveIdx + 1 }}</span>
-        <span>Unitecare Software Solutions FZE × {{ selectedRecord.companyName }}</span>
-        <span>Confidential</span>
-      </div>
-
-    </div>
-    }
-  </div>
-
-  <!-- Footer: Add Amendment (only when editable) -->
-  @if (canAddAmendment(selectedRecord)) {
-  <div class="amend-add-footer">
-    <textarea class="amend-add-textarea" rows="2" [(ngModel)]="newAmendDesc"
-      placeholder="Describe the amendment (e.g. custom pricing, special SLA, additional clause)..."></textarea>
-    <div style="display:flex;justify-content:flex-end;gap:8px">
-      <button kendoButton themeColor="primary" fillMode="solid" [disabled]="!newAmendDesc.trim()"
-        (click)="addAmendment()">
-        <i class="fas fa-plus me-1"></i>Add Amendment
+    <!-- Right: Action Buttons -->
+    <div class="cp-footer-actions">
+      <button kendoButton themeColor="primary" fillMode="solid" (click)="downloadPdf()">
+        <i class="fas fa-download me-2"></i>Download PDF
       </button>
+      @if (contractPanelRecord!.contractStatus === 'Contract Sent') {
+      <button kendoButton themeColor="warning" fillMode="outline">
+        <i class="fas fa-paper-plane me-2"></i>Send Signature Reminder
+      </button>
+      }
     </div>
-  </div>
-  } @else {
 
-  }
+  </div>
 
 </div>
 }
+
+<!-- Outbox Review Panel -->
+<app-outbox-review-panel
+  category="Contract"
+  [isOpen]="outboxReviewOpen"
+  (closed)="outboxReviewOpen = false">
+</app-outbox-review-panel>

@@ -20,7 +20,16 @@ $text-muted : #a1aab2;
 $card-r : 7px;
 $sidebar-width : 250px;
 
-// ── Typography ────────────────────────────────────────────────────────────────
+// ── Typography scale ─────────────────────────────────────────────────────────
+// Three semantic levels used across every component.
+// $fs-label  : badges, meta, timestamps, column headers, uppercase labels
+// $fs-body   : grid cells, field values, panel body text
+// $fs-heading: panel titles, section headings, dialog titles
+$fs-label   : 11px;
+$fs-body    : 13px;
+$fs-heading : 15px;
+
+// ── Typography family ─────────────────────────────────────────────────────────
 $font : 'Lato',
 system-ui,
 sans-serif;

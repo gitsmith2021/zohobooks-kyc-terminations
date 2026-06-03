@@ -1,0 +1,515 @@
+﻿<!-- ═══════════════════════════════════════════════════════════════════════
+     OUTBOX APPROVALS HUB
+     ══════════════════════════════════════════════════════════════════════ -->
+<div class="ob-shell">
+
+  <!-- Breadcrumb -->
+  <div class="page-breadcrumb text-muted mb-1" style="font-size: 13px; font-weight: 500;">
+    Home / <span class="text-primary">Outbox Approvals</span>
+  </div>
+
+  <!-- ── Toolbar Filters & Search ────────────────────────────────────────────── -->
+  <div class="ob-filters-strip mb-3">
+    <div class="ob-filters-left">
+
+      <!-- Search Input -->
+      <div class="search-box">
+        <i class="fas fa-search search-icon"></i>
+        <input type="text" class="filter-input search-input" placeholder="Search clinic, reference..."
+          [(ngModel)]="searchQuery" (input)="applyFilter()" />
+        @if (searchQuery) {
+        <button class="clear-btn" (click)="searchQuery = ''; applyFilter()">
+          <i class="fas fa-times"></i>
+        </button>
+        }
+      </div>
+
+      <!-- Category dropdown filter -->
+      <select class="filter-select" [(ngModel)]="activeCategoryFilter" (change)="applyFilter()">
+        <option value="All">All Categories</option>
+        <option value="KYC">KYC Submissions</option>
+        <option value="Contract">Contracts</option>
+        <option value="Termination">Terminations</option>
+      </select>
+
+      <!-- Status dropdown filter -->
+      <select class="filter-select" [(ngModel)]="activeStatusFilter" (change)="applyFilter()">
+        <option value="All">All Statuses</option>
+        <option value="Pending Review">Pending Review</option>
+        <option value="Sent">Sent / Dispatched</option>
+        <option value="Rejected">Rejected / Cancelled</option>
+      </select>
+
+    </div>
+
+    <!-- Bulk actions -->
+    <div class="ob-filters-right">
+      <button kendoButton themeColor="base" fillMode="flat" class="density-btn"
+        [class.is-compact]="gridDensity === 'compact'"
+        (click)="toggleDensity()"
+        [title]="gridDensity === 'compact' ? 'Switch to comfortable view' : 'Switch to compact view'">
+        <i [class]="gridDensity === 'compact' ? 'fas fa-expand-alt' : 'fas fa-compress-alt'"></i>
+      </button>
+      @if (selectedKeys.length > 0) {
+      <span class="selection-count-badge animate-fade-in">
+        <strong>{{ selectedKeys.length }}</strong> Selected
+      </span>
+      <button kendoButton themeColor="success" fillMode="solid" class="ob-bulk-btn ob-bulk-btn--approve animate-fade-in"
+        [disabled]="selectedPendingCount === 0" (click)="bulkApproveSelected()">
+        <i class="fas fa-paper-plane me-1"></i> Approve & Send
+      </button>
+      <button kendoButton themeColor="danger" fillMode="outline" class="ob-bulk-btn ob-bulk-btn--reject animate-fade-in"
+        [disabled]="selectedPendingCount === 0" (click)="bulkRejectSelected()">
+        <i class="fas fa-times-circle me-1"></i> Cancel / Reject
+      </button>
+      } @else {
+      <span class="ob-records-count text-muted">{{ filteredItems.length }} records loaded</span>
+      }
+    </div>
+  </div>
+
+  <!-- ── Grid Card ───────────────────────────────────────────────────────────── -->
+  <div class="ob-grid-card">
+    <kendo-grid [data]="gridData" [sort]="gridState.sort!" [sortable]="{ allowUnsort: true, mode: 'single' }"
+      [selectable]="selectableSettings" kendoGridSelectBy="id" [(selectedKeys)]="selectedKeys"
+      (dataStateChange)="onStateChange($event)" [resizable]="true" [navigable]="true" class="ob-grid"
+      [class.k-grid--compact]="gridDensity === 'compact'">
+
+      <!-- Checkbox Column -->
+      <kendo-grid-checkbox-column [width]="48" [showSelectAll]="true" [locked]="true"></kendo-grid-checkbox-column>
+
+      <!-- Category Badges -->
+      <kendo-grid-column field="category" title="Category" [width]="175" [locked]="true">
+        <ng-template kendoGridHeaderTemplate let-column>
+          {{ column.title }} <i class="fas fa-sort ms-1"></i>
+        </ng-template>
+        <ng-template kendoGridCellTemplate let-dataItem>
+          <span class="ob-badge {{ getCategoryClass(dataItem.category) }}">
+            <i class="{{ getCategoryIcon(dataItem.category) }} me-1"></i>
+            @if (dataItem.category === 'KYC') {
+            KYC Submissions
+            } @else if (dataItem.category === 'Contract') {
+            Contracts
+            } @else if (dataItem.category === 'Termination') {
+            Terminations
+            } @else {
+            {{ dataItem.category }}
+            }
+          </span>
+        </ng-template>
+      </kendo-grid-column>
+
+      <!-- Clinic / Company & Contact -->
+      <kendo-grid-column field="companyName" title="Clinic / Contact" [width]="240">
+        <ng-template kendoGridHeaderTemplate let-column>
+          {{ column.title }} <i class="fas fa-sort ms-1"></i>
+        </ng-template>
+        <ng-template kendoGridCellTemplate let-dataItem>
+          <div class="ob-cell-clinic">
+            <div class="ob-clinic-avatar">{{ dataItem.companyName.charAt(0) }}</div>
+            <div>
+              <div class="ob-clinic-name">{{ dataItem.companyName }}</div>
+              <div class="ob-clinic-contact">{{ dataItem.contactName }}</div>
+            </div>
+          </div>
+        </ng-template>
+      </kendo-grid-column>
+
+      <!-- Contact Detail -->
+      <kendo-grid-column field="email" title="Recipient" [width]="210">
+        <ng-template kendoGridHeaderTemplate let-column>
+          {{ column.title }} <i class="fas fa-sort ms-1"></i>
+        </ng-template>
+        <ng-template kendoGridCellTemplate let-dataItem>
+          <span class="ob-cell-email"><i class="far fa-envelope me-1 text-muted"></i>{{ dataItem.email }}</span>
+        </ng-template>
+      </kendo-grid-column>
+
+      <!-- Action Type -->
+      <kendo-grid-column field="actionType" title="Intercepted Action" [width]="160">
+        <ng-template kendoGridHeaderTemplate let-column>
+          {{ column.title }} <i class="fas fa-sort ms-1"></i>
+        </ng-template>
+        <ng-template kendoGridCellTemplate let-dataItem>
+          <span class="ob-action-pill">
+            <i [class]="getActionIcon(dataItem.actionType) + ' me-1'"></i>{{ dataItem.actionType }}
+          </span>
+        </ng-template>
+      </kendo-grid-column>
+
+      <!-- Channel -->
+      <kendo-grid-column field="channel" title="Channel" [width]="130">
+        <ng-template kendoGridHeaderTemplate let-column>
+          {{ column.title }} <i class="fas fa-sort ms-1"></i>
+        </ng-template>
+        <ng-template kendoGridCellTemplate let-dataItem>
+          <span class="ob-channel-badge {{ getChannelClass(dataItem.channel) }}">
+            <i [class]="getChannelIcon(dataItem.channel) + ' me-1'"></i>{{ dataItem.channel }}
+          </span>
+        </ng-template>
+      </kendo-grid-column>
+
+      <!-- Reference -->
+      <kendo-grid-column field="reference" title="Reference ID" [width]="150">
+        <ng-template kendoGridHeaderTemplate let-column>
+          {{ column.title }} <i class="fas fa-sort ms-1"></i>
+        </ng-template>
+        <ng-template kendoGridCellTemplate let-dataItem>
+          <span class="ob-cell-ref">{{ dataItem.reference }}</span>
+        </ng-template>
+      </kendo-grid-column>
+
+      <!-- Date Added -->
+      <kendo-grid-column field="dateAdded" title="Date Added" [width]="130" filter="date">
+        <ng-template kendoGridHeaderTemplate let-column>
+          {{ column.title }} <i class="fas fa-sort ms-1"></i>
+        </ng-template>
+        <ng-template kendoGridCellTemplate let-dataItem>
+          <span class="ob-cell-date">{{ dataItem.dateAdded | date:'dd MMM yyyy' }}</span>
+        </ng-template>
+      </kendo-grid-column>
+
+      <!-- Status -->
+      <kendo-grid-column field="status" title="Status" [width]="150">
+        <ng-template kendoGridHeaderTemplate let-column>
+          {{ column.title }} <i class="fas fa-sort ms-1"></i>
+        </ng-template>
+        <ng-template kendoGridCellTemplate let-dataItem>
+          <span class="ob-status {{ getStatusClass(dataItem.status) }}">
+            <i class="{{ getStatusIcon(dataItem.status) }} me-1"></i>{{ dataItem.status }}
+          </span>
+        </ng-template>
+      </kendo-grid-column>
+
+      <!-- Actions -->
+      <kendo-grid-column title="Action" [width]="150" [filterable]="false" [sortable]="false" [sticky]="true">
+        <ng-template kendoGridHeaderTemplate let-column>{{ column.title }}</ng-template>
+        <ng-template kendoGridCellTemplate let-dataItem>
+          <button kendoButton size="small" themeColor="primary" fillMode="outline" (click)="openReviewPanel(dataItem)">
+            <i class="fas fa-search me-1"></i>Review
+          </button>
+        </ng-template>
+      </kendo-grid-column>
+
+    </kendo-grid>
+  </div>
+
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     OUTBOX DETAIL REVIEW SLIDE PANEL — Wide Split Layout
+     ═══════════════════════════════════════════════════════════════ -->
+<!-- ═══════════════════════════════════════════════════════════════
+     REJECT / CANCEL CONFIRMATION DIALOG
+     ═══════════════════════════════════════════════════════════════ -->
+@if (rejectDialogOpen && itemToReject) {
+<kendo-dialog title="Cancel &amp; Reject Dispatch" [width]="480" (close)="cancelRejectDialog()">
+
+  <div class="rej-dlg-body">
+    <!-- Context strip -->
+    <div class="rej-dlg-context">
+      <div class="rej-dlg-context-row">
+        <span class="rej-dlg-label">Clinic</span>
+        <span class="rej-dlg-val">{{ itemToReject.companyName }}</span>
+      </div>
+      <div class="rej-dlg-context-row">
+        <span class="rej-dlg-label">Reference</span>
+        <span class="rej-dlg-val rej-dlg-ref">{{ itemToReject.reference }}</span>
+      </div>
+      <div class="rej-dlg-context-row">
+        <span class="rej-dlg-label">Action</span>
+        <span class="rej-dlg-val">{{ itemToReject.actionType }} — {{ itemToReject.category }}</span>
+      </div>
+    </div>
+
+    <!-- Alert -->
+    <div class="rej-dlg-alert">
+      <i class="fas fa-exclamation-triangle"></i>
+      <span>This dispatch will be <strong>cancelled and returned</strong> to the originator for correction. Please provide a reason so they can re-submit correctly.</span>
+    </div>
+
+    <!-- Remarks field -->
+    <div class="rej-dlg-field">
+      <label class="rej-dlg-field-label">
+        Rejection Reason / Remarks <span class="rej-dlg-required">*</span>
+      </label>
+      <textarea class="rej-dlg-textarea" rows="4" [(ngModel)]="rejectionRemarks"
+        placeholder="Describe what needs to be corrected before re-submission..."></textarea>
+      @if (!rejectionRemarks.trim()) {
+      <span class="rej-dlg-hint"><i class="fas fa-info-circle me-1"></i>A reason is required to proceed.</span>
+      }
+    </div>
+  </div>
+
+  <kendo-dialog-actions layout="end">
+    <button kendoButton fillMode="outline" (click)="cancelRejectDialog()">
+      <i class="fas fa-arrow-left me-1"></i>Go Back
+    </button>
+    <button kendoButton themeColor="error" fillMode="solid"
+      [disabled]="!rejectionRemarks.trim()"
+      (click)="confirmReject()">
+      <i class="fas fa-ban me-1"></i>Confirm Rejection
+    </button>
+  </kendo-dialog-actions>
+
+</kendo-dialog>
+}
+
+@if (reviewPanelOpen && selectedItem) {
+<div class="slide-panel-overlay" (click)="closeReviewPanel()"></div>
+<div class="slide-panel slide-panel--wide slide-in">
+
+  <!-- Header -->
+  <div class="nkp-header">
+    <div class="nkp-header-left">
+      <div>
+        <h5 class="nkp-title">Outbox Approval Review</h5>
+        <div class="nkp-subtitle">
+          <i class="fas fa-building"></i>{{ selectedItem.companyName }}
+        </div>
+        <div class="nkp-subtitle" style="margin-top:3px;">
+          <i class="fas fa-hashtag"></i>{{ selectedItem.reference }}
+        </div>
+      </div>
+    </div>
+    <div class="nkp-header-right">
+      <span class="ob-channel-badge {{ getChannelClass(selectedItem.channel) }}" style="font-size:12px;">
+        <i [class]="getChannelIcon(selectedItem.channel) + ' me-1'"></i>{{ selectedItem.channel }}
+      </span>
+      <span class="ob-status {{ getStatusClass(selectedItem.status) }}" style="font-size:11px;">
+        <i class="{{ getStatusIcon(selectedItem.status) }} me-1"></i>{{ selectedItem.status }}
+      </span>
+      @if (selectedItem.status === 'Pending Review') {
+      <div style="display:flex;gap:8px;align-items:center;">
+        <button kendoButton themeColor="success" fillMode="solid" size="small"
+          (click)="approveSingle(selectedItem)">
+          <i class="fas fa-paper-plane me-1"></i>Approve &amp; Send
+        </button>
+        <button kendoButton themeColor="danger" fillMode="outline" size="small"
+          (click)="rejectSingle(selectedItem)">
+          <i class="fas fa-ban me-1"></i>Cancel &amp; Reject
+        </button>
+      </div>
+      }
+      @if (filteredItems.length > 1) {
+      <div class="panel-nav">
+        <button class="panel-nav-btn" [disabled]="panelIndex === 0" (click)="navigatePanel(-1)">
+          <i class="fas fa-chevron-left"></i>
+        </button>
+        <span class="panel-nav-count">{{ panelIndex + 1 }} / {{ filteredItems.length }}</span>
+        <button class="panel-nav-btn" [disabled]="panelIndex === filteredItems.length - 1" (click)="navigatePanel(1)">
+          <i class="fas fa-chevron-right"></i>
+        </button>
+      </div>
+      }
+      <button class="nkp-close-btn" (click)="closeReviewPanel()">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- Split Body -->
+  <div class="ob-split-body">
+
+    <!-- ── LEFT PANE: Transaction Details + Decision ──────────────────── -->
+    <div class="ob-split-left nkp-body">
+
+      <!-- Section 1: Transaction Details -->
+      <div class="nkp-section">
+        <div class="nkp-section-hdr">
+          <div class="nkp-section-num">1</div>
+          <div class="nkp-section-title">Transaction Details</div>
+        </div>
+        <div class="ob-detail-grid">
+
+          <div class="krc-field">
+            <div class="krc-label"><i class="fas fa-layer-group me-1"></i>Category</div>
+            <div class="krc-value">
+              <span class="ob-badge {{ getCategoryClass(selectedItem.category) }}">
+                <i class="{{ getCategoryIcon(selectedItem.category) }} me-1"></i>
+                @if (selectedItem.category === 'KYC') { KYC Submissions }
+                @else if (selectedItem.category === 'Contract') { Contracts }
+                @else if (selectedItem.category === 'Termination') { Terminations }
+                @else { {{ selectedItem.category }} }
+              </span>
+            </div>
+          </div>
+
+          <div class="krc-field">
+            <div class="krc-label"><i class="fas fa-paper-plane me-1"></i>Action Type</div>
+            <div class="krc-value">
+              <span class="ob-action-pill">
+                <i [class]="getActionIcon(selectedItem.actionType) + ' me-1'"></i>{{ selectedItem.actionType }}
+              </span>
+            </div>
+          </div>
+
+          <div class="krc-field">
+            <div class="krc-label"><i class="far fa-calendar me-1"></i>Date Intercepted</div>
+            <div class="krc-value">{{ selectedItem.dateAdded | date:'dd MMM yyyy, h:mm a' }}</div>
+          </div>
+
+          <div class="krc-field">
+            <div class="krc-label"><i class="fas fa-user me-1"></i>Contact Person</div>
+            <div class="krc-value">{{ selectedItem.contactName }}</div>
+          </div>
+
+          <div class="krc-field ob-detail-full">
+            <div class="krc-label"><i class="far fa-envelope me-1"></i>Recipient Email</div>
+            <div class="krc-value">{{ selectedItem.email }}</div>
+          </div>
+
+          @if (selectedItem.channel === 'WhatsApp' && selectedItem.phone) {
+          <div class="krc-field ob-detail-full">
+            <div class="krc-label"><i class="fab fa-whatsapp me-1"></i>WhatsApp Number</div>
+            <div class="krc-value">{{ selectedItem.phone }}</div>
+          </div>
+          }
+
+          <div class="krc-field ob-detail-full">
+            <div class="krc-label"><i class="fas fa-clipboard-list me-1"></i>Reference ID</div>
+            <div class="krc-value"><span class="ob-cell-ref">{{ selectedItem.reference }}</span></div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Section 2: Transaction Context -->
+      <div class="nkp-section">
+        <div class="nkp-section-hdr">
+          <div class="nkp-section-num">2</div>
+          <div class="nkp-section-title">Transaction Context</div>
+        </div>
+        <div class="ob-panel-context-box">
+          {{ selectedItem.details || 'No transaction notes logged.' }}
+        </div>
+      </div>
+
+      <!-- Section 3: Decision -->
+      @if (selectedItem.status === 'Pending Review') {
+      <div class="nkp-section nkp-section--last">
+        <div class="nkp-section-hdr">
+          <div class="nkp-section-num">3</div>
+          <div class="nkp-section-title">Reviewer Decision</div>
+        </div>
+
+        <div class="ob-panel-alert-info mb-3">
+          <i class="fas fa-info-circle"></i>
+          <span>This dispatch is held pending your decision. <strong>Approve &amp; Send</strong> will immediately
+            release and deliver to the customer.</span>
+        </div>
+
+        <div class="krc-field">
+          <div class="krc-label">Review Notes <span style="font-weight:400;color:#94a3b8;">(Optional)</span></div>
+          <textarea class="dlg-textarea" rows="3" [(ngModel)]="reviewerNotes"
+            placeholder="Log approval or cancellation notes..."></textarea>
+        </div>
+      </div>
+
+      } @else {
+      <div class="nkp-section nkp-section--last">
+        <div class="ob-panel-finalized" [class.ob-panel-finalized--sent]="selectedItem.status === 'Sent'"
+          [class.ob-panel-finalized--rejected]="selectedItem.status === 'Rejected'">
+          <i class="fas" [ngClass]="selectedItem.status === 'Sent' ? 'fa-check-circle' : 'fa-ban'"></i>
+          <span>This transaction was finalized as <strong>{{ selectedItem.status }}</strong>.</span>
+        </div>
+      </div>
+      }
+
+    </div><!-- /ob-split-left -->
+
+    <!-- ── RIGHT PANE: Message Preview ────────────────────────────────── -->
+    <div class="ob-split-right">
+      <div class="ob-preview-header">
+        <i
+          [class]="getChannelIcon(selectedItem.channel) + ' ob-preview-ch-icon ' + getChannelClass(selectedItem.channel)"></i>
+        <div>
+          <div class="ob-preview-header-title">{{ selectedItem.channel }} Preview</div>
+          <div class="ob-preview-header-sub">Exact message that will be sent to the customer</div>
+        </div>
+      </div>
+
+      <!-- EMAIL PREVIEW -->
+      @if (selectedItem.channel === 'Email') {
+      @let preview = buildMessagePreview(selectedItem);
+      <div class="ob-email-shell">
+        <!-- Email chrome -->
+        <div class="ob-email-chrome">
+          <div class="ob-email-chrome-dots">
+            <span></span><span></span><span></span>
+          </div>
+          <div class="ob-email-chrome-bar">Email Client Preview</div>
+        </div>
+        <!-- Email content -->
+        <div class="ob-email-content">
+          <div class="ob-email-meta">
+            <div class="ob-email-meta-row">
+              <span class="ob-email-meta-label">From:</span>
+              <span class="ob-email-meta-val">contracts&#64;unite.care</span>
+            </div>
+            <div class="ob-email-meta-row">
+              <span class="ob-email-meta-label">To:</span>
+              <span class="ob-email-meta-val">{{ selectedItem.email }}</span>
+            </div>
+            <div class="ob-email-meta-row">
+              <span class="ob-email-meta-label">Subject:</span>
+              <span class="ob-email-meta-val ob-email-subject">{{ preview.subject }}</span>
+            </div>
+          </div>
+          <div class="ob-email-body">
+            <p class="ob-email-salutation">{{ preview.salutation }}</p>
+            <p class="ob-email-text" [innerHTML]="preview.body.replace('\n', '<br>')"></p>
+            @if (preview.closing) {
+            <p class="ob-email-closing">{{ preview.closing }}</p>
+            }
+          </div>
+          <div class="ob-email-footer">
+            <img src="" alt="" style="display:none">
+            Unitecare Software Solutions FZE &nbsp;·&nbsp; Dubai Silicon Oasis &nbsp;·&nbsp;
+            <a href="mailto:contracts@unite.care" style="color:#00b8cd;">contracts&#64;unite.care</a>
+          </div>
+        </div>
+      </div>
+      }
+
+      <!-- WHATSAPP PREVIEW -->
+      @if (selectedItem.channel === 'WhatsApp') {
+      @let preview = buildMessagePreview(selectedItem);
+      <div class="ob-wa-shell">
+        <!-- WA phone chrome -->
+        <div class="ob-wa-topbar">
+          <div class="ob-wa-back"><i class="fas fa-arrow-left"></i></div>
+          <div class="ob-wa-avatar">{{ selectedItem.companyName.charAt(0) }}</div>
+          <div class="ob-wa-contact">
+            <div class="ob-wa-contact-name">{{ selectedItem.contactName }}</div>
+            <div class="ob-wa-contact-sub">{{ selectedItem.phone || selectedItem.email }}</div>
+          </div>
+          <div class="ob-wa-icons">
+            <i class="fas fa-video"></i>
+            <i class="fas fa-phone"></i>
+            <i class="fas fa-ellipsis-v"></i>
+          </div>
+        </div>
+        <div class="ob-wa-chat">
+          <div class="ob-wa-date-chip">Today</div>
+          <div class="ob-wa-bubble ob-wa-bubble--out">
+            <div class="ob-wa-bubble-text" style="white-space:pre-line;">{{ preview.body }}</div>
+            <div class="ob-wa-bubble-meta">
+              {{ selectedItem.dateAdded | date:'h:mm a' }}
+              <i class="fas fa-check-double ob-wa-tick"></i>
+            </div>
+          </div>
+        </div>
+        <div class="ob-wa-inputbar">
+          <i class="far fa-smile"></i>
+          <span class="ob-wa-input-placeholder">Type a message</span>
+          <i class="fas fa-microphone ob-wa-mic"></i>
+        </div>
+      </div>
+      }
+
+    </div><!-- /ob-split-right -->
+
+  </div><!-- /ob-split-body -->
+</div>
+}

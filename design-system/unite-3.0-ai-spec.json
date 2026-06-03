@@ -2,12 +2,12 @@
   "_meta": {
     "name": "Unite EMR 3.0 Design System",
     "version": "3.0.0",
-    "source": "Brand Guidelines v2.1 (2025) \u2014 Unite 3.0 colour scheme. Figma file Unite-UI-Ripul decoded for component specs.",
+    "source": "Brand Guidelines v2.1 (2025) — Unite 3.0 colour scheme. Figma file KYCs - Contracts - Terminations decoded for component specs.",
     "generated": "2026-05-15",
     "description": "Complete design token and component specification for Unite EMR 3.0. Use this file as the authoritative reference when building any UI module, prototype, or HTML component for the Unite platform.",
-    "font": "Lato (Google Fonts) \u2014 ExtraBold/Bold/Regular",
+    "font": "Lato (Google Fonts) — ExtraBold/Bold/Regular",
     "primaryColor": "#00b8cd",
-    "figmaFile": "Unite-UI-Ripul",
+    "figmaFile": "https://www.figma.com/design/xi4zYHXzRJja5qiEfPMc72/KYCs---Contracts---Terminations",
     "pages": [
       "Library",
       "Design"
@@ -16,7 +16,7 @@
     "scssEntry": "styles/design-system/design-system.scss",
     "sourceOfTruth": {
       "colors": "Brand Guidelines v2.1 — COLOUR PALETTE page (Unite 3.0)",
-      "uiStructure": "Figma Unite-UI-Ripul (Unite 2.0) — spacing, radius, components only",
+      "uiStructure": "Figma KYCs - Contracts - Terminations (Unite 2.0/3.0) — spacing, radius, components only",
       "typography": "Lato — TYPOGRAPHY FOR WEB APPLICATIONS (brand guidelines)"
     }
   },

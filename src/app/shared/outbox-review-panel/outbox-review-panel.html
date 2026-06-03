@@ -1,0 +1,197 @@
+@if (isOpen) {
+<div class="orp-overlay" (click)="close()"></div>
+<div class="orp-panel orp-slide-in">
+
+  <!-- ── Header ─────────────────────────────────────────────────── -->
+  <div class="orp-header">
+    <div class="orp-header-left">
+      <div class="orp-header-icon">
+        <i [class]="categoryIcon"></i>
+      </div>
+      <div>
+        <h5 class="orp-title">
+          @if (category === 'KYC') { KYC Submissions Outbox Review }
+          @else if (category === 'Contract') { Contracts Outbox Review }
+          @else { Terminations Outbox Review }
+        </h5>
+        <div class="orp-subtitle">Pending dispatch approvals for {{ category === 'KYC' ? 'KYC Submissions' : category === 'Contract' ? 'Contracts' : 'Terminations' }}</div>
+      </div>
+    </div>
+    <div class="orp-header-right">
+      @if (pendingCount > 0) {
+      <span class="orp-pending-badge">
+        <i class="fas fa-hourglass-half me-1"></i>{{ pendingCount }} Pending
+      </span>
+      }
+      <button class="orp-close-btn" (click)="close()">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- ── Table Body ──────────────────────────────────────────────── -->
+  <div class="orp-body">
+    @if (items.length === 0) {
+    <div class="orp-empty">
+      <i class="fas fa-inbox orp-empty-icon"></i>
+      <div class="orp-empty-title">No outbox items</div>
+      <div class="orp-empty-sub">No {{ category }} dispatches have been queued yet.</div>
+    </div>
+    } @else {
+    <table class="orp-table">
+      <thead>
+        <tr>
+          <th class="orp-col-cb">
+            <input type="checkbox" class="orp-checkbox"
+              [checked]="allPendingSelected"
+              (change)="toggleSelectAll($any($event.target).checked)" />
+          </th>
+          <th>Customer Info</th>
+          <th>Mode</th>
+          <th>Email / Phone</th>
+          <th>{{ dynamicColLabel }}</th>
+          <th>POC</th>
+          <th>Status</th>
+          <th class="orp-col-action">Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (item of items; track item.id) {
+        <tr [class.orp-row-pending]="item.status === 'Pending Review'"
+            [class.orp-row-sent]="item.status === 'Sent'"
+            [class.orp-row-rejected]="item.status === 'Rejected'">
+
+          <!-- Checkbox -->
+          <td class="orp-col-cb">
+            @if (item.status === 'Pending Review') {
+            <input type="checkbox" class="orp-checkbox"
+              [checked]="selectedIds.has(item.id)"
+              (change)="toggleRow(item.id, $any($event.target).checked)" />
+            }
+          </td>
+
+          <!-- Customer Info -->
+          <td>
+            <div class="orp-cell-customer">
+              <div class="orp-avatar">{{ item.companyName.charAt(0) }}</div>
+              <div>
+                <div class="orp-company">{{ item.companyName }}</div>
+                <div class="orp-contact">{{ item.contactName }}</div>
+              </div>
+            </div>
+          </td>
+
+          <!-- Mode of Communication -->
+          <td>
+            <span class="orp-channel {{ getChannelClass(item.channel) }}">
+              <i [class]="getChannelIcon(item.channel) + ' me-1'"></i>{{ item.channel }}
+            </span>
+          </td>
+
+          <!-- Email / Phone -->
+          <td>
+            <span class="orp-contact-info">
+              @if (item.channel === 'WhatsApp' && item.phone) {
+              <i class="fab fa-whatsapp me-1 text-success"></i>{{ item.phone }}
+              } @else {
+              <i class="far fa-envelope me-1 text-muted"></i>{{ item.email }}
+              }
+            </span>
+          </td>
+
+          <!-- Dynamic column: Renewal Due (KYC/Contract) or Remarks (Termination) -->
+          <td>
+            @if (category !== 'Termination') {
+              @if (item.renewalDue) {
+              <span class="orp-date">{{ item.renewalDue | date:'dd MMM yyyy' }}</span>
+              } @else {
+              <span class="orp-na">—</span>
+              }
+            } @else {
+              @if (item.details) {
+              <span class="orp-remarks" [title]="item.details">{{ item.details | slice:0:60 }}{{ (item.details?.length ?? 0) > 60 ? '…' : '' }}</span>
+              } @else {
+              <span class="orp-na">—</span>
+              }
+            }
+          </td>
+
+          <!-- POC -->
+          <td>
+            <span class="orp-poc">{{ item.poc || '—' }}</span>
+          </td>
+
+          <!-- Status -->
+          <td>
+            <span class="orp-status {{ getStatusClass(item.status) }}">
+              <i [class]="getStatusIcon(item.status) + ' me-1'"></i>{{ item.status }}
+            </span>
+          </td>
+
+          <!-- Action -->
+          <td class="orp-col-action">
+            @if (item.status === 'Pending Review') {
+            <div class="orp-action-group">
+              <button kendoButton themeColor="success" fillMode="solid" size="small"
+                (click)="approveSingle(item)">
+                <i class="fas fa-paper-plane me-1"></i>Approve
+              </button>
+              <button kendoButton themeColor="error" fillMode="outline" size="small"
+                (click)="rejectSingle(item)">
+                <i class="fas fa-ban me-1"></i>Reject
+              </button>
+            </div>
+            }
+          </td>
+        </tr>
+        }
+      </tbody>
+    </table>
+    }
+  </div>
+
+  <!-- ── Bulk Footer ─────────────────────────────────────────────── -->
+  @if (selectedIds.size > 0 && selectedPendingCount > 0) {
+  <div class="orp-footer orp-footer--visible">
+    <span class="orp-sel-count">{{ selectedPendingCount }} item(s) selected</span>
+    <button kendoButton themeColor="success" fillMode="solid" size="small" (click)="bulkApprove()">
+      <i class="fas fa-paper-plane me-1"></i>Approve All Selected
+    </button>
+  </div>
+  }
+
+</div>
+}
+
+<!-- ── Reject Remarks Dialog ───────────────────────────────────────── -->
+@if (rejectDialogOpen && itemToReject) {
+<kendo-dialog title="Cancel &amp; Reject Dispatch" [width]="460" (close)="cancelRejectDialog()">
+  <div class="rej-dlg-body">
+    <div class="rej-dlg-context">
+      <div class="rej-dlg-row"><span class="rej-dlg-lbl">Clinic</span><span class="rej-dlg-val">{{ itemToReject.companyName }}</span></div>
+      <div class="rej-dlg-row"><span class="rej-dlg-lbl">Reference</span><span class="rej-dlg-val rej-dlg-ref">{{ itemToReject.reference }}</span></div>
+    </div>
+    <div class="rej-dlg-alert">
+      <i class="fas fa-exclamation-triangle"></i>
+      <span>This dispatch will be <strong>cancelled and returned</strong> for correction. Please provide a reason so it can be re-submitted correctly.</span>
+    </div>
+    <div class="rej-dlg-field">
+      <label class="rej-dlg-label">Rejection Reason <span class="rej-req">*</span></label>
+      <textarea class="rej-dlg-textarea" rows="4" [(ngModel)]="rejectionRemarks"
+        placeholder="Describe what needs to be corrected..."></textarea>
+      @if (!rejectionRemarks.trim()) {
+      <span class="rej-hint"><i class="fas fa-info-circle me-1"></i>A reason is required to proceed.</span>
+      }
+    </div>
+  </div>
+  <kendo-dialog-actions layout="end">
+    <button kendoButton fillMode="outline" (click)="cancelRejectDialog()">
+      <i class="fas fa-arrow-left me-1"></i>Go Back
+    </button>
+    <button kendoButton themeColor="error" fillMode="solid"
+      [disabled]="!rejectionRemarks.trim()" (click)="confirmReject()">
+      <i class="fas fa-ban me-1"></i>Confirm Rejection
+    </button>
+  </kendo-dialog-actions>
+</kendo-dialog>
+}

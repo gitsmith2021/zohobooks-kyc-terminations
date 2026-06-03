@@ -1,203 +1,224 @@
 @if (record) {
 
 <!-- Backdrop -->
-<div class="tp-overlay" (click)="onClose()"></div>
+<div class="slide-panel-overlay" (click)="onClose()"></div>
 
 <!-- Slide Panel -->
-<div class="tp-panel slide-in">
+<div class="slide-panel slide-panel--wide slide-in" style="display:flex;flex-direction:column">
 
-  <!-- ── Header ──────────────────────────────────────────────────────────── -->
-  <div class="tp-header">
-    <div class="tp-header-left">
-      <div class="tp-header-icon">
-        <i class="fas fa-file-contract"></i>
+  <!-- Header -->
+  <div class="nkp-header">
+    <div class="nkp-header-left">
+      <div class="nkp-header-icon tm-panel-icon">
+        <i class="fas fa-gavel"></i>
       </div>
       <div>
-        <h5 class="tp-title">Termination Request — {{ record.companyName }}</h5>
-        <div class="tp-subtitle">
-          {{ record.customerName }}&nbsp;&nbsp;·&nbsp;&nbsp;Sales Person: {{ record.salesPerson }}
+        <h5 class="nkp-title">Termination Review — {{ record.companyName }}</h5>
+        <div class="nkp-subtitle">
+          {{ contractRef }}&nbsp;&nbsp;·&nbsp;&nbsp;Sales Person: {{ record.salesPerson }}
         </div>
       </div>
     </div>
     <div style="display:flex;align-items:center;gap:10px;flex-shrink:0">
-      <span class="tp-status-badge">{{ record.status }}</span>
-      <button class="tp-close-btn" (click)="onClose()"><i class="fas fa-times"></i></button>
+      <span class="tm-status-badge" [ngClass]="getStatusClass(record.status)">
+        <i [class]="getStatusIcon(record.status) + ' tm-badge-icon'"></i>
+        {{ record.status }}
+      </span>
+      <button class="nkp-close-btn" (click)="onClose()"><i class="fas fa-times"></i></button>
     </div>
   </div>
 
-  <!-- ── Scrollable Body ──────────────────────────────────────────────────── -->
-  <div class="tp-body">
+  <!-- Scrollable Body -->
+  <div class="nkp-body">
 
-    <!-- Customer Strip -->
-    <div class="tp-customer-strip">
-      <div class="tp-avatar">{{ record.companyName.charAt(0) }}</div>
-      <div class="tp-customer-info">
-        <div class="tp-customer-name">{{ record.companyName }}</div>
-        <div class="tp-customer-contact">
-          <i class="fas fa-user-md"></i>&nbsp;{{ record.customerName }}
+    <!-- Clinic Strip -->
+    <div class="tm-clinic-strip">
+      <div class="clinic-avatar clinic-avatar-lg">{{ record.companyName.charAt(0) }}</div>
+      <div style="flex:1">
+        <div class="tm-strip-name">{{ record.companyName }}</div>
+        <div class="tm-strip-contact">
+          <i class="fas fa-user-md"></i> {{ record.customerName }}
           &nbsp;·&nbsp;
-          <i class="fas fa-envelope"></i>&nbsp;{{ record.clinicEmail }}
+          <i class="fas fa-map-marker-alt"></i> {{ record.emirate }}
           &nbsp;·&nbsp;
-          <i class="fas fa-phone"></i>&nbsp;{{ record.clinicPhone }}
+          <i class="fas fa-tag"></i> {{ contractRef }}
         </div>
       </div>
-      <div class="tp-manager">
-        <div class="tp-mgr-lbl">Sales Person</div>
-        <div class="tp-mgr-val">{{ record.salesPerson }}</div>
+      <div class="tm-strip-value">
+        <div class="tm-strip-val-lbl">Annual Value</div>
+        <div class="tm-strip-val">{{ annualValue }}</div>
       </div>
-    </div>
-
-    <!-- Alert Banner -->
-    <div class="tp-alert-banner">
-      <i class="fas fa-exclamation-triangle tp-alert-icon"></i>
-      <div>
-        <div class="tp-alert-title">Termination Requested — 30-Day Notice Period Active</div>
-        <div class="tp-alert-sub">
-          Review all details below and take action before the notice period ends.
-        </div>
-      </div>
-    </div>
-
-    <!-- ── Section 01 : Reason for Termination ────────────────────────────── -->
-    <div class="tp-step-card">
-      <div class="tp-section-hdr">
-        <div class="tp-section-num">01</div>
-        <div class="tp-section-title">Reason for Termination</div>
-      </div>
-      <div class="tp-reason-box">
-        <i class="fas fa-quote-left tp-reason-icon"></i>
-        <div class="tp-reason-text">{{ record.terminationReason || 'No reason provided.' }}</div>
-      </div>
-    </div>
-
-    <!-- ── Section 02 : 30-Day Notice Period ──────────────────────────────── -->
-    <div class="tp-step-card">
-      <div class="tp-section-hdr">
-        <div class="tp-section-num">02</div>
-        <div class="tp-section-title">30-Day Notice Period</div>
-      </div>
-      <div class="tp-notice-grid">
-        <div class="tp-notice-stat">
-          <div class="tp-notice-lbl">Request Date</div>
-          <div class="tp-notice-val">{{ record.terminationDate | date:'dd MMM' }}</div>
-          <div class="tp-notice-yr">{{ record.terminationDate | date:'yyyy' }}</div>
-        </div>
-        <div class="tp-notice-stat tp-notice-stat--danger">
-          <div class="tp-notice-lbl">Notice Ends</div>
-          <div class="tp-notice-val tp-val--danger">{{ noticeEndDate | date:'dd MMM' }}</div>
-          <div class="tp-notice-yr">{{ noticeEndDate | date:'yyyy' }}</div>
-        </div>
-        <div class="tp-notice-stat" [class.tp-notice-stat--urgent]="daysUntilNoticeEnd <= 7">
-          <div class="tp-notice-lbl">Days Remaining</div>
-          <div class="tp-notice-val" [class.tp-val--danger]="daysUntilNoticeEnd <= 7">
-            {{ daysUntilNoticeEnd }}
-          </div>
-          <div class="tp-notice-yr">calendar days</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ── Section 03 : Pending Handover Items ───────────────────────────── -->
-    <div class="tp-step-card">
-      <div class="tp-section-hdr">
-        <div class="tp-section-num">03</div>
-        <div class="tp-section-title">Pending Handover Items</div>
-      </div>
-      <ul class="tp-checklist">
-        <li>
-          <i class="far fa-circle tp-check-icon tp-check-icon--pending"></i>
-          <span>Outstanding clinic invoices cleared</span>
-          <span class="tp-check-badge tp-check-badge--pending">Pending</span>
-        </li>
-        <li>
-          <i class="far fa-circle tp-check-icon tp-check-icon--pending"></i>
-          <span>Patient data handover &amp; deletion request submitted</span>
-          <span class="tp-check-badge tp-check-badge--pending">Pending</span>
-        </li>
-        <li>
-          <i class="fas fa-check-circle tp-check-icon tp-check-icon--done"></i>
-          <span>Health Authority deregistration scheduled</span>
-          <span class="tp-check-badge tp-check-badge--done">Scheduled</span>
-        </li>
-        <li>
-          <i class="far fa-circle tp-check-icon tp-check-icon--pending"></i>
-          <span>Final medical license audit completed</span>
-          <span class="tp-check-badge tp-check-badge--pending">Pending</span>
-        </li>
-      </ul>
-    </div>
-
-    <!-- ── Call-Off Form (inline, revealed when showCallOffForm = true) ───── -->
-    @if (showCallOffForm) {
-    <div class="tp-section tp-calloff-section">
-      <div class="tp-section-hdr">
-        <div class="tp-section-num"><i class="fas fa-undo"></i></div>
-        <div class="tp-section-title">Call-Off Termination — Mandatory Remark</div>
-      </div>
-
-      <div class="tp-warning-banner">
-        <i class="fas fa-exclamation-triangle tp-warn-icon"></i>
-        <div>
-          <div class="tp-warn-title">This will cancel the active termination workflow</div>
-          <div class="tp-warn-sub">
-            The customer's contract status will be restored to <strong>Contract Signed</strong>.
-            This action is logged in the audit trail and cannot be undone without re-raising a
-            termination request.
-          </div>
-        </div>
-      </div>
-
-      <label class="tp-field-label">
-        Reason for Calling Off <span class="tp-req">*</span>
-      </label>
-      <textarea
-        class="tp-textarea"
-        [class.tp-textarea--error]="callOffRemarkError"
-        rows="4"
-        [(ngModel)]="callOffRemark"
-        (input)="callOffRemarkError = false"
-        placeholder="Provide a mandatory explanation — e.g. customer resolved outstanding issues, management decision to retain the account...">
-      </textarea>
-      @if (callOffRemarkError) {
-      <div class="tp-field-error">
-        <i class="fas fa-exclamation-circle"></i>
-        A remark is mandatory before calling off a termination.
+      @if (pendingClearanceValue) {
+      <div class="tm-strip-value tm-strip-value--clearance">
+        <div class="tm-strip-val-lbl">Pending Clearance</div>
+        <div class="tm-strip-val">{{ pendingClearanceValue }}</div>
       </div>
       }
-      <div class="tp-field-hint">This remark is stored permanently in the Audit Log.</div>
+    </div>
+
+    <!-- Lifecycle Stepper -->
+    <div class="tm-lifecycle">
+      @for (step of ['Termination Requested','Under Review','Notice Period','Terminated']; track step; let last = $last) {
+      <div class="tm-lc-step" [class.done]="isStepDone(step)" [class.active]="isStepActive(step)">
+        <div class="tm-lc-dot"></div>
+        <div class="tm-lc-label">{{ step }}</div>
+      </div>
+      @if (!last) { <div class="tm-lc-line"></div> }
+      }
+    </div>
+
+    <!-- Notice Period Stats -->
+    <div class="tm-notice-grid">
+      <div class="tm-notice-stat">
+        <div class="tm-notice-lbl">Requested On</div>
+        <div class="tm-notice-val">{{ record.terminationDate | date:'dd MMM yyyy' }}</div>
+      </div>
+      <div class="tm-notice-stat tm-notice-stat--warn">
+        <div class="tm-notice-lbl">Notice Ends</div>
+        <div class="tm-notice-val">{{ noticeEndDate | date:'dd MMM yyyy' }}</div>
+      </div>
+      <div class="tm-notice-stat" [class.tm-notice-stat--urgent]="daysUntilNoticeEnd <= 7">
+        <div class="tm-notice-lbl">Days Remaining</div>
+        <div class="tm-notice-val" [class.text-danger]="daysUntilNoticeEnd <= 7">{{ daysUntilNoticeEnd }}</div>
+      </div>
+      <div class="tm-notice-stat">
+        <div class="tm-notice-lbl">Sales Person</div>
+        <div class="tm-notice-val">{{ record.salesPerson }}</div>
+      </div>
+    </div>
+
+    <div class="tm-details-split">
+      <div class="tm-details-col">
+        <!-- Reason -->
+        <div class="tm-section-title"><i class="fas fa-comment-alt"></i> Reason for Termination</div>
+        <div class="tm-reason-box">{{ record.terminationReason || 'No reason provided.' }}</div>
+
+        <!-- Call-Off Remark (if called off) -->
+        @if (record.status === 'Call-Off' && record.callOffRemark) {
+        <div class="tm-section-title" style="margin-top:14px"><i class="fas fa-undo"></i> Call-Off Remark</div>
+        <div class="tm-calloff-box">{{ record.callOffRemark }}</div>
+        }
+      </div>
+
+      <div class="tm-details-col">
+        <!-- Handover Checklist -->
+        <div class="tm-section-title"><i class="fas fa-tasks"></i> Handover Checklist</div>
+        <div class="tm-checklist">
+          <div class="tm-check-row">
+            <i class="fas fa-times-circle tm-check-icon tm-check-icon--pending"></i>
+            <span>Outstanding invoices cleared</span>
+            <span class="tm-check-badge tm-check-badge--pending">Pending</span>
+          </div>
+          <div class="tm-check-row">
+            <i class="fas fa-times-circle tm-check-icon tm-check-icon--pending"></i>
+            <span>Patient data handover &amp; deletion request submitted</span>
+            <span class="tm-check-badge tm-check-badge--pending">Pending</span>
+          </div>
+          <div class="tm-check-row">
+            <i class="fas fa-check-circle tm-check-icon tm-check-icon--done"></i>
+            <span>Health Authority deregistration scheduled</span>
+            <span class="tm-check-badge tm-check-badge--done">Scheduled</span>
+          </div>
+          <div class="tm-check-row">
+            <i class="fas fa-times-circle tm-check-icon tm-check-icon--pending"></i>
+            <span>Final medical license audit completed</span>
+            <span class="tm-check-badge tm-check-badge--pending">Pending</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Negotiation Remarks -->
+    <div class="tm-section-title" style="margin-top:14px">
+      <i class="fas fa-handshake"></i> Negotiation Remarks
+      <button class="tm-history-btn" [class.active]="negotiationHistoryOpen"
+        (click)="negotiationHistoryOpen = !negotiationHistoryOpen" title="View negotiation activity log">
+        <i class="fas fa-history"></i>
+      </button>
+    </div>
+    @if (record.negotiationRemarks) {
+    <div class="tm-reason-box tm-reason-box--negotiation">{{ record.negotiationRemarks }}</div>
+    }
+    <textarea class="tm-textarea" rows="3" [(ngModel)]="negotiationRemarks"
+      placeholder="Add negotiation notes, terms discussed, or conditions agreed upon..."></textarea>
+
+    <!-- Call-Off Form -->
+    @if (showCallOffForm) {
+    <div class="tm-calloff-form">
+      <div class="tm-calloff-warning">
+        <i class="fas fa-exclamation-triangle" style="color: #c49000; font-size: 18px; margin-top: 2px;"></i>
+        <div>
+          <div style="font-weight:600;margin-bottom:3px;color:#3e5569;">This will cancel the active termination workflow</div>
+          <div style="font-size:12px;color:#6c757d">The contract status will be restored to <strong>Contract Signed</strong>. This action is permanently logged.</div>
+        </div>
+      </div>
+      <div class="tm-section-title"><i class="fas fa-pen"></i> Reason for Calling Off <span style="color:#f97316">*</span></div>
+      <textarea class="tm-textarea" [class.tm-textarea--error]="callOffRemarkError" rows="3" [(ngModel)]="callOffRemark"
+        (input)="callOffRemarkError = false"
+        placeholder="Provide a mandatory explanation — e.g. customer resolved outstanding issues, management decision to retain the account..."></textarea>
+      @if (callOffRemarkError) {
+      <div class="tm-field-error"><i class="fas fa-exclamation-circle"></i> A remark is mandatory before calling off a termination.</div>
+      }
     </div>
     }
 
   </div>
   <!-- /Body -->
 
-  <!-- ── Footer ──────────────────────────────────────────────────────────── -->
-  <div class="tp-footer">
-    @if (!showCallOffForm) {
-    <button kendoButton themeColor="base" fillMode="outline" (click)="onClose()">
-      <i class="fas fa-times me-1"></i> Close
-    </button>
-    <div style="margin-left:auto;display:flex;gap:8px">
-      <button kendoButton themeColor="primary" fillMode="outline" (click)="showCallOffForm = true">
-        <i class="fas fa-undo me-2"></i> Call-Off Termination
-      </button>
-      <button kendoButton themeColor="error" fillMode="solid"
-        [disabled]="record.status === 'Termination Approved'" (click)="onApprove()">
-        <i class="fas fa-check me-2"></i> Approve Termination
-      </button>
+  <!-- ══ Negotiation Activity Log Popover ══════════════════════════════════ -->
+  @if (negotiationHistoryOpen) {
+  <div class="nm-popover-backdrop" (click)="negotiationHistoryOpen = false"></div>
+  <div class="nm-popover">
+    <div class="nm-popover-hdr">
+      <span class="nm-popover-title"><i class="fas fa-history me-2"></i>Negotiation Activity Log</span>
+      <button class="nkp-close-btn" (click)="negotiationHistoryOpen = false"><i class="fas fa-times"></i></button>
     </div>
+    <div class="nm-popover-body">
+      @if (record.negotiationHistory?.length) {
+      <div class="nm-timeline">
+        @for (entry of record.negotiationHistory; track $index) {
+        <div class="nm-tl-entry nm-tl-entry--{{ entry.role }}">
+          <div class="nm-tl-rail"><div class="nm-tl-dot"></div></div>
+          <div class="nm-tl-card">
+            <div class="nm-tl-card-meta">
+              <span class="nm-tl-by">{{ entry.by }}</span>
+              <span class="nm-tl-date"><i class="fas fa-clock"></i> {{ entry.date | date:'dd MMM yyyy, HH:mm' }}</span>
+            </div>
+            <div class="nm-tl-msg">{{ entry.message }}</div>
+          </div>
+        </div>
+        }
+      </div>
+      } @else {
+      <div class="nm-empty">
+        <i class="fas fa-inbox" style="font-size:22px;margin-bottom:8px;display:block;color:#d1d5db"></i>
+        No negotiation activity recorded yet.
+      </div>
+      }
+    </div>
+  </div>
+  }
+
+  <!-- Footer Actions -->
+  <div class="nkp-footer">
+    @if (!showCallOffForm) {
+    <button kendoButton themeColor="warning" fillMode="outline" (click)="showCallOffForm = true">
+      <i class="fas fa-undo me-1"></i>Call-Off Termination
+    </button>
+    <button kendoButton themeColor="error" fillMode="solid"
+      [disabled]="record.status === 'Termination Approved'" (click)="onApprove()">
+      <i class="fas fa-check me-1"></i>Approve Termination
+    </button>
     } @else {
     <button kendoButton themeColor="base" fillMode="outline" (click)="showCallOffForm = false">
-      <i class="fas fa-arrow-left me-1"></i> Back
+      <i class="fas fa-arrow-left me-1"></i>Back
     </button>
-    <button kendoButton themeColor="primary" fillMode="solid"
-      style="margin-left:auto" (click)="onConfirmCallOff()">
-      <i class="fas fa-undo me-2"></i> Confirm Call-Off
+    <button kendoButton themeColor="primary" fillMode="solid" (click)="onConfirmCallOff()">
+      <i class="fas fa-undo me-1"></i>Confirm Call-Off
     </button>
     }
   </div>
 
 </div>
-<!-- /Slide Panel -->
 
 }

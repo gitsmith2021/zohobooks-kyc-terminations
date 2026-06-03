@@ -1,0 +1,324 @@
+<!-- ═══════════════════════════════════════════════════════════════
+     AUDIT LOGS PAGE
+     ═══════════════════════════════════════════════════════════════ -->
+<div class="al-shell">
+
+  <!-- Breadcrumb -->
+  <div class="page-breadcrumb text-muted" style="font-size: 13px; font-weight: 500;">
+    Home / <span class="text-primary">Audit Logs</span>
+  </div>
+
+  <!-- ── Filters ─────────────────────────────────────────────────────────────── -->
+  <div class="al-page-filters">
+    <div class="al-filter-fields">
+
+      <!-- Search -->
+      <div class="search-box">
+        <i class="fas fa-search search-icon"></i>
+        <input type="text" class="filter-input search-input" placeholder="Search users, actions, modules..."
+          [(ngModel)]="searchQuery" (input)="applyFilter()" />
+        @if (searchQuery) {
+          <button class="clear-btn" (click)="searchQuery = ''; applyFilter()">
+            <i class="fas fa-times"></i>
+          </button>
+        }
+      </div>
+
+      <!-- Date quick buttons -->
+      <div class="date-btn-group">
+        <button type="button" class="date-btn" [class.active]="selectedDateFilter === 'today'"
+          (click)="toggleDateFilter('today')">Today</button>
+        <button type="button" class="date-btn" [class.active]="selectedDateFilter === 'yesterday'"
+          (click)="toggleDateFilter('yesterday')">Yesterday</button>
+        <button type="button" class="date-btn" [class.active]="selectedDateFilter === 'last7'"
+          (click)="toggleDateFilter('last7')">Last 7 Days</button>
+        <button type="button" class="date-btn" [class.active]="selectedDateFilter === 'last30'"
+          (click)="toggleDateFilter('last30')">Last 30 Days</button>
+      </div>
+
+      <!-- Date Range -->
+      <div class="filter-group date-range-group">
+        <kendo-daterange class="kendo-filter-daterange">
+          <i class="fa-regular fa-calendar date-range-icon"></i>
+          <kendo-dateinput kendoDateRangeStartInput [(value)]="dateRangeFilter.start"
+            (valueChange)="applyFilter()" placeholder="dd/mm/yyyy" format="dd/MM/yyyy">
+          </kendo-dateinput>
+          <span class="date-sep">–</span>
+          <kendo-daterange-popup></kendo-daterange-popup>
+          <kendo-dateinput kendoDateRangeEndInput [(value)]="dateRangeFilter.end"
+            (valueChange)="applyFilter()" placeholder="dd/mm/yyyy" format="dd/MM/yyyy">
+          </kendo-dateinput>
+        </kendo-daterange>
+      </div>
+
+      <!-- User dropdown -->
+      <select class="filter-select" [(ngModel)]="selectedUser" (change)="applyFilter()">
+        <option value="">All Users</option>
+        @for (u of users; track u) {
+          <option [value]="u">{{ u }}</option>
+        }
+      </select>
+
+      <!-- Module dropdown -->
+      <select class="filter-select" [(ngModel)]="selectedModule" (change)="applyFilter()">
+        <option value="">All Modules</option>
+        @for (m of modules; track m) {
+          <option [value]="m">{{ m }}</option>
+        }
+      </select>
+
+      <!-- Clear -->
+      @if (isFilterApplied) {
+        <button class="clear-filter-btn animate-fade-in" (click)="clearAllFilters()" title="Clear All Filters">
+          <i class="fas fa-times"></i>
+        </button>
+      }
+    </div>
+
+    <!-- Right: count + export -->
+    <div class="al-filter-actions">
+      <span class="al-results-count">{{ filteredLogs.length }} records</span>
+      <button kendoButton themeColor="primary" fillMode="outline" class="grid-icon-btn" title="Export logs">
+        <i class="fas fa-download"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- ── KPI Strip ────────────────────────────────────────────────────────────── -->
+  <div class="al-kpi-strip">
+
+    <button type="button" class="al-kpi-metric al-kpi--total"
+      [class.active]="activeKpiFilter === 'all'" (click)="setKpiFilter('all')">
+      <span class="al-kpi-label"><i class="fas fa-clipboard-list"></i>All Events</span>
+      <strong>{{ totalCount }}</strong>
+    </button>
+
+    <button type="button" class="al-kpi-metric al-kpi--nav"
+      [class.active]="activeKpiFilter === 'navigation'" (click)="setKpiFilter('navigation')">
+      <span class="al-kpi-label"><i class="fas fa-compass"></i>Navigations</span>
+      <strong>{{ navigationCount }}</strong>
+    </button>
+
+    <button type="button" class="al-kpi-metric al-kpi--changes"
+      [class.active]="activeKpiFilter === 'changes'" (click)="setKpiFilter('changes')">
+      <span class="al-kpi-label"><i class="fas fa-pen"></i>Data Changes</span>
+      <strong>{{ dataChangesCount }}</strong>
+    </button>
+
+    <button type="button" class="al-kpi-metric al-kpi--uploads"
+      [class.active]="activeKpiFilter === 'uploads'" (click)="setKpiFilter('uploads')">
+      <span class="al-kpi-label"><i class="fas fa-cloud-upload-alt"></i>Sent / Uploads</span>
+      <strong>{{ fileUploadsCount }}</strong>
+    </button>
+
+    <button type="button" class="al-kpi-metric al-kpi--errors"
+      [class.active]="activeKpiFilter === 'errors'" (click)="setKpiFilter('errors')">
+      <span class="al-kpi-label"><i class="fas fa-exclamation-circle"></i>Errors</span>
+      <strong>{{ errorsCount }}</strong>
+    </button>
+
+  </div>
+
+  <!-- ── Timeline Card ─────────────────────────────────────────────────────────── -->
+  <div class="al-timeline-card">
+
+    @if (dateGroups.length === 0) {
+      <div class="al-empty-state">
+        <i class="fas fa-clipboard-list al-empty-icon"></i>
+        <div class="al-empty-title">No audit logs found</div>
+        <div class="al-empty-sub">Try adjusting your filters to see more results.</div>
+      </div>
+    } @else {
+
+      @for (group of dateGroups; track group.date) {
+
+        <!-- Date group header -->
+        <div class="al-date-hdr">
+          <div class="al-date-hdr-line"></div>
+          <div class="al-date-hdr-text">
+            <i class="fas fa-calendar-day"></i>
+            {{ group.label }}
+            <span class="al-date-count">{{ group.count }}</span>
+          </div>
+          <div class="al-date-hdr-line"></div>
+        </div>
+
+        <!-- Log rows -->
+        @for (log of group.logs; track log.id) {
+          <div class="al-log-row" (click)="openDetail(log)">
+
+            <!-- Time -->
+            <div class="al-log-time">{{ formatTime(log.timestamp) }}</div>
+
+            <!-- Dot -->
+            <div class="al-dot" [ngClass]="getActionConfig(log.actionType).cls"></div>
+
+            <!-- Icon chip -->
+            <div class="al-log-icon" [ngClass]="getActionConfig(log.actionType).cls">
+              <i [class]="getActionConfig(log.actionType).icon"></i>
+            </div>
+
+            <!-- Path + user -->
+            <div class="al-log-main">
+              <div class="al-log-path">{{ log.path }}</div>
+              <div class="al-log-user-row">
+                <span class="al-avatar">{{ log.userInitials }}</span>
+                <span class="al-user-name">{{ log.user }}</span>
+                <span class="al-sep">·</span>
+                <span class="al-user-clinic">{{ log.clinic }}</span>
+              </div>
+            </div>
+
+            <!-- Action badge -->
+            <div class="al-badge-col">
+              <span class="al-badge" [ngClass]="getActionConfig(log.actionType).cls">{{ log.action }}</span>
+            </div>
+
+            <!-- Device + IP -->
+            <div class="al-device-col">
+              <div class="al-device-row">
+                <i [class]="getBrowserIcon(log.browser)"></i>
+                <span>{{ log.browser }}</span>
+                <span class="al-sep">·</span>
+                <i [class]="getDeviceIcon(log.device)"></i>
+                <span>{{ log.device }} | {{ log.os }}</span>
+              </div>
+              <div class="al-ip-row">
+                <i class="fas fa-globe"></i>
+                <span>{{ log.ipAddress }}</span>
+              </div>
+            </div>
+
+            <!-- Expand arrow -->
+            <div class="al-arrow"><i class="fas fa-chevron-right"></i></div>
+
+          </div>
+        }
+
+      }
+    }
+  </div>
+
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     DETAIL SLIDE PANEL
+     ═══════════════════════════════════════════════════════════════ -->
+@if (detailPanelOpen && selectedLog) {
+  <div class="al-overlay" (click)="closeDetail()"></div>
+  <div class="al-detail-panel al-panel-slide-in">
+
+    <!-- Header -->
+    <div class="nkp-header">
+      <div class="nkp-header-left">
+        <div class="al-dp-icon" [ngClass]="getActionConfig(selectedLog.actionType).cls">
+          <i [class]="getActionConfig(selectedLog.actionType).icon"></i>
+        </div>
+        <div>
+          <div class="nkp-title">{{ selectedLog.action }}</div>
+          <div class="nkp-subtitle">
+            <i class="fas fa-layer-group"></i>{{ selectedLog.module }}
+            <span class="sep">·</span>
+            <i class="fas fa-clock"></i>{{ selectedLog.timestamp | date:'dd MMM yyyy, h:mm a' }}
+          </div>
+        </div>
+      </div>
+      <button class="nkp-close-btn" (click)="closeDetail()">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+
+    <!-- Body -->
+    <div class="nkp-body">
+
+      <!-- User & Module -->
+      <div class="al-dp-section">
+        <div class="al-dp-section-title">Event Overview</div>
+
+        <div class="al-dp-row">
+          <div class="al-dp-label"><i class="fas fa-user"></i>User</div>
+          <div class="al-dp-val">
+            <span class="al-avatar al-avatar--md">{{ selectedLog.userInitials }}</span>
+            <span>{{ selectedLog.user }}</span>
+            <span class="al-clinic-tag">{{ selectedLog.clinic }}</span>
+          </div>
+        </div>
+
+        <div class="al-dp-row">
+          <div class="al-dp-label"><i class="fas fa-sitemap"></i>Path</div>
+          <div class="al-dp-val al-dp-val--path">{{ selectedLog.path }}</div>
+        </div>
+
+        <div class="al-dp-row">
+          <div class="al-dp-label"><i class="fas fa-tag"></i>Action</div>
+          <div class="al-dp-val">
+            <span class="al-badge" [ngClass]="getActionConfig(selectedLog.actionType).cls">
+              {{ selectedLog.action }}
+            </span>
+          </div>
+        </div>
+
+        <div class="al-dp-row">
+          <div class="al-dp-label"><i class="fas fa-clock"></i>Timestamp</div>
+          <div class="al-dp-val">{{ selectedLog.timestamp | date:'EEEE, dd MMMM yyyy — h:mm a' }}</div>
+        </div>
+      </div>
+
+      <!-- Details -->
+      <div class="al-dp-section">
+        <div class="al-dp-section-title">Event Details</div>
+        <div class="al-dp-details-box">{{ selectedLog.details }}</div>
+      </div>
+
+      <!-- Technical Info -->
+      <div class="al-dp-section">
+        <div class="al-dp-section-title">Technical Information</div>
+
+        <div class="al-dp-row">
+          <div class="al-dp-label"><i class="fas fa-globe-asia"></i>Browser</div>
+          <div class="al-dp-val">
+            <i [class]="getBrowserIcon(selectedLog.browser) + ' me-1'"></i>{{ selectedLog.browser }}
+          </div>
+        </div>
+
+        <div class="al-dp-row">
+          <div class="al-dp-label"><i class="fas fa-desktop"></i>Device</div>
+          <div class="al-dp-val">
+            <i [class]="getDeviceIcon(selectedLog.device) + ' me-1'"></i>
+            {{ selectedLog.device }} | {{ selectedLog.os }}
+          </div>
+        </div>
+
+        <div class="al-dp-row">
+          <div class="al-dp-label"><i class="fas fa-network-wired"></i>IP Address</div>
+          <div class="al-dp-val"><span class="al-mono">{{ selectedLog.ipAddress }}</span></div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Footer -->
+    <div class="nkp-footer">
+      <button kendoButton themeColor="primary" fillMode="outline">
+        <i class="fas fa-flag me-1"></i>Flag for Review
+      </button>
+    </div>
+
+  </div>
+}
+
+<!-- ── 60-day retention toast ────────────────────────────────────────────── -->
+@if (toastVisible) {
+  <div class="al-toast" [class.al-toast--hiding]="toastHiding">
+    <div class="al-toast-progress"></div>
+    <div class="al-toast-body">
+      <div class="al-toast-icon"><i class="fas fa-info-circle"></i></div>
+      <div class="al-toast-text">
+        Only the last <strong>60 days</strong> of activity logs will be available.
+      </div>
+      <button class="al-toast-close" (click)="dismissToast()">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+  </div>
+}

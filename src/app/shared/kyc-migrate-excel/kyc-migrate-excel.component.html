@@ -1,0 +1,417 @@
+<!-- ═══════════════════════════════════════════════════════════════
+     KYC IMPORT FROM EXCEL — Full-Viewport Slide Panel
+     ═══════════════════════════════════════════════════════════════ -->
+<div class="mgx-panel" [class.mgx-panel--open]="open">
+
+  <!-- ── Header ─────────────────────────────────────────────────────────────── -->
+  <header class="mgx-hdr">
+    <div class="mgx-hdr-left">
+      <i class="fas fa-file-excel mgx-hdr-excel-icon"></i>
+      <div class="mgx-hdr-text">
+        <span class="mgx-hdr-title">Import from Excel</span>
+        <span class="mgx-hdr-sub">Import KYC records from an existing spreadsheet</span>
+      </div>
+    </div>
+    <button class="mgx-close-btn" (click)="onClose()" title="Close">
+      <i class="fas fa-times"></i>
+    </button>
+  </header>
+
+  <!-- ── Upload Strip ────────────────────────────────────────────────────────── -->
+  <div class="mgx-upload-strip">
+
+    <label
+      class="mgx-drop-zone"
+      [class.mgx-drop-zone--has-file]="!!selectedFile"
+      [class.mgx-drop-zone--drag-over]="isDragOver"
+      (dragover)="onDragOver($event)"
+      (dragleave)="onDragLeave()"
+      (drop)="onFileDrop($event)">
+
+      @if (selectedFile) {
+        <i class="fas fa-file-excel mgx-dz-icon mgx-dz-icon--ready"></i>
+        <div class="mgx-dz-file-info">
+          <span class="mgx-dz-filename">{{ selectedFile.name }}</span>
+          <span class="mgx-dz-filesize">{{ (selectedFile.size / 1024).toFixed(1) }} KB — click to change</span>
+        </div>
+      } @else {
+        <i class="fas fa-cloud-upload-alt mgx-dz-icon"></i>
+        <div class="mgx-dz-prompt-wrap">
+          <span class="mgx-dz-prompt">Drag &amp; drop your Excel file here, or <span class="mgx-dz-browse">browse</span></span>
+          <span class="mgx-dz-types">Supports .xlsx, .xls, .csv</span>
+        </div>
+      }
+
+      <input type="file" accept=".xlsx,.xls,.csv" (change)="onFileSelect($event)" hidden />
+    </label>
+
+    <div class="mgx-upload-actions">
+      @if (!isProcessing) {
+        <button kendoButton themeColor="primary" fillMode="solid"
+                [disabled]="!selectedFile"
+                (click)="processData()"
+                class="mgx-process-btn">
+          <i class="fas fa-cogs me-1"></i>Process Data
+        </button>
+      } @else {
+        <button kendoButton themeColor="primary" fillMode="solid" [disabled]="true" class="mgx-process-btn">
+          <i class="fas fa-spinner fa-spin me-1"></i>Processing…
+        </button>
+      }
+    </div>
+  </div>
+
+  <!-- ── Grid / Empty State ──────────────────────────────────────────────────── -->
+  <div class="mgx-body">
+
+    @if (!hasProcessed && !isProcessing) {
+      <div class="mgx-empty-state">
+        <div class="mgx-empty-art">
+          <i class="fas fa-table mgx-empty-art-icon"></i>
+          <div class="mgx-empty-art-dots"><span></span><span></span><span></span></div>
+        </div>
+        <p class="mgx-empty-title">No data loaded yet</p>
+        <p class="mgx-empty-sub">Upload an Excel or CSV file containing your KYC records and click <strong>Process Data</strong> to populate the grid below.</p>
+        <div class="mgx-empty-hint">
+          <i class="fas fa-lightbulb me-1"></i>
+          Tip: Ensure your spreadsheet columns match the KYC form fields — the grid allows you to review and correct each cell before importing.
+        </div>
+      </div>
+    }
+
+    @if (isProcessing) {
+      <div class="mgx-empty-state">
+        <i class="fas fa-spinner fa-spin mgx-processing-icon"></i>
+        <p class="mgx-empty-title">Parsing file…</p>
+        <p class="mgx-empty-sub">Reading <strong>{{ selectedFile?.name }}</strong> and extracting KYC record data</p>
+      </div>
+    }
+
+    @if (hasProcessed) {
+      <kendo-grid
+        [data]="gridData"
+        [resizable]="true"
+        class="mgx-grid"
+        style="height: 100%">
+
+        <!-- Row # (sticky) -->
+        <kendo-grid-column title="#" [width]="46" [sticky]="true" [resizable]="false" [sortable]="false">
+          <ng-template kendoGridCellTemplate let-rowIndex="rowIndex">
+            <span class="mgx-row-num">{{ rowIndex + 1 }}</span>
+          </ng-template>
+        </kendo-grid-column>
+
+        <!-- ── Basic Information ─────────────────────────────────────────────── -->
+        <kendo-grid-column-group title="Basic Information">
+
+          <kendo-grid-column field="clinicName" title="Clinic / Legal Name" [width]="190" [sortable]="false">
+            <ng-template kendoGridCellTemplate let-dataItem>
+              <input class="mgx-cell-input mgx-cell-input--required"
+                     [class.mgx-cell-invalid]="isFieldInvalid(dataItem.clinicName, 'clinicName')"
+                     [(ngModel)]="dataItem.clinicName"
+                     placeholder="Legal entity name" />
+            </ng-template>
+          </kendo-grid-column>
+
+          <kendo-grid-column field="contactName" title="Contact Name" [width]="160" [sortable]="false">
+            <ng-template kendoGridCellTemplate let-dataItem>
+              <input class="mgx-cell-input mgx-cell-input--required"
+                     [class.mgx-cell-invalid]="isFieldInvalid(dataItem.contactName, 'contactName')"
+                     [(ngModel)]="dataItem.contactName"
+                     placeholder="Primary contact" />
+            </ng-template>
+          </kendo-grid-column>
+
+          <kendo-grid-column field="email" title="Email" [width]="195" [sortable]="false">
+            <ng-template kendoGridCellTemplate let-dataItem>
+              <input class="mgx-cell-input mgx-cell-input--required"
+                     [class.mgx-cell-invalid]="isFieldInvalid(dataItem.email, 'email')"
+                     type="email"
+                     [(ngModel)]="dataItem.email"
+                     placeholder="clinic@email.ae" />
+            </ng-template>
+          </kendo-grid-column>
+
+          <kendo-grid-column field="mobile" title="Mobile" [width]="145" [sortable]="false">
+            <ng-template kendoGridCellTemplate let-dataItem>
+              <input class="mgx-cell-input mgx-cell-input--required"
+                     [class.mgx-cell-invalid]="isFieldInvalid(dataItem.mobile, 'mobile')"
+                     [(ngModel)]="dataItem.mobile"
+                     placeholder="+971 4 xxx xxxx" />
+            </ng-template>
+          </kendo-grid-column>
+
+        </kendo-grid-column-group>
+
+        <!-- ── Registered Details ───────────────────────────────────────────── -->
+        <kendo-grid-column-group title="Registered Details">
+
+          <kendo-grid-column field="registeredAddress" title="Registered Address" [width]="230" [sortable]="false">
+            <ng-template kendoGridCellTemplate let-dataItem>
+              <input class="mgx-cell-input mgx-cell-input--required"
+                     [class.mgx-cell-invalid]="isFieldInvalid(dataItem.registeredAddress, 'registeredAddress')"
+                     [(ngModel)]="dataItem.registeredAddress"
+                     placeholder="As per trade license" />
+            </ng-template>
+          </kendo-grid-column>
+
+          <kendo-grid-column field="vatTrnNumber" title="VAT TRN" [width]="155" [sortable]="false">
+            <ng-template kendoGridCellTemplate let-dataItem>
+              <input class="mgx-cell-input"
+                     [class.mgx-cell-invalid]="isFieldInvalid(dataItem.vatTrnNumber, 'vatTrnNumber')"
+                     [(ngModel)]="dataItem.vatTrnNumber"
+                     placeholder="15-digit TRN" />
+            </ng-template>
+          </kendo-grid-column>
+
+        </kendo-grid-column-group>
+
+        <!-- ── Trade License ────────────────────────────────────────────────── -->
+        <kendo-grid-column-group title="Trade License">
+
+          <kendo-grid-column field="tradeLicenseNumber" title="TL Number" [width]="155" [sortable]="false">
+            <ng-template kendoGridCellTemplate let-dataItem>
+              <input class="mgx-cell-input mgx-cell-input--required"
+                     [class.mgx-cell-invalid]="isFieldInvalid(dataItem.tradeLicenseNumber, 'tradeLicenseNumber')"
+                     [(ngModel)]="dataItem.tradeLicenseNumber"
+                     placeholder="TL-XXXX-XXXXXX" />
+            </ng-template>
+          </kendo-grid-column>
+
+          <kendo-grid-column field="tradeLicenseAuthority" title="Issuing Authority" [width]="175" [sortable]="false">
+            <ng-template kendoGridCellTemplate let-dataItem>
+              <input class="mgx-cell-input mgx-cell-input--required"
+                     [class.mgx-cell-invalid]="isFieldInvalid(dataItem.tradeLicenseAuthority, 'tradeLicenseAuthority')"
+                     [(ngModel)]="dataItem.tradeLicenseAuthority"
+                     placeholder="e.g. Dubai Economy" />
+            </ng-template>
+          </kendo-grid-column>
+
+          <kendo-grid-column field="tradeLicenseSigningAuth" title="Signing Authority" [width]="165" [sortable]="false">
+            <ng-template kendoGridCellTemplate let-dataItem>
+              <input class="mgx-cell-input mgx-cell-input--required"
+                     [class.mgx-cell-invalid]="isFieldInvalid(dataItem.tradeLicenseSigningAuth, 'tradeLicenseSigningAuth')"
+                     [(ngModel)]="dataItem.tradeLicenseSigningAuth"
+                     placeholder="Authority name" />
+            </ng-template>
+          </kendo-grid-column>
+
+          <kendo-grid-column field="tradeLicenseIssueDate" title="Issue Date" [width]="128" [sortable]="false">
+            <ng-template kendoGridCellTemplate let-dataItem>
+              <input class="mgx-cell-input mgx-cell-input--required"
+                     [class.mgx-cell-invalid]="isFieldInvalid(dataItem.tradeLicenseIssueDate, 'tradeLicenseIssueDate')"
+                     [(ngModel)]="dataItem.tradeLicenseIssueDate"
+                     placeholder="dd/mm/yyyy" />
+            </ng-template>
+          </kendo-grid-column>
+
+          <kendo-grid-column field="tradeLicenseExpiry" title="Expiry Date" [width]="128" [sortable]="false">
+            <ng-template kendoGridCellTemplate let-dataItem>
+              <input class="mgx-cell-input mgx-cell-input--required"
+                     [class.mgx-cell-invalid]="isFieldInvalid(dataItem.tradeLicenseExpiry, 'tradeLicenseExpiry')"
+                     [(ngModel)]="dataItem.tradeLicenseExpiry"
+                     placeholder="dd/mm/yyyy" />
+            </ng-template>
+          </kendo-grid-column>
+
+        </kendo-grid-column-group>
+
+        <!-- ── Authorized Signatory ─────────────────────────────────────────── -->
+        <kendo-grid-column-group title="Authorized Signatory">
+
+          <kendo-grid-column field="signatoryDesignation" title="Designation" [width]="155" [sortable]="false">
+            <ng-template kendoGridCellTemplate let-dataItem>
+              <input class="mgx-cell-input mgx-cell-input--required"
+                     [class.mgx-cell-invalid]="isFieldInvalid(dataItem.signatoryDesignation, 'signatoryDesignation')"
+                     [(ngModel)]="dataItem.signatoryDesignation"
+                     placeholder="e.g. Managing Director" />
+            </ng-template>
+          </kendo-grid-column>
+
+          <kendo-grid-column field="signatoryEmail" title="Email" [width]="190" [sortable]="false">
+            <ng-template kendoGridCellTemplate let-dataItem>
+              <input class="mgx-cell-input mgx-cell-input--required"
+                     [class.mgx-cell-invalid]="isFieldInvalid(dataItem.signatoryEmail, 'signatoryEmail')"
+                     [(ngModel)]="dataItem.signatoryEmail"
+                     placeholder="signatory@clinic.ae" />
+            </ng-template>
+          </kendo-grid-column>
+
+          <kendo-grid-column field="signatoryPhone" title="Phone" [width]="140" [sortable]="false">
+            <ng-template kendoGridCellTemplate let-dataItem>
+              <input class="mgx-cell-input mgx-cell-input--required"
+                     [class.mgx-cell-invalid]="isFieldInvalid(dataItem.signatoryPhone, 'signatoryPhone')"
+                     [(ngModel)]="dataItem.signatoryPhone"
+                     placeholder="+971 4 xxx xxxx" />
+            </ng-template>
+          </kendo-grid-column>
+
+        </kendo-grid-column-group>
+
+        <!-- ── Implementation POC ───────────────────────────────────────────── -->
+        <kendo-grid-column-group title="Implementation POC">
+
+          <kendo-grid-column field="implementationName" title="Name" [width]="150" [sortable]="false">
+            <ng-template kendoGridCellTemplate let-dataItem>
+              <input class="mgx-cell-input mgx-cell-input--required"
+                     [class.mgx-cell-invalid]="isFieldInvalid(dataItem.implementationName, 'implementationName')"
+                     [(ngModel)]="dataItem.implementationName"
+                     placeholder="POC full name" />
+            </ng-template>
+          </kendo-grid-column>
+
+          <kendo-grid-column field="implementationEmail" title="Email" [width]="185" [sortable]="false">
+            <ng-template kendoGridCellTemplate let-dataItem>
+              <input class="mgx-cell-input mgx-cell-input--required"
+                     [class.mgx-cell-invalid]="isFieldInvalid(dataItem.implementationEmail, 'implementationEmail')"
+                     [(ngModel)]="dataItem.implementationEmail"
+                     placeholder="impl@clinic.ae" />
+            </ng-template>
+          </kendo-grid-column>
+
+          <kendo-grid-column field="implementationPhone" title="Phone" [width]="140" [sortable]="false">
+            <ng-template kendoGridCellTemplate let-dataItem>
+              <input class="mgx-cell-input mgx-cell-input--required"
+                     [class.mgx-cell-invalid]="isFieldInvalid(dataItem.implementationPhone, 'implementationPhone')"
+                     [(ngModel)]="dataItem.implementationPhone"
+                     placeholder="+971 4 xxx xxxx" />
+            </ng-template>
+          </kendo-grid-column>
+
+        </kendo-grid-column-group>
+
+        <!-- ── Operations POC ───────────────────────────────────────────────── -->
+        <kendo-grid-column-group title="Operations POC">
+
+          <kendo-grid-column field="operationsName" title="Name" [width]="150" [sortable]="false">
+            <ng-template kendoGridCellTemplate let-dataItem>
+              <input class="mgx-cell-input mgx-cell-input--required"
+                     [class.mgx-cell-invalid]="isFieldInvalid(dataItem.operationsName, 'operationsName')"
+                     [(ngModel)]="dataItem.operationsName"
+                     placeholder="POC full name" />
+            </ng-template>
+          </kendo-grid-column>
+
+          <kendo-grid-column field="operationsEmail" title="Email" [width]="185" [sortable]="false">
+            <ng-template kendoGridCellTemplate let-dataItem>
+              <input class="mgx-cell-input mgx-cell-input--required"
+                     [class.mgx-cell-invalid]="isFieldInvalid(dataItem.operationsEmail, 'operationsEmail')"
+                     [(ngModel)]="dataItem.operationsEmail"
+                     placeholder="ops@clinic.ae" />
+            </ng-template>
+          </kendo-grid-column>
+
+          <kendo-grid-column field="operationsPhone" title="Phone" [width]="140" [sortable]="false">
+            <ng-template kendoGridCellTemplate let-dataItem>
+              <input class="mgx-cell-input mgx-cell-input--required"
+                     [class.mgx-cell-invalid]="isFieldInvalid(dataItem.operationsPhone, 'operationsPhone')"
+                     [(ngModel)]="dataItem.operationsPhone"
+                     placeholder="+971 4 xxx xxxx" />
+            </ng-template>
+          </kendo-grid-column>
+
+        </kendo-grid-column-group>
+
+        <!-- ── Accounts POC ─────────────────────────────────────────────────── -->
+        <kendo-grid-column-group title="Accounts POC">
+
+          <kendo-grid-column field="accountsName" title="Name" [width]="150" [sortable]="false">
+            <ng-template kendoGridCellTemplate let-dataItem>
+              <input class="mgx-cell-input mgx-cell-input--required"
+                     [class.mgx-cell-invalid]="isFieldInvalid(dataItem.accountsName, 'accountsName')"
+                     [(ngModel)]="dataItem.accountsName"
+                     placeholder="POC full name" />
+            </ng-template>
+          </kendo-grid-column>
+
+          <kendo-grid-column field="accountsEmail" title="Email" [width]="185" [sortable]="false">
+            <ng-template kendoGridCellTemplate let-dataItem>
+              <input class="mgx-cell-input mgx-cell-input--required"
+                     [class.mgx-cell-invalid]="isFieldInvalid(dataItem.accountsEmail, 'accountsEmail')"
+                     [(ngModel)]="dataItem.accountsEmail"
+                     placeholder="accounts@clinic.ae" />
+            </ng-template>
+          </kendo-grid-column>
+
+          <kendo-grid-column field="accountsPhone" title="Phone" [width]="140" [sortable]="false">
+            <ng-template kendoGridCellTemplate let-dataItem>
+              <input class="mgx-cell-input mgx-cell-input--required"
+                     [class.mgx-cell-invalid]="isFieldInvalid(dataItem.accountsPhone, 'accountsPhone')"
+                     [(ngModel)]="dataItem.accountsPhone"
+                     placeholder="+971 4 xxx xxxx" />
+            </ng-template>
+          </kendo-grid-column>
+
+        </kendo-grid-column-group>
+
+        <!-- ── Compliance POC ────────────────────────────────────────────────── -->
+        <kendo-grid-column-group title="Compliance POC">
+
+          <kendo-grid-column field="complianceName" title="Name" [width]="150" [sortable]="false">
+            <ng-template kendoGridCellTemplate let-dataItem>
+              <input class="mgx-cell-input mgx-cell-input--required"
+                     [class.mgx-cell-invalid]="isFieldInvalid(dataItem.complianceName, 'complianceName')"
+                     [(ngModel)]="dataItem.complianceName"
+                     placeholder="POC full name" />
+            </ng-template>
+          </kendo-grid-column>
+
+          <kendo-grid-column field="complianceEmail" title="Email" [width]="185" [sortable]="false">
+            <ng-template kendoGridCellTemplate let-dataItem>
+              <input class="mgx-cell-input mgx-cell-input--required"
+                     [class.mgx-cell-invalid]="isFieldInvalid(dataItem.complianceEmail, 'complianceEmail')"
+                     [(ngModel)]="dataItem.complianceEmail"
+                     placeholder="compliance@clinic.ae" />
+            </ng-template>
+          </kendo-grid-column>
+
+          <kendo-grid-column field="compliancePhone" title="Phone" [width]="140" [sortable]="false">
+            <ng-template kendoGridCellTemplate let-dataItem>
+              <input class="mgx-cell-input mgx-cell-input--required"
+                     [class.mgx-cell-invalid]="isFieldInvalid(dataItem.compliancePhone, 'compliancePhone')"
+                     [(ngModel)]="dataItem.compliancePhone"
+                     placeholder="+971 4 xxx xxxx" />
+            </ng-template>
+          </kendo-grid-column>
+
+        </kendo-grid-column-group>
+
+        <!-- Delete row (sticky right) -->
+        <kendo-grid-column title="" [width]="50" [sticky]="true" [resizable]="false" [sortable]="false">
+          <ng-template kendoGridCellTemplate let-dataItem>
+            <button class="mgx-delete-btn" (click)="removeRow(dataItem.rowId)" title="Remove row">
+              <i class="fas fa-trash-alt"></i>
+            </button>
+          </ng-template>
+        </kendo-grid-column>
+
+      </kendo-grid>
+    }
+  </div>
+
+  <!-- ── Footer ─────────────────────────────────────────────────────────────── -->
+  <footer class="mgx-footer">
+    <div class="mgx-footer-info">
+      @if (hasProcessed) {
+        <i class="fas fa-table me-1" style="color: #a0aec0"></i>
+        <span>{{ processedRows.length }} record{{ processedRows.length !== 1 ? 's' : '' }} loaded</span>
+        <span class="mgx-footer-req-note">— Fields marked with a dot are required</span>
+      }
+    </div>
+    <div class="mgx-footer-actions">
+      @if (hasProcessed) {
+        <button kendoButton themeColor="base" fillMode="outline" (click)="addRow()">
+          <i class="fas fa-plus me-1"></i>Add Row
+        </button>
+      }
+      <button kendoButton themeColor="base" fillMode="flat" (click)="onClose()">Cancel</button>
+      <button kendoButton themeColor="primary" fillMode="solid"
+              [disabled]="processedRows.length === 0"
+              (click)="importData()">
+        <i class="fas fa-file-import me-1"></i>
+        Import {{ processedRows.length > 0 ? processedRows.length + ' Record' + (processedRows.length !== 1 ? 's' : '') : 'Records' }}
+      </button>
+    </div>
+  </footer>
+
+</div>

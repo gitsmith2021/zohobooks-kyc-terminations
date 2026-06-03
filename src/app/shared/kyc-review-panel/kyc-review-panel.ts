@@ -2,28 +2,87 @@ import { Component, EventEmitter, Input, Output, OnInit, OnChanges } from '@angu
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ButtonModule } from '@progress/kendo-angular-buttons';
+import { PopupModule } from '@progress/kendo-angular-popup';
 
 @Component({
   selector: 'app-kyc-review-panel',
   standalone: true,
-  imports: [CommonModule, FormsModule, ButtonModule],
+  imports: [CommonModule, FormsModule, ButtonModule, PopupModule],
   templateUrl: './kyc-review-panel.html',
   styleUrl: './kyc-review-panel.scss',
 })
 export class KycReviewPanelComponent implements OnInit, OnChanges {
   @Input() record: any; // accepts KycRecord or CustomerRecord
   @Input() documents: any[] = [];
-  
+  @Input() currentIndex = 0;
+  @Input() totalCount = 0;
+
   @Output() close = new EventEmitter<void>();
   @Output() approve = new EventEmitter<{notes: string}>();
   @Output() reject = new EventEmitter<{notes: string, reason: string}>();
   @Output() requestCorrection = new EventEmitter<{notes: string, fieldErrors?: any}>();
   @Output() resendKyc = new EventEmitter<void>(); // specific to dashboard expired KYC
+  @Output() navigate = new EventEmitter<-1 | 1>();
 
   reviewerNotes = '';
   rejectionReason = '';
   showRejectForm = false;
   previewDoc: any = null;
+
+  activeHistoryField: string | null = null;
+  historyPopupAnchor: HTMLElement | null = null;
+
+  openHistoryPopover(field: string, anchor: HTMLElement): void {
+    this.activeHistoryField = field;
+    this.historyPopupAnchor = anchor;
+  }
+
+  closeHistoryPopover(): void {
+    this.activeHistoryField = null;
+    this.historyPopupAnchor = null;
+  }
+
+  getFieldLabel(field: string): string {
+    const labels: Record<string, string> = {
+      companyName: 'Legal Clinic Name',
+      registeredAddress: 'Registered Address',
+      vatTrnNumber: 'VAT Number (TRN)',
+      tradeLicenseNumber: 'Trade License Number',
+      tradeLicenseAuthority: 'Trade License Issuing Authority',
+      tradeLicenseExpiry: 'Trade License Expiry Date',
+      tradeLicenseIssueDate: 'Trade License Issue Date',
+      signingAuthority: 'Signing Authority',
+
+      // POCs
+      contactName: 'Authorized Signatory - Name',
+      signatoryDesignation: 'Authorized Signatory - Designation',
+      signatoryEmail: 'Authorized Signatory - Email',
+      signatoryPhone: 'Authorized Signatory - Phone',
+      signatoryRemarks: 'Authorized Signatory - Remarks',
+
+      implementationName: 'Implementation POC - Name',
+      implementationEmail: 'Implementation POC - Email',
+      implementationPhone: 'Implementation POC - Phone',
+
+      operationsName: 'Operations POC - Name',
+      operationsEmail: 'Operations POC - Email',
+      operationsPhone: 'Operations POC - Phone',
+
+      accountsName: 'Accounts POC - Name',
+      accountsEmail: 'Accounts POC - Email',
+      accountsPhone: 'Accounts POC - Phone',
+
+      complianceName: 'Compliance POC - Name',
+      complianceEmail: 'Compliance POC - Email',
+      compliancePhone: 'Compliance POC - Phone',
+
+      // Documents
+      fileDhaLicense: 'DHA License',
+      fileTradeLicense: 'Trade License',
+      fileVatCertificate: 'VAT Certificate'
+    };
+    return labels[field] || field;
+  }
 
   fieldCorrections: Record<string, { invalid: boolean; comment: string }> = {};
 
@@ -69,8 +128,12 @@ export class KycReviewPanelComponent implements OnInit, OnChanges {
     return this.record?.clinicPhone || this.record?.mobile || '';
   }
 
+  getFilledByName(): string {
+    return this.record?.kycFilledBy || this.record?.contactName || '';
+  }
+
   getSignatoryMobile(): string {
-    return this.record?.signatoryMobile || this.record?.mobile || '';
+    return this.record?.signatoryPhone || this.record?.signatoryMobile || this.record?.mobile || '';
   }
 
   getDocuments(): any[] {

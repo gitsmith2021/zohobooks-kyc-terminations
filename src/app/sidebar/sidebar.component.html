@@ -13,7 +13,8 @@
   <nav class="sidebar-nav">
     @for (item of navItems; track item.id) {
     <div class="sidebar-link" [class.active]="activeNav === item.id" (click)="setNav(item.id)" role="button"
-      [attr.title]="sidebarCollapsed ? item.label : null">
+      (mouseenter)="openTooltip($event.currentTarget, item.label)"
+      (mouseleave)="closeTooltip()">
       <i [class]="item.icon + ' nav-icon'"></i>
       <span class="nav-label">{{ item.label }}</span>
       @if (item.id === 'kyc' && kycUnderReviewCount > 0) {
@@ -21,6 +22,9 @@
       }
       @if (item.id === 'terminations' && terminationCount > 0) {
       <span class="nav-badge badge-danger-pill">{{ terminationCount }}</span>
+      }
+      @if (item.id === 'outboxApprovals' && outboxPendingCount > 0) {
+      <span class="nav-badge badge-primary-pill">{{ outboxPendingCount }}</span>
       }
     </div>
     }
@@ -37,3 +41,7 @@
   </div>
 
 </aside>
+
+<ng-template #navTooltip>
+  <div class="sidebar-nav-tooltip">{{ tooltipLabel }}</div>
+</ng-template>

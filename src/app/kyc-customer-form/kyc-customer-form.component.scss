@@ -1,0 +1,364 @@
+@use '../../styles/variables' as *;
+
+:host {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.customer-form-shell {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  padding: 16px 20px;
+  background: $body-bg;
+  font-family: $font;
+  color: $text;
+}
+
+.page-breadcrumb {
+  font-size: 13px;
+  font-weight: 500;
+  flex-shrink: 0;
+}
+
+.customer-form-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 4px 0 18px;
+}
+
+.fb-preview-screen {
+  background: #f7fafc;
+  border: 1px solid $border;
+  border-radius: 8px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+  max-width: 980px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.fb-preview-header {
+  background: #fff;
+  padding: 10px 14px;
+  border-bottom: 1px solid #e2e8f0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.fb-logo-placeholder {
+  font-size: 11px;
+  font-weight: 700;
+  color: #2d3748;
+  display: flex;
+  align-items: center;
+}
+
+.fb-preview-badge {
+  font-size: 9.5px;
+  font-weight: 700;
+  color: #fff;
+  background: #4a5568;
+  padding: 2px 6px;
+  border-radius: 99px;
+}
+
+.fb-preview-body {
+  padding: 16px;
+  background: #fff;
+}
+
+.customer-form-title-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 16px;
+
+  h5 {
+    font-size: 15px;
+    font-weight: 700;
+    color: #2d3748;
+    margin: 0 0 4px;
+  }
+
+  p {
+    font-size: 11px;
+    color: #718096;
+    margin: 0;
+  }
+}
+
+.customer-submit-state {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  align-self: flex-start;
+  border-radius: 999px;
+  background: rgba(25, 135, 84, 0.1);
+  color: $success;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 9px;
+}
+
+.fb-preview-form {
+  display: flex;
+  flex-direction: column;
+  gap: 26px;
+}
+
+.fb-preview-section-title {
+  margin: 0 0 9px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid #e2e8f0;
+  font-size: 12px;
+  font-weight: 700;
+  color: #2d3748;
+}
+
+.fb-preview-section-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px 14px;
+}
+
+.fb-preview-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+
+  &--wide {
+    grid-column: 1 / -1;
+  }
+}
+
+.fb-preview-lbl {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: #4a5568;
+}
+
+.text-danger {
+  color: #dc2626;
+}
+
+.fb-preview-input,
+.fb-preview-select {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid #cbd5e0;
+  border-radius: 5px;
+  font-size: 12px;
+  background: #f7fafc;
+  color: #4a5568;
+  outline: none;
+  min-height: 34px;
+  box-sizing: border-box;
+
+  &::placeholder {
+    color: #a0aec0;
+  }
+
+  &:focus {
+    border-color: $accent;
+    box-shadow: 0 0 0 3px rgba(0, 184, 205, 0.12);
+    background: #fff;
+  }
+}
+
+textarea.fb-preview-input {
+  resize: vertical;
+}
+
+.fb-preview-file-upload {
+  border: 2px dashed #cbd5e0;
+  border-radius: 6px;
+  padding: 14px;
+  text-align: center;
+  background: #f7fafc;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  min-height: 88px;
+  transition: border-color 0.18s, background 0.18s;
+
+  input {
+    display: none;
+  }
+
+  i {
+    font-size: 18px;
+    color: #718096;
+    margin-bottom: 4px;
+  }
+
+  span {
+    font-size: 11.5px;
+    font-weight: 600;
+    color: #4a5568;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  small {
+    font-size: 10px;
+    color: #a0aec0;
+  }
+
+  &:hover,
+  &--filled {
+    border-color: $accent;
+    background: rgba(0, 184, 205, 0.05);
+  }
+
+  &--filled i {
+    color: $success;
+  }
+}
+
+.fb-preview-table-wrap {
+  overflow-x: auto;
+  border-radius: 7px;
+  border: 1px solid #e2e8f0;
+  margin-top: 4px;
+}
+
+.fb-preview-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 11px;
+  table-layout: auto;
+}
+
+.fb-pt-th {
+  padding: 6px 9px;
+  font-size: 10px;
+  font-weight: 700;
+  text-align: left;
+  color: #4a5568;
+  background: #edf2f7;
+  border-bottom: 1px solid #e2e8f0;
+  white-space: nowrap;
+
+  &--role {
+    min-width: 150px;
+  }
+}
+
+.fb-pt-td {
+  padding: 6px 8px;
+  border-bottom: 1px solid #edf2f7;
+  vertical-align: top;
+
+  &--role {
+    font-weight: 700;
+    color: #2d3748;
+    background: #fafbfc;
+    white-space: nowrap;
+  }
+}
+
+.fb-pt-cell-input {
+  width: 100%;
+  min-width: 118px;
+  border: 1px solid #cbd5e0;
+  border-radius: 4px;
+  padding: 6px 7px;
+  background: #fff;
+  font-size: 11px;
+  color: #4a5568;
+  outline: none;
+  box-sizing: border-box;
+
+  &:focus {
+    border-color: $accent;
+    box-shadow: 0 0 0 2px rgba(0, 184, 205, 0.1);
+  }
+}
+
+.fb-pt-remark-note {
+  display: block;
+  min-width: 220px;
+  font-size: 10.5px;
+  line-height: 1.35;
+  color: #718096;
+}
+
+.fb-tl-subgroup {
+  background: #f8f9fa;
+  border: 1px solid #e2e8f0;
+  border-left: 3px solid #cbd5e0;
+  border-radius: 6px;
+  padding: 12px 14px;
+}
+
+.fb-tl-subgroup-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px 14px;
+}
+
+.customer-form-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 12px 16px;
+  background: #fafbfc;
+  border-top: 1px solid #e2e8f0;
+}
+
+.customer-primary-btn,
+.customer-secondary-btn {
+  height: 34px;
+  border-radius: 6px;
+  padding: 0 14px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.customer-primary-btn {
+  border: 1px solid $accent;
+  background: $accent;
+  color: #fff;
+
+  &:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+}
+
+.customer-secondary-btn {
+  border: 1px solid #cbd5e0;
+  background: #fff;
+  color: #4a5568;
+}
+
+@media (max-width: 760px) {
+  .customer-form-shell {
+    padding: 12px;
+  }
+
+  .fb-preview-section-grid,
+  .fb-tl-subgroup-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .customer-form-title-row {
+    flex-direction: column;
+  }
+}

@@ -11,10 +11,12 @@
   <!-- Page Filters -->
   <div class="kyc-page-filters">
     <div class="kyc-page-filter-fields">
+
+      <!-- Search Box -->
       <div class="search-box">
         <i class="fas fa-search search-icon"></i>
-        <input type="text" class="filter-input search-input" placeholder="Search by Clinic or Sales Person"
-          [(ngModel)]="searchQuery" (input)="applyPageFilters()" />
+        <input type="text" class="filter-input search-input" placeholder="Search Here" [(ngModel)]="searchQuery"
+          (input)="applyPageFilters()" />
         @if (searchQuery) {
         <button class="clear-btn" (click)="searchQuery = ''; applyPageFilters()">
           <i class="fas fa-times"></i>
@@ -22,121 +24,171 @@
         }
       </div>
 
-      <div class="dropdown-filters">
-        <div class="filter-group date-filter-group">
-          <span class="filter-label">Filter by</span>
-          <kendo-multiselect [data]="dateFilterOptions" [(value)]="selectedDateFilters"
-            (valueChange)="applyPageFilters()" placeholder="All Dates / Months" [checkboxes]="true" [autoClose]="false"
-            class="kendo-filter-multiselect" [popupSettings]="{ popupClass: 'small-font-popup' }">
-          </kendo-multiselect>
-        </div>
-
-        <div class="filter-group date-range-group">
-          <kendo-daterange class="kendo-filter-daterange">
-            <kendo-dateinput kendoDateRangeStartInput [(value)]="dateRangeFilter.start"
-              (valueChange)="applyPageFilters()" placeholder="dd/mm/yyyy" format="dd/MM/yyyy"></kendo-dateinput>
-            <span class="date-sep">-</span>
-            <kendo-daterange-popup></kendo-daterange-popup>
-            <kendo-dateinput kendoDateRangeEndInput [(value)]="dateRangeFilter.end" (valueChange)="applyPageFilters()"
-              placeholder="dd/mm/yyyy" format="dd/MM/yyyy"></kendo-dateinput>
-          </kendo-daterange>
-        </div>
-
-        <div class="filter-group status-filter-group">
-          <span class="filter-label">Status</span>
-          <kendo-multiselect [data]="availableStatuses" [(value)]="selectedStatuses" (valueChange)="applyPageFilters()"
-            placeholder="All Statuses" [checkboxes]="true" [autoClose]="false" class="kendo-filter-multiselect"
-            [popupSettings]="{ popupClass: 'small-font-popup' }">
-          </kendo-multiselect>
-        </div>
+      <!-- Date Button Group -->
+      <div class="date-btn-group">
+        <button type="button" class="date-btn" [class.active]="selectedDateFilters.includes('MTD')"
+          (click)="toggleDateFilter('MTD')">MTD</button>
+        <button type="button" class="date-btn" [class.active]="selectedDateFilters.includes('Last Month')"
+          (click)="toggleDateFilter('Last Month')">Last Month</button>
+        <button type="button" class="date-btn" [class.active]="selectedDateFilters.includes('Last Quarter')"
+          (click)="toggleDateFilter('Last Quarter')">Last Quarter</button>
+        <button type="button" class="date-btn" [class.active]="selectedDateFilters.includes('Last 6 Months')"
+          (click)="toggleDateFilter('Last 6 Months')">Last 6 Months</button>
+        <button type="button" class="date-btn" [class.active]="selectedDateFilters.includes('YTD')"
+          (click)="toggleDateFilter('YTD')">YTD</button>
+        <button type="button" class="date-btn" [class.active]="selectedDateFilters.includes('As of Date')"
+          (click)="toggleDateFilter('As of Date')">As of Date</button>
       </div>
 
+      <!-- Date Range picker -->
+      <div class="filter-group date-range-group">
+        <kendo-daterange class="kendo-filter-daterange">
+          <i class="fa-regular fa-calendar date-range-icon"></i>
+          <kendo-dateinput kendoDateRangeStartInput [(value)]="dateRangeFilter.start" (valueChange)="applyPageFilters()"
+            placeholder="dd/mm/yyyy" format="dd/MM/yyyy"></kendo-dateinput>
+          <span class="date-sep">-</span>
+          <kendo-daterange-popup></kendo-daterange-popup>
+          <kendo-dateinput kendoDateRangeEndInput [(value)]="dateRangeFilter.end" (valueChange)="applyPageFilters()"
+            placeholder="dd/mm/yyyy" format="dd/MM/yyyy"></kendo-dateinput>
+        </kendo-daterange>
+      </div>
+
+
+      <!-- Clear filter button -->
       @if (isFilterApplied) {
-      <i class="fas fa-times clear-icon" (click)="clearAllFilters()" title="Clear All Filters"></i>
+      <button class="clear-filter-btn animate-fade-in" (click)="clearAllFilters()" title="Clear All Filters">
+        <i class="fas fa-times"></i>
+      </button>
       }
     </div>
 
     <div class="kyc-page-filter-actions">
-      @if (selectedSendableCount > 0) {
-      <span class="expired-sel-label">{{ selectedSendableCount }} selected</span>
-      }
-      <button kendoButton themeColor="primary" fillMode="outline" [disabled]="selectedSendableCount === 0"
-        (click)="bulkSendRenewal()" title="Send KYC to selected">
-        <i class="fas fa-paper-plane me-1"></i>Send KYC
+      <button kendoButton themeColor="base" fillMode="flat" class="density-btn"
+        [class.is-compact]="gridDensity === 'compact'"
+        (click)="toggleDensity()"
+        [title]="gridDensity === 'compact' ? 'Switch to comfortable view' : 'Switch to compact view'">
+        <i [class]="gridDensity === 'compact' ? 'fas fa-expand-alt' : 'fas fa-compress-alt'"></i>
       </button>
-      <button kendoButton themeColor="primary" fillMode="solid" (click)="openBuilderSlide()">
-        <i class="fas fa-tools me-1"></i>Form Builder
+      <button kendoButton themeColor="base" fillMode="outline" class="action-btn outline"
+        (click)="outboxReviewOpen = true">
+        <i class="fas fa-paper-plane me-1"></i>Outbox Review
+      </button>
+      <button kendoButton themeColor="primary" fillMode="outline" (click)="migrateSlideOpen = true"
+        class="action-btn outline" title="Import from Excel">
+        <i class="fas fa-file-excel"></i>
+      </button>
+      <button kendoButton themeColor="primary" fillMode="outline" (click)="builderSlideOpen = true"
+        class="action-btn outline" title="Form Builder">
+        <i class="fas fa-tools"></i>
+      </button>
+
+      <!-- ── Primary CTA: Send KYC ─────────────────────────────────────────── -->
+      <div class="send-kyc-separator"></div>
+      <button kendoButton themeColor="primary" fillMode="solid"
+        class="action-btn solid send-kyc-btn"
+        [disabled]="selectedKeys.length === 0"
+        (click)="bulkSendKyc()"
+        [title]="selectedKeys.length === 0 ? 'Select records from the grid to send' : 'Queue ' + selectedKeys.length + ' record(s) to Outbox for approval'">
+        <i class="fas fa-paper-plane me-1"></i>Send KYC
+        @if (selectedKeys.length > 0) {
+        <span class="send-kyc-count">{{ selectedKeys.length }}</span>
+        }
       </button>
     </div>
   </div>
 
-  <div class="kyc-queue-container slide-in-bottom">
-    <!-- ── Metric Summary Bar ──────────────────────────────────────────── -->
-    <div class="kyc-metrics">
+  <div class="kyc-queue-container">
 
-      <div class="kyc-metric-card">
-        <div class="kyc-metric-icon icon-primary"><i class="fas fa-paper-plane"></i></div>
-        <div class="kyc-metric-body">
-          <div class="kyc-metric-val-row">
-            <span class="kyc-metric-val">{{ sentCount }}</span>
-            <span class="kyc-metric-badge">{{ activeClinicsCount }} Clinics</span>
+    <!-- ══════════════════════════════════════════════════════════════
+         KPI CARD ROW — VERSION 3
+         ══════════════════════════════════════════════════════════════ -->
+    <div class="kyc-kpi-v3">
+
+      <!-- Master Card 1: Overview -->
+      <section class="kpi-v3-card kpi-v3-card--overview">
+        <header class="kpi-v3-card-hdr">
+          <span><i class="fa-regular fa-hospital me-2"></i>KYC Overview</span>
+          <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
+            <span class="kpi-v3-total-pill">Total Customers<strong>{{ totalClinicsCount }}</strong></span>
+            <span class="kpi-v3-total-pill">KYC Sent<strong>{{ sentCount }}</strong></span>
           </div>
-          <div class="kyc-metric-lbl">KYC Sent</div>
-        </div>
-      </div>
+        </header>
 
-      <div class="kyc-metric-card">
-        <div class="kyc-metric-icon icon-success"><i class="fas fa-check-circle"></i></div>
-        <div class="kyc-metric-body">
-          <div class="kyc-metric-val">{{ completedCount }}</div>
-          <div class="kyc-metric-lbl">Completed</div>
-        </div>
-      </div>
+        <div class="kpi-v3-overview-grid">
 
-      <div class="kyc-metric-card">
-        <div class="kyc-metric-icon icon-warning"><i class="fas fa-search"></i></div>
-        <div class="kyc-metric-body">
-          <div class="kyc-metric-val">{{ underReviewCount }}</div>
-          <div class="kyc-metric-lbl">Under Review</div>
-        </div>
-      </div>
+           <button type="button" class="kpi-v3-metric kpi-v3-metric--pending"
+            [class.active]="activeMetricFilter === 'pending'" (click)="setMetricFilter('pending')">
+            <span class="kpi-v3-label">Not Yet Sent</span>
+            <strong>{{ pendingCount }}</strong>
+          </button>
 
-      <div class="kyc-metric-card">
-        <div class="kyc-metric-icon icon-expiring"><i class="fas fa-calendar-times"></i></div>
-        <div class="kyc-metric-body">
-          <div class="kyc-metric-val">{{ expiringSoonCount }}</div>
-          <div class="kyc-metric-lbl">Expiring Soon</div>
-        </div>
-      </div>
+          <button type="button" class="kpi-v3-metric kpi-v3-metric--active"
+            [class.active]="activeMetricFilter === 'approved'" (click)="setMetricFilter('approved')">
+            <span class="kpi-v3-label">Active KYC</span>
+            <strong>{{ completedCount }}</strong>
+          </button>         
 
-      <div class="kyc-metric-card" [class.kyc-metric-card--alert]="expiredCount > 0">
-        <div class="kyc-metric-icon icon-expired"><i class="fas fa-exclamation-triangle"></i></div>
-        <div class="kyc-metric-body">
-          <div class="kyc-metric-val text-expired">{{ expiredCount }}</div>
-          <div class="kyc-metric-lbl">Expired</div>
-        </div>
-      </div>
+          <button type="button" class="kpi-v3-metric kpi-v3-metric--expiring"
+            [class.active]="activeMetricFilter === 'expiring-soon'" (click)="setMetricFilter('expiring-soon')">
+            <span class="kpi-v3-label">Exp. Soon</span>
+            <strong>{{ expiringSoonCount }}</strong>
+          </button>
 
-      <div class="kyc-metric-card">
-        <div class="kyc-metric-icon icon-rejected"><i class="fas fa-times-circle"></i></div>
-        <div class="kyc-metric-body">
-          <div class="kyc-metric-val">{{ rejectedCount }}</div>
-          <div class="kyc-metric-lbl">Rejected</div>
+          <button type="button" class="kpi-v3-metric kpi-v3-metric--expired"
+            [class.active]="activeMetricFilter === 'expired'" (click)="setMetricFilter('expired')">
+            <span class="kpi-v3-label">Expired</span>
+            <strong>{{ expiredCount }}</strong>
+          </button>
         </div>
-      </div>
+      </section>
+
+      <!-- Master Card 2: In Progress -->
+      <section class="kpi-v3-card kpi-v3-card--progress">
+        <header class="kpi-v3-card-hdr">
+          <span><i class="fa-regular fa-compass me-2"></i>In Progress</span>
+          <select class="kpi-v3-hdr-select" [(ngModel)]="inProgressGoLiveFilter">
+            <option value="all">Show All</option>
+            <option value="go-live">Go Live</option>
+            <option value="yet-to-go-live">Yet to Go-Live</option>
+          </select>
+        </header>
+
+        <div class="kpi-v3-progress-grid">
+
+          <!-- Pending Submission -->
+          <button type="button" class="kpi-v3-metric kpi-v3-metric--pending"
+            [class.active]="activeMetricFilter === 'form-sent'" (click)="setMetricFilter('form-sent')">
+            <span class="kpi-v3-label">Pending Submission</span>
+            <strong>{{ kpiPendingSubmissionCount }}</strong>
+          </button>
+
+          <!-- Awaiting Review -->
+          <button type="button" class="kpi-v3-metric kpi-v3-metric--review"
+            [class.active]="activeMetricFilter === 'under-review'" (click)="setMetricFilter('under-review')">
+            <span class="kpi-v3-label">Awaiting Review</span>
+            <strong>{{ kpiUnderReviewCount }}</strong>
+          </button>
+
+          <!-- Req. for Correction -->
+          <button type="button" class="kpi-v3-metric kpi-v3-metric--correction"
+            [class.active]="activeMetricFilter === 'resubmission'" (click)="setMetricFilter('resubmission')">
+            <span class="kpi-v3-label">Req. for Correction</span>
+            <strong>{{ resubmissionCount }}</strong>
+          </button>
+        </div>
+      </section>
 
     </div>
-    <!-- /Metrics -->
+    <!-- /KPI Card Row Version 3 -->
 
     <!-- ── Grid Card ───────────────────────────────────────────────────── -->
     <div class="kyc-grid-card">
 
       <!-- Kendo Grid -->
-      <kendo-grid [data]="gridData" [pageSize]="gridState.take!" [skip]="gridState.skip!" [sort]="gridState.sort!"
-        [sortable]="{ allowUnsort: true, mode: 'single' }"
-        [pageable]="{ buttonCount: 5, pageSizes: [10, 20, 50], info: true }" [selectable]="selectableSettings"
-        kendoGridSelectBy="id" [(selectedKeys)]="selectedKeys" (dataStateChange)="onStateChange($event)"
-        class="kyc-grid">
+      <kendo-grid [data]="gridData" [sort]="gridState.sort!" [sortable]="{ allowUnsort: true, mode: 'single' }"
+        [selectable]="selectableSettings" kendoGridSelectBy="id" [(selectedKeys)]="selectedKeys"
+        (dataStateChange)="onStateChange($event)" [resizable]="true" [navigable]="true" class="kyc-grid"
+        [class.k-grid--compact]="gridDensity === 'compact'">
 
         <!-- Checkbox -->
         <kendo-grid-checkbox-column [width]="48" [showSelectAll]="true"></kendo-grid-checkbox-column>
@@ -150,7 +202,10 @@
             <div class="cell-clinic">
               <div class="clinic-avatar">{{ dataItem.companyName.charAt(0) }}</div>
               <div>
-                <div class="clinic-name">{{ dataItem.companyName }}</div>
+                <div class="clinic-name">
+                  {{ dataItem.companyName }}
+                  <span class="kyc-type-badge kyc-type-badge--{{ dataItem.kycType }}">{{ dataItem.kycType === 'renewal' ? 'Renewal' : 'New' }}</span>
+                </div>
                 <div class="clinic-contact">{{ dataItem.contactName }}</div>
               </div>
             </div>
@@ -227,25 +282,46 @@
           </ng-template>
         </kendo-grid-column>
 
-        <!-- Status -->
-        <kendo-grid-column field="status" title="KYC Status" [width]="165">
-          <ng-template kendoGridHeaderTemplate let-column>
-            {{ column.title }} <i class="fas fa-sort ms-1"></i>
-          </ng-template>
+
+        <!-- KYC Status -->
+        <kendo-grid-column field="status" title="KYC Status" [width]="195" [filterable]="false" [sortable]="false">
+          <ng-template kendoGridHeaderTemplate let-column>{{ column.title }}</ng-template>
           <ng-template kendoGridCellTemplate let-dataItem>
-            @if (isExpiringSoon(dataItem)) {
-            <div class="cell-expiring-status">
-              <i class="fas fa-check-circle expiring-approved-tick" title="KYC Approved"></i>
-              <span class="kyc-status-badge badge-expiring-soon">
-                <i class="fas fa-clock badge-icon"></i>
-                Expiring Soon
+            <div class="kyc-status-cell">
+              <span class="kyc-status-badge {{ getStatusClass(dataItem.status) }}">
+                <i class="{{ getStatusIcon(dataItem.status) }} me-1"></i>{{ getStatusLabel(dataItem.status) }}
+                @if (dataItem.status === 'Re-submission') {
+                <span class="resubmission-count">{{ getResubmissionCount(dataItem) }}</span>
+                }
               </span>
+              @if (dataItem.status === 'Re-submission') {
+              <button class="resub-history-btn" #resubAnchor (click)="toggleResubHistory(dataItem, resubAnchor, $event)" title="View Re-submission History">
+                <i class="fas fa-history"></i>
+              </button>
+              }
             </div>
-            } @else {
-            <span class="kyc-status-badge" [ngClass]="getStatusClass(dataItem.status)">
-              <i [class]="getStatusIcon(dataItem.status) + ' badge-icon'"></i>
-              {{ dataItem.status }}
+          </ng-template>
+        </kendo-grid-column>
+
+        <!-- Doc Status -->
+        <kendo-grid-column title="Doc Status" [width]="145" [filterable]="false" [sortable]="false">
+          <ng-template kendoGridHeaderTemplate>Doc Status</ng-template>
+          <ng-template kendoGridCellTemplate let-dataItem>
+            @if (shouldShowDocumentIndicators(dataItem)) {
+            <span class="kyc-doc-indicators">
+              <span class="doc-upload-indicator" [class.doc-upload-indicator--missing]="!hasVatCertificate(dataItem)"
+                [title]="hasVatCertificate(dataItem) ? 'VAT Certificate Uploaded' : 'VAT certificate missing'">
+                <i [class]="hasVatCertificate(dataItem) ? 'fas fa-check' : 'fas fa-exclamation'"></i>
+                <span>VAT</span>
+              </span>
+              <span class="doc-upload-indicator" [class.doc-upload-indicator--missing]="!hasTradeLicenseCertificate(dataItem)"
+                [title]="hasTradeLicenseCertificate(dataItem) ? 'Trade License Certificate uploaded' : 'Trade license certificate missing'">
+                <i [class]="hasTradeLicenseCertificate(dataItem) ? 'fas fa-check' : 'fas fa-exclamation'"></i>
+                <span>TLC</span>
+              </span>
             </span>
+            } @else {
+            <span class="cell-muted">—</span>
             }
           </ng-template>
         </kendo-grid-column>
@@ -297,280 +373,12 @@
     <!-- /Grid Card -->
   </div>
 
-  <!-- ── Builder Slide Panel ────────────────────────────────────────────────── -->
-  @if (builderSlideOpen) {
-  <div class="slide-panel-overlay" (click)="closeBuilderSlide()"></div>
-  <div class="fb-builder-slide">
+  <!-- ── Migrate from Excel Slide Panel ────────────────────────────────────── -->
+  <app-kyc-migrate-excel [open]="migrateSlideOpen" (closed)="migrateSlideOpen = false"></app-kyc-migrate-excel>
 
-    <div class="fb-slide-header">
-      <div class="fb-slide-header-left">
-        <div class="fb-slide-header-icon"><i class="fas fa-tools"></i></div>
-        <div>
-          <div class="fb-slide-title">KYC Form Builder</div>
-          <div class="fb-slide-sub">{{ builderFormTitle }} · {{ builderFormVersion }}</div>
-        </div>
-      </div>
-      <div class="fb-slide-header-actions">
-        <button kendoButton themeColor="base" fillMode="solid" [size]="'small'" (click)="saveBuilderDraft()">
-          <i class="fas fa-save me-1"></i>Save as Draft
-        </button>
-        <button kendoButton themeColor="primary" fillMode="solid" [size]="'small'"
-          (click)="publishBuilderVersion(); closeBuilderSlide()">
-          <i class="fas fa-rocket me-1"></i>Publish Version
-        </button>
-        <button class="nkp-close-btn" (click)="closeBuilderSlide()"><i class="fas fa-times"></i></button>
-      </div>
-    </div>
+  <!-- ── Form Builder Slide Panel ──────────────────────────────────────────── -->
+  <app-kyc-formbuilder [open]="builderSlideOpen" (closed)="builderSlideOpen = false"></app-kyc-formbuilder>
 
-    <div class="fb-slide-body">
-
-      <!-- Col 1: Form Components -->
-      <div class="fb-slide-col fb-slide-col--components">
-        <div class="fb-slide-col-hdr"><i class="fas fa-cubes me-2 text-primary"></i>Form Components</div>
-        <p class="fb-panel-desc">Toggle fields to include or exclude them from the onboarding form.</p>
-        <div class="fb-toolbox-sections">
-          @for (cat of ['Details', 'Signatory', 'Documents']; track cat) {
-          <div class="fb-toolbox-group">
-            <div class="fb-group-heading">
-              <span class="fb-group-header">{{ cat }}</span>
-              <button #createAnchor class="fb-group-add-btn" title="Add field"
-                (click)="$event.stopPropagation(); openBuilderCreateField(cat, createAnchor)">
-                <i class="fas fa-plus"></i>
-              </button>
-            </div>
-            <div class="fb-toolbox-list" (dragover)="allowBuilderFieldDrop($event)"
-              (drop)="dropBuilderFieldInCategory(cat, $event)">
-              @for (field of builderFields; track field.id; let idx = $index) {
-              @if (field.category === cat) {
-              <div #fieldAnchor class="fb-toolbox-item" [class.disabled]="!field.enabled"
-                [class.selected]="selectedBuilderField === field && builderSettingsAnchor"
-                [class.dragging]="draggedBuilderFieldId === field.id" (dragover)="allowBuilderFieldDrop($event)"
-                (drop)="dropBuilderFieldOnField(field, $event)" (click)="openBuilderFieldSettings(idx, fieldAnchor)">
-                <div class="d-flex align-items-center justify-content-between w-100">
-                  <div class="fb-item-copy">
-                    <span class="fb-field-key">{{ field.id }}</span>
-                    <span class="fb-item-label">
-                      <i class="fas" [class.fa-font]="field.type === 'text'"
-                        [class.fa-calendar-alt]="field.type === 'date'" [class.fa-file-upload]="field.type === 'file'"
-                        [class.fa-align-left]="field.type === 'textarea'"
-                        [class.fa-chevron-circle-down]="field.type === 'select'"
-                        [class.fa-check-square]="field.type === 'checkbox'"></i>
-                      {{ field.label }}
-                    </span>
-                  </div>
-                  <div class="fb-item-actions">
-                    <i class="fas fa-grip-vertical fb-drag-handle" title="Drag to reposition" draggable="true"
-                      (click)="$event.stopPropagation()" (dragstart)="startBuilderFieldDrag(field, $event)"
-                      (dragend)="endBuilderFieldDrag()"></i>
-                    <div class="form-check form-switch m-0">
-                      <input class="form-check-input" type="checkbox" [checked]="field.enabled"
-                        (click)="$event.stopPropagation()" (change)="toggleBuilderField(field)">
-                    </div>
-                  </div>
-                </div>
-              </div>
-              }
-              }
-            </div>
-          </div>
-          }
-        </div>
-      </div>
-
-      @if (builderCreateAnchor) {
-      <kendo-popup [anchor]="builderCreateAnchor" [anchorAlign]="{ horizontal: 'right', vertical: 'center' }"
-        [popupAlign]="{ horizontal: 'left', vertical: 'center' }" [margin]="{ horizontal: 14, vertical: 0 }">
-        <div class="fb-field-settings-card">
-          <div class="fb-field-settings-hdr">
-            <div class="fb-slide-col-hdr"><i class="fas fa-plus me-2 text-primary"></i>New Field</div>
-            <div class="fb-popover-actions">
-              <button class="fb-popover-action fb-popover-action--save" title="Save field" (click)="saveBuilderField()">
-                <i class="fas fa-check"></i>
-              </button>
-              <button class="fb-popover-action" title="Cancel" (click)="closeBuilderCreateField()">
-                <i class="fas fa-times"></i>
-              </button>
-            </div>
-          </div>
-          <div class="fb-field-settings-body">
-            <div>
-              <label class="fb-label">Question / Field Label</label>
-              <input class="fb-input" type="text" [(ngModel)]="newBuilderField.label" placeholder="Enter field label">
-            </div>
-            <div>
-              <label class="fb-label">Control</label>
-              <select class="fb-input" [(ngModel)]="newBuilderField.type">
-                @for (component of builderComponentTypes; track component.type) {
-                <option [value]="component.type">{{ component.label }}</option>
-                }
-              </select>
-            </div>
-            @if (newBuilderField.type === 'select' || newBuilderField.type === 'checkbox') {
-            <div>
-              <label class="fb-label">Options</label>
-              <textarea class="fb-input fb-options-input" rows="3" [(ngModel)]="newBuilderField.options"
-                placeholder="One option per line"></textarea>
-            </div>
-            }
-            <div>
-              <label class="fb-label">Required Field</label>
-              <div class="form-check form-switch mt-1">
-                <input class="form-check-input" type="checkbox" [(ngModel)]="newBuilderField.required">
-                <span class="ms-2" style="font-size:12px">{{ newBuilderField.required ? 'Mandatory' : 'Optional'
-                  }}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </kendo-popup>
-      }
-
-      @if (selectedBuilderField && builderSettingsAnchor && editingBuilderField) {
-      <kendo-popup [anchor]="builderSettingsAnchor" [anchorAlign]="{ horizontal: 'right', vertical: 'center' }"
-        [popupAlign]="{ horizontal: 'left', vertical: 'center' }" [margin]="{ horizontal: 14, vertical: 0 }">
-        <div class="fb-field-settings-card">
-          <div class="fb-field-settings-hdr">
-            <div>
-              <div class="fb-slide-col-hdr"><i class="fas fa-sliders-h me-2 text-warning"></i>Field Settings</div>
-              <span class="fb-field-key">{{ selectedBuilderField.id }}</span>
-            </div>
-            <div class="fb-popover-actions">
-              <button class="fb-popover-action fb-popover-action--save" title="Save changes"
-                (click)="saveBuilderFieldSettings()">
-                <i class="fas fa-check"></i>
-              </button>
-              <button class="fb-popover-action" title="Cancel" (click)="closeBuilderFieldSettings()">
-                <i class="fas fa-times"></i>
-              </button>
-            </div>
-          </div>
-          <div class="fb-field-settings-body">
-            <div>
-              <label class="fb-label">Custom Field Label</label>
-              <input class="fb-input" type="text" [(ngModel)]="editingBuilderField.label">
-            </div>
-            <div>
-              <label class="fb-label">Section</label>
-              <select class="fb-input" [(ngModel)]="editingBuilderField.category">
-                @for (category of previewCategories; track category.id) {
-                <option [value]="category.id">{{ category.label }}</option>
-                }
-              </select>
-            </div>
-            @if (editingBuilderField.type === 'file') {
-            <div>
-              <label class="fb-label">Max File Size (MB)</label>
-              <input class="fb-input" type="number" [(ngModel)]="editingBuilderField.sizeLimit">
-            </div>
-            } @else if (editingBuilderField.type !== 'checkbox') {
-            <div>
-              <label class="fb-label">Placeholder Text</label>
-              <input class="fb-input" type="text" placeholder="Enter placeholder...">
-            </div>
-            }
-            <div>
-              <label class="fb-label">Required Field</label>
-              <div class="form-check form-switch mt-1">
-                <input class="form-check-input" type="checkbox" [(ngModel)]="editingBuilderField.required">
-                <span class="ms-2" style="font-size:12px">{{ editingBuilderField.required ? 'Mandatory' : 'Optional'
-                  }}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </kendo-popup>
-      }
-
-      <!-- Live Preview -->
-      <div class="fb-slide-col fb-slide-col--preview">
-        <div class="fb-slide-preview-hdr">
-          <div class="fb-slide-col-hdr"><i class="fas fa-eye me-2 text-success"></i>Live Customer Preview</div>
-          <button kendoButton themeColor="primary" fillMode="outline" [size]="'small'" (click)="copySelectedFormLink()"
-            [title]="formLinkCopied ? 'Form link copied' : 'Copy customer form link'">
-            <i class="fas" [class.fa-check]="formLinkCopied" [class.fa-link]="!formLinkCopied"></i>
-            {{ formLinkCopied ? 'Copied' : 'Copy Link' }}
-          </button>
-        </div>
-        <p class="fb-panel-desc">Real-time simulation of the client's self-service onboarding portal.</p>
-
-        <!-- Version Selection Tabs -->
-        <div class="fb-version-tabs">
-          @for (ver of formVersions; track ver.version; let idx = $index) {
-          <div class="fb-version-tab" [class.active]="selectedVersionIdx === idx" (click)="selectVersion(idx)">
-            <span class="fb-version-tab-name">{{ ver.version }}</span>
-            <span class="fb-version-tab-status" [ngClass]="ver.status.toLowerCase()">{{ ver.status }}</span>
-          </div>
-          }
-        </div>
-
-        <div class="fb-preview-screen">
-          <div class="fb-preview-header">
-            <div class="fb-logo-placeholder"><i class="fas fa-hospital me-1"></i> Unitecare Customer Portal</div>
-            <div class="fb-preview-badge">{{ builderFormVersion }}</div>
-          </div>
-          <div class="fb-preview-body">
-            <h5 style="font-size:15px; font-weight:700; color:#2d3748; margin-bottom:4px">{{ builderFormTitle }}</h5>
-            <p style="font-size:11px; color:#718096; margin-bottom:16px">Please fill out the regulatory details below to
-              complete your KYC onboarding.</p>
-            <div class="fb-preview-form">
-              @for (category of previewCategories; track category.id) {
-              <section class="fb-preview-section">
-                <h6 class="fb-preview-section-title">{{ category.label }}</h6>
-                <div class="fb-preview-section-grid">
-                  @for (field of builderFields; track field.id) {
-                  @if (field.enabled && field.category === category.id) {
-                  <div class="fb-preview-group" [class.fb-preview-group--wide]="field.type === 'textarea'">
-                    <label class="fb-preview-lbl">{{ field.label }}
-                      @if (field.required) { <span class="text-danger">*</span> }
-                    </label>
-                    @if (field.type === 'text') {
-                    <input class="fb-preview-input" type="text"
-                      [placeholder]="'Enter ' + field.label.toLowerCase() + '...'" disabled>
-                    }
-                    @if (field.type === 'date') { <input class="fb-preview-input" type="date" disabled> }
-                    @if (field.type === 'select') {
-                    <select class="fb-preview-select" disabled>
-                      <option>{{ 'Select ' + field.label.toLowerCase() + '...' }}</option>
-                      @for (option of field.options ?? []; track option) {
-                      <option>{{ option }}</option>
-                      }
-                    </select>
-                    }
-                    @if (field.type === 'checkbox') {
-                    <div class="fb-preview-check">
-                      @for (option of field.options?.length ? field.options : [field.label]; track option) {
-                      <label><input type="checkbox" disabled><span>{{ option }}</span></label>
-                      }
-                    </div>
-                    }
-                    @if (field.type === 'textarea') {
-                    <textarea class="fb-preview-input" rows="2"
-                      [placeholder]="'Enter ' + field.label.toLowerCase() + '...'" disabled></textarea>
-                    }
-                    @if (field.type === 'file') {
-                    <div class="fb-preview-file-upload">
-                      <i class="fas fa-cloud-upload-alt text-muted mb-1" style="font-size:18px"></i>
-                      <span style="font-size:11.5px; font-weight:600; color:#4a5568">Drag & Drop file here or click to
-                        browse</span>
-                      <span style="font-size:10px; color:#a0aec0">Supported formats: PDF, JPG, PNG (Max {{
-                        field.sizeLimit }}MB)</span>
-                    </div>
-                    }
-                  </div>
-                  }
-                  }
-                </div>
-              </section>
-              }
-            </div>
-          </div>
-        </div>
-      </div>
-
-    </div>
-
-  </div>
-  }
 
 </div>
 
@@ -578,7 +386,60 @@
      KYC REVIEW SLIDE PANEL
      ═══════════════════════════════════════════════════════════════ -->
 @if (reviewPanelOpen && selectedRecord) {
-<app-kyc-review-panel [record]="selectedRecord" (close)="closeReviewPanel()" (approve)="approveKyc($event)"
+<app-kyc-review-panel [record]="selectedRecord"
+  [currentIndex]="panelIndex" [totalCount]="filteredRecords.length"
+  (navigate)="navigatePanel($event)"
+  (close)="closeReviewPanel()" (approve)="approveKyc($event)"
   (reject)="rejectKyc($event)" (requestCorrection)="requestCorrection($event)">
 </app-kyc-review-panel>
 }
+
+<!-- Re-Submission History Popup -->
+@if (showResubHistory && activeResubRecord) {
+<kendo-popup [anchor]="activeResubAnchor"
+  [anchorAlign]="{ horizontal: 'right', vertical: 'bottom' }"
+  [popupAlign]="{ horizontal: 'right', vertical: 'top' }"
+  [margin]="{ horizontal: 4, vertical: 6 }">
+  <div class="resub-history-popup">
+    <div class="resub-history-hdr">
+      <div class="d-flex align-items-center justify-content-between w-100">
+        <span class="resub-history-title"><i class="fas fa-history me-1 text-primary"></i>Re-Submission History</span>
+        <button class="resub-close-btn" (click)="showResubHistory = false; activeResubRecord = null; activeResubAnchor = null"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="resub-history-sub">{{ activeResubRecord.companyName }}</div>
+    </div>
+    <div class="resub-history-body">
+      @if (activeResubRecord.resubmissionHistory && activeResubRecord.resubmissionHistory.length > 0) {
+      <div class="resub-timeline">
+        @for (entry of activeResubRecord.resubmissionHistory; track entry.timestamp) {
+        <div class="resub-timeline-item">
+          <div class="resub-timeline-marker"></div>
+          <div class="resub-timeline-content">
+            <div class="resub-timeline-meta">
+              <span class="resub-timeline-person"><i class="fas fa-user me-1"></i>{{ entry.personName }}</span>
+              <span class="resub-timeline-time"><i class="far fa-clock me-1"></i>{{ entry.timestamp | date:'dd MMM yyyy, hh:mm a' }}</span>
+            </div>
+            <div class="resub-timeline-action">{{ entry.action }}</div>
+            @if (entry.comments) {
+            <p class="resub-timeline-comment">"{{ entry.comments }}"</p>
+            }
+          </div>
+        </div>
+        }
+      </div>
+      } @else {
+      <div class="resub-empty">
+        <i class="fas fa-info-circle me-1"></i>No prior re-submission history logged.
+      </div>
+      }
+    </div>
+  </div>
+</kendo-popup>
+}
+
+<!-- Outbox Review Panel -->
+<app-outbox-review-panel
+  category="KYC"
+  [isOpen]="outboxReviewOpen"
+  (closed)="outboxReviewOpen = false">
+</app-outbox-review-panel>

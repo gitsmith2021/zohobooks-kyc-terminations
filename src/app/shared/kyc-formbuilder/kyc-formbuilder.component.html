@@ -1,0 +1,582 @@
+@if (open) {
+<div class="slide-panel-overlay" (click)="onClose()"></div>
+<div class="fb-builder-slide">
+
+  <!-- ── Header ── -->
+  <div class="fb-slide-header">
+    <div class="fb-slide-header-left">
+      <div class="fb-slide-header-icon"><i class="fas fa-tools"></i></div>
+      <div>
+        <div class="fb-form-main-title">
+          @if (editingFormTitle) {
+          <input class="fb-title-input" [(ngModel)]="formTitleDraft"
+            (keyup.enter)="saveFormTitle()" (keyup.escape)="cancelEditFormTitle()" (blur)="saveFormTitle()">
+          } @else {
+          <span class="fb-title-editable" (click)="startEditFormTitle()" title="Click to rename">{{ builderFormTitle }}</span>
+          <i class="fas fa-pencil-alt fb-title-edit-icon" (click)="startEditFormTitle()"></i>
+          }
+        </div>
+        <div class="fb-form-version-sub">
+          <span class="fb-version-tag" [class.fb-version-tag--draft]="!isPublished(formVersions[selectedVersionIdx])">
+            {{ isPublished(formVersions[selectedVersionIdx]) ? formVersions[selectedVersionIdx]?.version : getStatusLabel(formVersions[selectedVersionIdx]?.status) }}
+          </span>
+          <span class="fb-builder-label">KYC Form Builder</span>
+        </div>
+      </div>
+    </div>
+    <div class="fb-slide-header-actions">
+      <button kendoButton themeColor="primary" fillMode="outline" [size]="'small'"
+        (click)="openSaveAsModal()" [disabled]="!isEditing">
+        <i class="fas fa-copy me-1"></i>Save As
+      </button>
+      <button kendoButton themeColor="primary" fillMode="outline" [size]="'small'"
+        (click)="saveBuilderDraft()" [disabled]="!isEditing">
+        <i class="fas fa-save me-1"></i>Save as Draft
+      </button>
+      <button kendoButton themeColor="warning" fillMode="solid" [size]="'small'"
+        (click)="sendForApproval()" [disabled]="isEditing || formVersions[selectedVersionIdx]?.status !== 'Draft'">
+        <i class="fas fa-paper-plane me-1"></i>
+        {{ builderApprovalStatus === 'pending' ? 'Approval Pending' : 'Send for Approval' }}
+      </button>
+      <button kendoButton themeColor="primary" fillMode="solid" [size]="'small'"
+        (click)="publishBuilderVersion()" [disabled]="isEditing || builderApprovalStatus !== 'approved'">
+        <i class="fas fa-rocket me-1"></i>Publish Version
+      </button>
+      <button class="nkp-close-btn" (click)="onClose()"><i class="fas fa-times"></i></button>
+    </div>
+  </div>
+
+  <!-- ── Approval banner ── -->
+  @if (builderApprovalStatus !== 'none') {
+  <div class="fb-approval-banner" [class.fb-approval-banner--pending]="builderApprovalStatus === 'pending'"
+    [class.fb-approval-banner--approved]="builderApprovalStatus === 'approved'">
+    @if (builderApprovalStatus === 'pending') {
+    <i class="fas fa-clock"></i>
+    <span>This form is <strong>pending approval</strong> before it can be published.</span>
+    <button class="fb-approve-btn ms-auto" (click)="approveCurrentVersion()">
+      <i class="fas fa-check me-1"></i>Approve
+    </button>
+    }
+    @if (builderApprovalStatus === 'approved') {
+    <i class="fas fa-check-circle"></i>
+    <span>Form has been <strong>approved</strong> — click Publish Version to go live.</span>
+    }
+  </div>
+  }
+
+  <div class="fb-slide-body">
+
+    <!-- ── Col 1: Form Components ── -->
+    <div class="fb-slide-col fb-slide-col--components">
+      <div class="fb-slide-col-hdr"><i class="fas fa-cubes me-2 text-primary"></i>Form Components</div>
+      <p class="fb-panel-desc">Toggle fields to include or exclude them. Drag <i class="fas fa-grip-lines"></i> to reorder sections.</p>
+      <div class="fb-toolbox-sections">
+        @for (cat of categories; track cat.id; let catIdx = $index) {
+        <div class="fb-toolbox-group" [class.expanded]="activeCategory === cat.id"
+          [class.cat-drag-over]="dragOverCategoryIdx === catIdx"
+          (dragover)="onCategoryDragOver(catIdx, $event)"
+          (drop)="dropCategoryOn(catIdx, $event)"
+          (dragleave)="onCategoryDragLeave()">
+          <div class="fb-group-heading" (click)="toggleCategory(cat.id)">
+            <span class="fb-group-header">
+              <i class="fas fa-grip-lines fb-cat-drag-handle me-2"
+                title="Drag to reorder section"
+                draggable="true"
+                (click)="$event.stopPropagation()"
+                (dragstart)="startCategoryDrag(catIdx, $event)"
+                (dragend)="endCategoryDrag()"></i>
+              <i class="fas fa-chevron-right chevron-icon me-2" [class.rotated]="activeCategory === cat.id"></i>
+              @if (editingCategoryId === cat.id) {
+              <input class="fb-section-label-input"
+                [(ngModel)]="editingCategoryLabel"
+                (click)="$event.stopPropagation()"
+                (keyup.enter)="saveEditCategoryLabel()"
+                (keyup.escape)="saveEditCategoryLabel()"
+                (blur)="saveEditCategoryLabel()">
+              } @else {
+              {{ cat.label }}
+              }
+            </span>
+            <div class="fb-group-heading-actions">
+              <button class="fb-group-action-btn" title="Edit section title"
+                (click)="$event.stopPropagation(); startEditCategoryLabel(cat, $event)">
+                <i class="fas fa-pencil-alt"></i>
+              </button>
+              <button #createAnchor class="fb-group-add-btn" title="Add field"
+                (click)="$event.stopPropagation(); openBuilderCreateField(cat.id, createAnchor)">
+                <i class="fas fa-plus"></i>
+              </button>
+            </div>
+          </div>
+          @if (activeCategory === cat.id) {
+          <div class="fb-toolbox-list" (dragover)="allowBuilderFieldDrop($event)"
+            (drop)="dropBuilderFieldInCategory(cat.id, $event)">
+            @for (field of builderFields; track field.id; let idx = $index) {
+            @if (field.category === cat.id) {
+            <div #fieldAnchor class="fb-toolbox-item" [class.disabled]="!field.enabled"
+              [class.selected]="selectedBuilderField === field && builderSettingsAnchor"
+              [class.dragging]="draggedBuilderFieldId === field.id"
+              [attr.draggable]="isEditing ? 'true' : null"
+              (dragstart)="startBuilderFieldDrag(field, $event)"
+              (dragend)="endBuilderFieldDrag()"
+              (dragover)="allowBuilderFieldDrop($event)"
+              (drop)="dropBuilderFieldOnField(field, $event)"
+              (click)="openBuilderFieldSettings(idx, fieldAnchor)">
+              <div class="d-flex align-items-center justify-content-between w-100">
+                <div class="fb-item-copy">
+                  <span class="fb-field-key">{{ field.id }}</span>
+                  <span class="fb-item-label">
+                    <i class="fas" [class.fa-font]="field.type === 'text'"
+                      [class.fa-calendar-alt]="field.type === 'date'"
+                      [class.fa-file-upload]="field.type === 'file'"
+                      [class.fa-align-left]="field.type === 'textarea'"
+                      [class.fa-chevron-circle-down]="field.type === 'select'"
+                      [class.fa-check-square]="field.type === 'checkbox'"
+                      [class.fa-table]="field.type === 'table'"></i>
+                    {{ field.label }}
+                  </span>
+                </div>
+                <div class="fb-item-actions">
+                  <i class="fas fa-grip-vertical fb-drag-handle" title="Drag to reposition" draggable="true"
+                    (click)="$event.stopPropagation()"
+                    (dragstart)="startBuilderFieldDrag(field, $event)"
+                    (dragend)="endBuilderFieldDrag()"></i>
+                  <div class="form-check form-switch m-0">
+                    <input class="form-check-input" type="checkbox" [checked]="field.enabled"
+                      (click)="$event.stopPropagation()" (change)="toggleBuilderField(field)">
+                  </div>
+                </div>
+              </div>
+            </div>
+            }
+            }
+          </div>
+          }
+        </div>
+        }
+      </div>
+    </div>
+
+    <!-- ── Create field popover ── -->
+    @if (builderCreateAnchor) {
+    <kendo-popup [anchor]="builderCreateAnchor" [anchorAlign]="{ horizontal: 'right', vertical: 'center' }"
+      [popupAlign]="{ horizontal: 'left', vertical: 'center' }" [margin]="{ horizontal: 14, vertical: 0 }">
+      <div class="fb-field-settings-card">
+        <div class="fb-field-settings-hdr">
+          <div class="fb-slide-col-hdr"><i class="fas fa-plus me-2 text-primary"></i>New Field</div>
+          <div class="fb-popover-actions">
+            <button class="fb-popover-action fb-popover-action--save" title="Save field" (click)="saveBuilderField()">
+              <i class="fas fa-check"></i>
+            </button>
+            <button class="fb-popover-action" title="Cancel" (click)="closeBuilderCreateField()">
+              <i class="fas fa-times"></i>
+            </button>
+          </div>
+        </div>
+        <div class="fb-field-settings-body">
+          <div>
+            <label class="fb-label">Question / Field Label</label>
+            <input class="fb-input" type="text" [(ngModel)]="newBuilderField.label" placeholder="Enter field label">
+          </div>
+          <div>
+            <label class="fb-label">Control</label>
+            <select class="fb-input" [(ngModel)]="newBuilderField.type">
+              @for (component of builderComponentTypes; track component.type) {
+              <option [value]="component.type">{{ component.label }}</option>
+              }
+            </select>
+          </div>
+          @if (newBuilderField.type === 'select' || newBuilderField.type === 'checkbox') {
+          <div>
+            <label class="fb-label">Options</label>
+            <textarea class="fb-input fb-options-input" rows="3" [(ngModel)]="newBuilderField.options"
+              placeholder="One option per line"></textarea>
+          </div>
+          }
+          @if (newBuilderField.type === 'table') {
+          <div>
+            <label class="fb-label">Row Labels <span class="text-muted" style="font-size:10px">(one per line — each
+                row = a contact role)</span></label>
+            <textarea class="fb-input fb-options-input" rows="5"
+              [ngModel]="newBuilderField.tableConfig?.rows?.join('\n') ?? ''"
+              (ngModelChange)="newBuilderField.tableConfig = { rows: $event.split('\n').filter(r => r.trim()), columns: newBuilderField.tableConfig?.columns ?? [] }"
+              placeholder="Authorized Signatory&#10;Implementation POC&#10;Operations POC"></textarea>
+          </div>
+          <div>
+            <label class="fb-label">Column Headers <span class="text-muted" style="font-size:10px">(one per
+                line)</span></label>
+            <textarea class="fb-input fb-options-input" rows="4"
+              [ngModel]="newBuilderField.tableConfig?.columns?.join('\n') ?? ''"
+              (ngModelChange)="newBuilderField.tableConfig = { rows: newBuilderField.tableConfig?.rows ?? [], columns: $event.split('\n').filter(c => c.trim()) }"
+              placeholder="Name&#10;Designation&#10;Email ID&#10;Phone Number"></textarea>
+          </div>
+          }
+          <div>
+            <label class="fb-label">Required Field</label>
+            <div class="form-check form-switch mt-1">
+              <input class="form-check-input" type="checkbox" [(ngModel)]="newBuilderField.required">
+              <span class="ms-2" style="font-size:12px">{{ newBuilderField.required ? 'Mandatory' : 'Optional' }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </kendo-popup>
+    }
+
+    <!-- ── Field settings popover ── -->
+    @if (selectedBuilderField && builderSettingsAnchor && editingBuilderField) {
+    <kendo-popup [anchor]="builderSettingsAnchor" [anchorAlign]="{ horizontal: 'right', vertical: 'center' }"
+      [popupAlign]="{ horizontal: 'left', vertical: 'center' }" [margin]="{ horizontal: 14, vertical: 0 }">
+      <div class="fb-field-settings-card">
+        <div class="fb-field-settings-hdr">
+          <div>
+            <div class="fb-slide-col-hdr"><i class="fas fa-sliders-h me-2 text-warning"></i>Field Settings</div>
+            <span class="fb-field-key">{{ selectedBuilderField.id }}</span>
+          </div>
+          <div class="fb-popover-actions">
+            <button class="fb-popover-action fb-popover-action--save" title="Save changes"
+              (click)="saveBuilderFieldSettings()">
+              <i class="fas fa-check"></i>
+            </button>
+            <button class="fb-popover-action" title="Cancel" (click)="closeBuilderFieldSettings()">
+              <i class="fas fa-times"></i>
+            </button>
+          </div>
+        </div>
+        <div class="fb-field-settings-body">
+          <div>
+            <label class="fb-label">Custom Field Label</label>
+            <input class="fb-input" type="text" [(ngModel)]="editingBuilderField.label">
+          </div>
+          <div>
+            <label class="fb-label">Section</label>
+            <select class="fb-input" [(ngModel)]="editingBuilderField.category">
+              @for (category of categories; track category.id) {
+              <option [value]="category.id">{{ category.label }}</option>
+              }
+            </select>
+          </div>
+          @if (editingBuilderField.type === 'file') {
+          <div>
+            <label class="fb-label">Max File Size (MB)</label>
+            <input class="fb-input" type="number" [(ngModel)]="editingBuilderField.sizeLimit">
+          </div>
+          } @else if (editingBuilderField.type !== 'checkbox') {
+          <div>
+            <label class="fb-label">Placeholder Text</label>
+            <input class="fb-input" type="text" placeholder="Enter placeholder...">
+          </div>
+          }
+          <div>
+            <label class="fb-label">Required Field</label>
+            <div class="form-check form-switch mt-1">
+              <input class="form-check-input" type="checkbox" [(ngModel)]="editingBuilderField.required">
+              <span class="ms-2" style="font-size:12px">{{ editingBuilderField.required ? 'Mandatory' : 'Optional' }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </kendo-popup>
+    }
+
+    <!-- ── Live Preview ── -->
+    <div class="fb-slide-col fb-slide-col--preview">
+      <div class="fb-slide-preview-hdr">
+        <div class="fb-slide-col-hdr">
+          <div class="d-flex flex-column">
+            <span class="fb-preview-title">Live Customer Preview</span>
+            <span class="fb-preview-subtext">Real-time simulation of the client's self-service KYC portal.</span>
+          </div>
+        </div>
+        <div class="fb-preview-hdr-actions">
+          <select class="fb-version-dropdown" [ngModel]="selectedVersionIdx" (ngModelChange)="selectVersion($event)">
+            @for (ver of formVersions; track ver.version; let idx = $index) {
+            <option [value]="idx">
+              {{ isPublished(ver) ? ver.version + ' · ' : '' }}{{ ver.name }} ({{ getStatusLabel(ver.status) }})
+            </option>
+            }
+          </select>
+          <button kendoButton themeColor="primary" fillMode="outline" [size]="'small'"
+            (click)="openCreateNewFormModal()" title="Create New Form with Blank Canvas"
+            class="fb-new-form-btn">
+            <i class="fas fa-plus me-1"></i>New Form
+          </button>
+          <button class="fb-start-editing-btn" [class.fb-start-editing-btn--active]="isEditing"
+            (click)="toggleEditing()"
+            [title]="isEditing ? 'Cancel active editing' : 'Load this version for editing'">
+            @if (isEditing) {
+            <i class="fas fa-times me-1"></i>Cancel Editing
+            } @else {
+            <i class="fas fa-edit me-1"></i>Start Editing
+            }
+          </button>
+          <button kendoButton themeColor="primary" fillMode="outline" [size]="'small'"
+            (click)="copySelectedFormLink()"
+            [title]="formLinkCopied ? 'Form link copied' : 'Copy customer form link'">
+            <i class="fas" [class.fa-check]="formLinkCopied" [class.fa-link]="!formLinkCopied"></i>
+            {{ formLinkCopied ? 'Copied' : 'Copy Link' }}
+          </button>
+        </div>
+      </div>
+
+      <div class="fb-preview-screen mt-4">
+        <div class="fb-preview-header">
+          <div class="fb-logo-placeholder"><i class="fas fa-hospital me-1"></i> Unitecare Customer Portal</div>
+          <div class="fb-preview-badge" [class.fb-preview-badge--draft]="!isPublished(formVersions[selectedVersionIdx])">
+            {{ isPublished(formVersions[selectedVersionIdx]) ? formVersions[selectedVersionIdx]?.version : getStatusLabel(formVersions[selectedVersionIdx]?.status) }}
+          </div>
+        </div>
+        <div class="fb-preview-body">
+          <h5 style="font-size:15px; font-weight:700; color:#2d3748; margin-bottom:4px">{{ builderFormTitle }}</h5>
+          <p style="font-size:11px; color:#718096; margin-bottom:16px">Please fill out the regulatory details below to
+            complete your KYC verification.</p>
+          <div class="fb-preview-form">
+            @for (category of categories; track category.id) {
+            <section class="fb-preview-section">
+              <h6 class="fb-preview-section-title">{{ category.label }}</h6>
+              <div class="fb-preview-section-rows">
+                @for (row of getRows(category.id); track row.id) {
+                <div class="fb-layout-row" [class.fb-layout-row--designer]="isEditing"
+                  [class.fb-layout-row--dragover]="dragOverRowId === row.id"
+                  (dragover)="onRowDragOver(category.id, row, $event)"
+                  (dragleave)="onRowDragLeave()"
+                  (drop)="dropRowOnRow(category.id, row, $event)">
+                  
+                  <!-- Row design header (visible only in editing mode) -->
+                  @if (isEditing) {
+                  <div class="fb-layout-row-controls">
+                    <span class="fb-layout-row-label fb-layout-row-label--draggable"
+                      [attr.draggable]="isEditing ? 'true' : null"
+                      (dragstart)="startRowDrag(category.id, row, $event)"
+                      (dragend)="endRowDrag()">
+                      <i class="fas fa-grip-horizontal me-1"></i>Row Layout
+                    </span>
+                    <div class="fb-layout-row-actions">
+                      @if (row.columns.length < 3) {
+                      <button class="fb-layout-action-btn" (click)="addColumnLayout(row)" title="Add Column">
+                        <i class="fas fa-plus me-1"></i>Add Column
+                      </button>
+                      }
+                      <button class="fb-layout-action-btn fb-layout-action-btn--danger" (click)="removeRowLayout(category.id, row.id)" title="Delete Row">
+                        <i class="fas fa-trash-alt me-1"></i>Delete Row
+                      </button>
+                    </div>
+                  </div>
+                  }
+
+                  <!-- Columns List -->
+                  <div class="fb-layout-cols-container">
+                    @if (row.columns.length === 0) {
+                    <div class="fb-layout-empty-row-placeholder" (click)="addColumnLayout(row)">
+                      <i class="fas fa-columns me-2"></i>No columns in this row. Click here or "+ Add Column" to add one.
+                    </div>
+                    }
+
+                    @for (col of row.columns; track col.id; let colIdx = $index) {
+                    <div class="fb-layout-col"
+                         [class.fb-layout-col--1]="row.columns.length === 1"
+                         [class.fb-layout-col--2]="row.columns.length === 2"
+                         [class.fb-layout-col--3]="row.columns.length === 3"
+                         [class.fb-layout-col--designer]="isEditing">
+                      
+                      <!-- Column design controls (visible only in editing mode) -->
+                      @if (isEditing) {
+                      <div class="fb-layout-col-controls">
+                        <span class="fb-layout-col-label">Col {{ colIdx + 1 }} ({{ row.columns.length === 1 ? '100%' : row.columns.length === 2 ? '50%' : '33%' }})</span>
+                        <button class="fb-layout-col-del-btn" (click)="removeColumnLayout(row, colIdx)" title="Remove Column">
+                          <i class="fas fa-times"></i>
+                        </button>
+                      </div>
+                      }
+
+                      <!-- Column fields / content slot -->
+                      <div class="fb-layout-col-content"
+                        (dragover)="allowFieldDropOnColumn($event)"
+                        (drop)="dropFieldOnColumn(row, col, $event)">
+                        @if (col.fieldIds.length === 0 && isEditing) {
+                        <!-- Empty column placeholder in editing mode -->
+                        <div class="fb-layout-empty-slot"
+                          (click)="row.columns.length < 3 && addColumnLayout(row)"
+                          (dragover)="allowFieldDropOnColumn($event)"
+                          (drop)="dropFieldOnColumn(row, col, $event)">
+                          <i class="fas fa-plus-circle fb-layout-empty-plus"></i>
+                          <span>Empty Slot</span>
+                          @if (row.columns.length < 3) {
+                          <span class="fb-layout-empty-sub">Click to add column</span>
+                          }
+                        </div>
+                        }
+
+                        @for (fid of col.fieldIds; track fid) {
+                        @if (getFieldById(fid); as fieldObj) {
+                        <div class="fb-preview-group fb-preview-group--wide"
+                          [class.fb-preview-group--draggable]="isEditing"
+                          [attr.draggable]="isEditing ? 'true' : null"
+                          (dragstart)="startCanvasFieldDrag(fid, $event)"
+                          (dragend)="endCanvasFieldDrag()">
+                          <label class="fb-preview-lbl">{{ fieldObj.label }}
+                            @if (fieldObj.required) { <span class="text-danger">*</span> }
+                          </label>
+                          @if (fieldObj.type === 'text') {
+                          <input class="fb-preview-input" type="text"
+                            [placeholder]="'Enter ' + fieldObj.label.toLowerCase() + '...'" disabled>
+                          }
+                          @if (fieldObj.type === 'date') { <input class="fb-preview-input" type="date" disabled> }
+                          @if (fieldObj.type === 'select') {
+                          <select class="fb-preview-select" disabled>
+                            <option>{{ 'Select ' + fieldObj.label.toLowerCase() + '...' }}</option>
+                            @for (option of fieldObj.options ?? []; track option) {
+                            <option>{{ option }}</option>
+                            }
+                          </select>
+                          }
+                          @if (fieldObj.type === 'checkbox') {
+                          <div class="fb-preview-check">
+                            @for (option of fieldObj.options?.length ? fieldObj.options! : [fieldObj.label]; track option) {
+                            <label><input type="checkbox" disabled><span>{{ option }}</span></label>
+                            }
+                          </div>
+                          }
+                          @if (fieldObj.type === 'textarea') {
+                          <textarea class="fb-preview-input" rows="2"
+                            [placeholder]="'Enter ' + fieldObj.label.toLowerCase() + '...'" disabled></textarea>
+                          }
+                          @if (fieldObj.type === 'file') {
+                          <div class="fb-preview-file-upload">
+                            <i class="fas fa-cloud-upload-alt text-muted mb-1" style="font-size:18px"></i>
+                            <span style="font-size:11.5px; font-weight:600; color:#4a5568">Drag & Drop file here or click to browse</span>
+                            <span style="font-size:10px; color:#a0aec0">Supported formats: PDF, JPG, PNG (Max {{ fieldObj.sizeLimit }}MB)</span>
+                          </div>
+                          }
+                          @if (fieldObj.type === 'table' && fieldObj.tableConfig) {
+                          <div class="fb-preview-table-wrap">
+                            <table class="fb-preview-table">
+                              <thead>
+                                <tr>
+                                  <th class="fb-pt-th fb-pt-th--role">Contact Person</th>
+                                  @for (col of fieldObj.tableConfig!.columns; track col) {
+                                  <th class="fb-pt-th">{{ col }}</th>
+                                  }
+                                </tr>
+                              </thead>
+                              <tbody>
+                                @for (trow of fieldObj.tableConfig!.rows; track trow; let rowIdx = $index) {
+                                <tr>
+                                  <td class="fb-pt-td fb-pt-td--role">{{ trow }}</td>
+                                  @for (col of fieldObj.tableConfig!.columns; track col) {
+                                  <td class="fb-pt-td">
+                                    @if (col === 'Remarks') {
+                                    <span class="fb-pt-remark-note">{{ fieldObj.tableConfig!.rowRemarks?.[rowIdx] || '—' }}</span>
+                                    } @else {
+                                    <input type="text" class="fb-pt-cell-input" [placeholder]="col" disabled>
+                                    }
+                                  </td>
+                                  }
+                                </tr>
+                                }
+                              </tbody>
+                            </table>
+                          </div>
+                          }
+                        </div>
+                        }
+                        }
+                      </div>
+
+                    </div>
+                    }
+                  </div>
+                </div>
+                }
+
+                <!-- Add Row button (visible in editing mode at the bottom of the category) -->
+                @if (isEditing) {
+                <div class="fb-layout-add-row-container">
+                  <button class="fb-layout-add-row-btn" (click)="addRowLayout(category.id)">
+                    <i class="fas fa-plus me-1"></i>Add Row
+                  </button>
+                </div>
+                }
+
+              </div>
+            </section>
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ── Save As modal ── -->
+  @if (showSaveAsModal) {
+  <div class="fb-modal-overlay" (click)="closeSaveAsModal()">
+    <div class="fb-modal-card" (click)="$event.stopPropagation()">
+      <div class="fb-modal-hdr">
+        <div>
+          <div class="fb-slide-col-hdr"><i class="fas fa-copy me-2 text-primary"></i>Save As New Form</div>
+          <p class="fb-panel-desc mb-0">Creates a Draft copy with a new name and auto-incremented version.</p>
+        </div>
+        <button class="nkp-close-btn" (click)="closeSaveAsModal()"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="fb-modal-body">
+        <div>
+          <label class="fb-label">Form Name</label>
+          <input class="fb-input" type="text" [(ngModel)]="saveAsName" placeholder="Enter a name for this form version"
+            (keyup.enter)="confirmSaveAs()">
+        </div>
+        <div class="fb-modal-version-row">
+          <span class="fb-label mb-0">New Version</span>
+          <span class="fb-version-pill">{{ saveAsNewVersion }}</span>
+          <span class="fb-status-pill fb-status-pill--draft">Draft</span>
+        </div>
+      </div>
+      <div class="fb-modal-footer">
+        <button kendoButton themeColor="base" fillMode="outline" [size]="'small'" (click)="closeSaveAsModal()">
+          Cancel
+        </button>
+        <button kendoButton themeColor="primary" fillMode="solid" [size]="'small'" (click)="confirmSaveAs()">
+          <i class="fas fa-save me-1"></i>Save As Draft
+        </button>
+      </div>
+    </div>
+  </div>
+  }
+
+  <!-- ── New Form modal ── -->
+  @if (showNewFormModal) {
+  <div class="fb-modal-overlay" (click)="closeNewFormModal()">
+    <div class="fb-modal-card" (click)="$event.stopPropagation()">
+      <div class="fb-modal-hdr">
+        <div>
+          <div class="fb-slide-col-hdr"><i class="fas fa-plus-circle me-2 text-primary"></i>Create New Form</div>
+          <p class="fb-panel-desc mb-0">Start fresh with a blank canvas and fully customize your form fields.</p>
+        </div>
+        <button class="nkp-close-btn" (click)="closeNewFormModal()"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="fb-modal-body">
+        <div>
+          <label class="fb-label">Form Name</label>
+          <input class="fb-input" type="text" [(ngModel)]="newFormTitle" placeholder="e.g. Pediatrics Clinic KYC Form"
+            (keyup.enter)="createNewBlankForm()">
+        </div>
+        <div class="fb-modal-version-row">
+          <span class="fb-label mb-0">Initial Status</span>
+          <span class="fb-status-pill fb-status-pill--draft">Draft</span>
+          <span style="font-size: 11px; color: #718096; font-style: italic;">(All components disabled by default)</span>
+        </div>
+      </div>
+      <div class="fb-modal-footer">
+        <button kendoButton themeColor="base" fillMode="outline" [size]="'small'" (click)="closeNewFormModal()">
+          Cancel
+        </button>
+        <button kendoButton themeColor="primary" fillMode="solid" [size]="'small'" (click)="createNewBlankForm()">
+          <i class="fas fa-plus me-1"></i>Create Form
+        </button>
+      </div>
+    </div>
+  </div>
+  }
+
+</div>
+}

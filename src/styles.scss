@@ -9,6 +9,19 @@
   --kendo-color-primary: #00b8cd;
 }
 
+// ── Sidebar nav tooltip (Kendo Popup renders at body level) ──────────────────
+.sidebar-nav-tooltip {
+  background:    #1a202c;
+  color:         #ffffff;
+  font-size:     12px;
+  font-weight:   500;
+  padding:       5px 12px;
+  border-radius: 5px;
+  white-space:   nowrap;
+  box-shadow:    0 2px 8px rgba(0, 0, 0, 0.25);
+  pointer-events: none;
+}
+
 // Global resets
 *,
 *::before,
@@ -22,6 +35,34 @@ body {
   margin: 0;
   padding: 0;
   touch-action: auto !important; /* Ensure browser zooming and scrolling work */
+}
+
+// ── PDF Print — clone-to-body strategy, escapes all fixed/overflow containers ─
+@media print {
+  @page { size: A4 portrait; margin: 15mm; }
+
+  // Hide every direct child of body EXCEPT the cloned paper target
+  body.print-pdf-mode > *:not(#pdf-print-target) { display: none !important; }
+
+  // Render the clone as a clean, full-width block
+  body.print-pdf-mode #pdf-print-target {
+    display:     block !important;
+    position:    static !important;
+    width:       100% !important;
+    max-width:   none !important;
+    padding:     0 !important;
+    margin:      0 !important;
+    box-shadow:  none !important;
+    border:      none !important;
+    background:  #fff !important;
+  }
+}
+
+// ── Kendo Dialog — blurred backdrop ──────────────────────────────────────────
+.k-overlay {
+  backdrop-filter:         blur(4px) !important;
+  -webkit-backdrop-filter: blur(4px) !important;
+  background-color:        rgba(15, 23, 42, 0.35) !important;
 }
 
 // ── Remove cell focus border / outline ────────────────────────────────────────
@@ -47,6 +88,44 @@ body {
 .k-grid-header .k-header-column-menu,
 .k-grid-header .k-grid-filter-menu {
   display: none !important;
+}
+
+// ── Freeze Actions column to the right in any Kendo Grid ─────────────────────
+// Kendo applies row colours as color-mix(..., transparent). On a sticky cell
+// that blends over scrolled content, transparent doesn't produce an opaque
+// background. We replicate each formula replacing "transparent" with
+// var(--kendo-color-surface-alt) — the grid's own base surface — so the sticky
+// cell shows the exact same composited solid colour as the rest of its row.
+
+.k-grid th.col-freeze-right {
+  position: sticky !important;
+  right: 0 !important;
+  z-index: 4 !important;
+  background-color: var(--kendo-color-surface) !important;  // matches .k-grid-header
+}
+
+.k-grid td.col-freeze-right {
+  position: sticky !important;
+  right: 0 !important;
+  z-index: 3 !important;
+  background-color: var(--kendo-color-surface-alt) !important;  // normal rows
+}
+
+.k-grid .k-table-alt-row td.col-freeze-right {
+  // 5% on-app-surface over surface-alt — same as Kendo's alt row
+  background-color: color-mix(in srgb, var(--kendo-color-on-app-surface) 5%, var(--kendo-color-surface-alt)) !important;
+}
+
+.k-grid .k-table-row:is(:hover, .k-hover) td.col-freeze-right,
+.k-grid .k-master-row:is(:hover, .k-hover) td.col-freeze-right {
+  // 11% on-app-surface over surface-alt — same as Kendo's hover row
+  background-color: color-mix(in srgb, var(--kendo-color-on-app-surface) 11%, var(--kendo-color-surface-alt)) !important;
+}
+
+.k-grid .k-table-row.k-selected td.col-freeze-right,
+.k-grid td.col-freeze-right.k-selected {
+  // 25% primary over surface-alt — same as Kendo's selected row
+  background-color: color-mix(in srgb, var(--kendo-color-primary) 25%, var(--kendo-color-surface-alt)) !important;
 }
 
 // ── Thin scrollbars (global) ──────────────────────────────────────────────────
@@ -183,4 +262,91 @@ body {
 .k-grid .approach-badge,
 .k-grid .amend-count {
   font-size: 12px !important;
+}
+
+// ── Grid density: compact mode ────────────────────────────────────────────────
+// Applied via [class.k-grid--compact] on the kendo-grid host element.
+// Comfortable (default): 9px 14px cell padding — ~15–17 rows visible
+// Compact:               5px 10px cell padding — ~23–26 rows visible
+.k-grid--compact {
+  td, .k-table-td {
+    padding: 5px 10px !important;
+  }
+  th, .k-table-th, .k-grid-header .k-header {
+    padding: 6px 10px !important;
+  }
+}
+
+// ── Panel record navigation (prev / next) ────────────────────────────────────
+.panel-nav {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.panel-nav-btn {
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  border: 1px solid rgba(15, 23, 42, 0.14);
+  background: #ffffff;
+  color: #475569;
+  cursor: pointer;
+  transition: background 0.12s, border-color 0.12s, color 0.12s;
+  font-size: 11px;
+
+  &:hover:not(:disabled) {
+    background: #f1f5f9;
+    border-color: rgba(0, 184, 205, 0.4);
+    color: #00b8cd;
+  }
+
+  &:disabled {
+    opacity: 0.35;
+    cursor: default;
+  }
+}
+
+.panel-nav-count {
+  font-size: 12px;
+  font-weight: 600;
+  color: #64748b;
+  min-width: 42px;
+  text-align: center;
+  user-select: none;
+}
+
+// ── Density toggle button ─────────────────────────────────────────────────────
+.density-btn {
+  width: 32px !important;
+  height: 32px !important;
+  padding: 0 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border-radius: 6px !important;
+  color: #64748b !important;
+  border: 1px solid rgba(15, 23, 42, 0.12) !important;
+  background: #ffffff !important;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+  font-size: 13px !important;
+
+  &:hover, &.k-hover {
+    background: #f1f5f9 !important;
+    border-color: rgba(0, 184, 205, 0.4) !important;
+    color: #00b8cd !important;
+  }
+
+  &.is-compact {
+    background: rgba(0, 184, 205, 0.08) !important;
+    border-color: rgba(0, 184, 205, 0.3) !important;
+    color: #00b8cd !important;
+  }
 }

@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { NgClass, DatePipe } from '@angular/common';
+import { NgClass, DatePipe, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
   GridModule,
@@ -16,11 +16,19 @@ import { process, State } from '@progress/kendo-data-query';
 import { MultiSelectModule } from '@progress/kendo-angular-dropdowns';
 import { DateInputsModule } from '@progress/kendo-angular-dateinputs';
 import { ComingSoonComponent } from '../coming-soon/coming-soon.component';
+import { KycCustomerFormComponent } from '../kyc-customer-form/kyc-customer-form.component';
 import { KycVerificationComponent } from '../kyc-verification/kyc-verification.component';
 import { ContractsComponent } from '../contracts/contracts.component';
 import { TerminationsComponent } from '../terminations/terminations.component';
 import { SidebarComponent } from '../sidebar/sidebar.component';
 import { TerminationPanel } from '../shared/termination-panel/termination-panel';
+import { KycReviewPanelComponent } from '../shared/kyc-review-panel/kyc-review-panel';
+import { ContractPanelComponent } from '../shared/contract-panel/contract-panel';
+import { UserKycFormsComponent } from '../user-kyc-forms/user-kyc-forms.component';
+import { AuditLogsComponent } from '../audit-logs/audit-logs.component';
+import { OutboxApprovalsComponent } from '../outbox-approvals/outbox-approvals.component';
+import { OutboxService } from '../shared/outbox.service';
+
 
 export interface CustomerRecord {
   id: number;
@@ -33,6 +41,8 @@ export interface CustomerRecord {
   salesPerson: string;
   kycExpired: boolean;
   terminationReason?: string;
+  negotiationRemarks?: string;
+  negotiationHistory?: { date: Date; role: 'customer' | 'reviewer' | 'management' | 'system'; by: string; message: string }[];
   contractHistory?: ContractVersion[];
   // KYC form fields
   tradeLicenseNumber: string;
@@ -75,6 +85,7 @@ export interface ContractVersion {
   imports: [
     NgClass,
     DatePipe,
+    DecimalPipe,
     FormsModule,
     GridModule,
     DialogModule,
@@ -87,17 +98,30 @@ export interface ContractVersion {
     MultiSelectModule,
     DateInputsModule,
     ComingSoonComponent,
+    KycCustomerFormComponent,
     KycVerificationComponent,
     ContractsComponent,
     TerminationsComponent,
     SidebarComponent,
     TerminationPanel,
+    KycReviewPanelComponent,
+    ContractPanelComponent,
+    UserKycFormsComponent,
+    AuditLogsComponent,
+    OutboxApprovalsComponent,
   ],
+
   templateUrl: './contract-dashboard.component.html',
   styleUrls: ['./contract-dashboard.component.scss'],
 })
 export class ContractDashboardComponent implements OnInit {
   today = new Date();
+
+  constructor(public outboxService: OutboxService) {}
+
+  get outboxPendingCount(): number {
+    return this.outboxService.getPendingCount();
+  }
 
   // ── Notifications ──────────────────────────────────────────────────────────
   showNotifications = false;
@@ -183,7 +207,7 @@ export class ContractDashboardComponent implements OnInit {
 
   // ── Navigation ─────────────────────────────────────────────────────────────
   activeNav = 'dashboard';
-  sidebarCollapsed = false;
+  sidebarCollapsed = true;
 
   toggleSidebar(): void {
     this.sidebarCollapsed = !this.sidebarCollapsed;
@@ -191,10 +215,13 @@ export class ContractDashboardComponent implements OnInit {
 
   navItems = [
     { id: 'dashboard',    label: 'Dashboard',       icon: 'fas fa-tachometer-alt' },
+    { id: 'kycCustomerForm', label: 'KYC Customer Form', icon: 'fas fa-file-medical' },
+    { id: 'user-kyc-forms',  label: 'User - KYC Forms',  icon: 'fas fa-clipboard-check'  },
     { id: 'kyc',          label: 'KYC Submissions', icon: 'fas fa-id-card'        },
     { id: 'contracts',    label: 'Contracts',        icon: 'fas fa-file-contract'  },
     { id: 'terminations', label: 'Terminations',     icon: 'fas fa-times-circle'   },
     { id: 'audit',        label: 'Audit Logs',       icon: 'fas fa-clipboard-list' },
+    { id: 'outboxApprovals', label: 'Outbox Approvals', icon: 'fas fa-paper-plane' },
   ];
 
   setNav(id: string): void { this.activeNav = id; }
@@ -205,10 +232,13 @@ export class ContractDashboardComponent implements OnInit {
 
   // ── Nav metadata for Coming Soon pages ────────────────────────────────────
   readonly navMeta: Record<string, { label: string; icon: string }> = {
+    kycCustomerForm:  { label: 'KYC Customer Form', icon: 'fas fa-file-medical' },
+    'user-kyc-forms': { label: 'User - KYC Forms',  icon: 'fas fa-clipboard-check'  },
     kyc:          { label: 'KYC Submissions', icon: 'fas fa-id-card' },
     contracts:    { label: 'Contracts',        icon: 'fas fa-file-contract' },
     terminations: { label: 'Terminations',     icon: 'fas fa-times-circle' },
     audit:        { label: 'Audit Logs',       icon: 'fas fa-clipboard-list' },
+    outboxApprovals: { label: 'Outbox Approvals', icon: 'fas fa-paper-plane' },
   };
 
   // ── Customer Data ───────────────────────────────────────────────────────────
@@ -265,6 +295,7 @@ export class ContractDashboardComponent implements OnInit {
 
   ngOnInit(): void {
     this.seedCustomers();
+    this.seedNegotiationHistory();
     this.refreshGrid();
   }
 
@@ -281,18 +312,18 @@ export class ContractDashboardComponent implements OnInit {
     };
 
     const seed = [
-      { company: 'CityCare Medical Clinic',   contact: 'Dr. Mohammed Al Futtaim', status: 'KYC Submitted',         manager: 'Ali Hassan',    tlNum: 'TL-2025-881234', tlExp: new Date('2026-03-31'), dhaNum: 'DHA-CL-20251102', vat: '100348521200003', emirate: 'Dubai',     phone: '+971 4 355 7890', cemail: 'info@citycare.ae',       web: 'www.citycare.ae',           addr: 'Unit 204, Health Tower, Al Barsha South, Dubai, UAE',        desig: 'CEO',               sigEmail: 'mo.futtaim@citycare.ae',           sigMobile: '+971 50 111 2233', eid: 'emirates_id_mo.pdf',       passport: 'passport_mo.pdf',       sigProof: 'board_resolution.pdf'   },
+      { company: 'CityCare Medical Clinic',   contact: 'Dr. Mohammed Al Futtaim', status: 'KYC Submitted',         manager: 'Ali Hassan',    tlNum: 'TL-2025-881234', tlExp: new Date('2026-03-31'), dhaNum: 'DHA-CL-20251102', vat: '100348521200003', emirate: 'Dubai',     phone: '+971 4 355 7890', cemail: 'info@citycare.ae',       web: 'www.citycare.ae',           addr: 'Unit 204, Health Tower, Al Barsha South, Dubai, UAE',        desig: 'Director',               sigEmail: 'mo.futtaim@citycare.ae',           sigMobile: '+971 50 111 2233', eid: 'emirates_id_mo.pdf',       passport: 'passport_mo.pdf',       sigProof: 'board_resolution.pdf'   },
       { company: 'Wellness Dental Center',    contact: 'Dr. Sarah Al Rashid',     status: 'KYC Under Review',      manager: 'Sara Mohammed', tlNum: 'TL-2024-774522', tlExp: new Date('2025-12-15'), dhaNum: 'DHA-DN-20240875', vat: '100291456700003', emirate: 'Dubai',     phone: '+971 4 422 8800', cemail: 'info@wellnessdental.ae', web: 'www.wellnessdental.ae',     addr: 'Shop 12, Wellness Plaza, Jumeirah, Dubai, UAE',              desig: 'Medical Director',  sigEmail: 's.rashid@wellnessdental.ae',       sigMobile: '+971 55 222 3344', eid: 'emirates_id_sarah.pdf',    passport: 'passport_sarah.pdf',    sigProof: 'authority_letter.pdf'   },
       { company: 'Apex Healthcare Group',     contact: 'Dr. Ahmed Hassan',        status: 'KYC Approved',          manager: 'John Smith',    tlNum: 'TL-2025-900110', tlExp: new Date('2026-07-20'), dhaNum: 'DHA-GH-20250321', vat: '100419835200003', emirate: 'Abu Dhabi', phone: '+971 2 666 3300', cemail: 'admin@apexhealthcare.ae', web: 'www.apexhealthcare.ae',    addr: 'Floor 3, Apex Tower, Khalidiyah, Abu Dhabi, UAE',            desig: 'Managing Director', sigEmail: 'a.hassan@apexhealthcare.ae',        sigMobile: '+971 54 333 4455', eid: 'emirates_id_ahmed.pdf',    passport: 'passport_ahmed.pdf',    sigProof: 'moa_extract.pdf'        },
       { company: 'Oasis Pediatric Clinic',    contact: 'Dr. Fatima Al Zaabi',     status: 'Contract Sent',         manager: 'Layla Ibrahim', tlNum: 'TL-2025-551890', tlExp: new Date('2026-01-10'), dhaNum: 'DHA-PC-20251445', vat: '100382741200003', emirate: 'Sharjah',   phone: '+971 6 533 2200', cemail: 'oasis@pediatric.ae',     web: 'www.oasispediatric.ae',     addr: 'Ground Floor, Oasis Mall, Al Wahda, Sharjah, UAE',           desig: 'Chief Medical Officer', sigEmail: 'f.zaabi@oasispediatric.ae',      sigMobile: '+971 56 444 5566', eid: 'emirates_id_fatima.pdf',   passport: 'passport_fatima.pdf',   sigProof: 'authority_fatima.pdf'   },
       { company: 'Prime Physio Specialists',  contact: 'Dr. James Crawford',      status: 'Contract Signed',       manager: 'Ali Hassan',    tlNum: 'TL-2024-668401', tlExp: new Date('2025-11-30'), dhaNum: 'DHA-PH-20241008', vat: '100344219300003', emirate: 'Dubai',     phone: '+971 4 288 7700', cemail: 'prime@physio.ae',        web: 'www.primephysio.ae',        addr: 'Unit 501, Sports City Centre, Dubai Sports City, UAE',       desig: 'Director',          sigEmail: 'j.crawford@primephysio.ae',        sigMobile: '+971 50 555 6677', eid: 'emirates_id_james.pdf',    passport: 'passport_james.pdf',    sigProof: 'director_cert.pdf'      },
       { company: 'Luminous Eye Care Center',  contact: 'Dr. Nour Al Hamdan',      status: 'KYC Expired',           manager: 'Sara Mohammed', tlNum: 'TL-2023-441067', tlExp: new Date('2024-08-15'), dhaNum: 'DHA-EC-20230654', vat: '100267183400003', emirate: 'Dubai',     phone: '+971 4 311 9900', cemail: 'info@luminouseye.ae',    web: 'www.luminouseye.ae',        addr: 'Suite 302, Vision Building, Deira, Dubai, UAE',              desig: 'Chairman',          sigEmail: 'n.hamdan@luminouseye.ae',          sigMobile: '+971 55 666 7788', eid: 'emirates_id_nour.pdf',     passport: 'passport_nour.pdf',     sigProof: 'authority_nour.pdf',    fieldErrors: { tradeLicenseExpiry: 'Trade License expired on 15 Aug 2024 — renewal required before KYC approval.' } },
       { company: 'Sunrise Family Clinic',     contact: 'Dr. Khalid Al Mansoori',  status: 'Termination Requested', manager: 'John Smith',    tlNum: 'TL-2025-720033', tlExp: new Date('2026-05-22'), dhaNum: 'DHA-FC-20251263', vat: '100358924100003', emirate: 'Dubai',     phone: '+971 4 299 4400', cemail: 'sunrise@familyclinic.ae', web: 'www.sunrise.ae',           addr: 'Villa 14, Sunrise Complex, Al Qusais, Dubai, UAE',           desig: 'Medical Director',  sigEmail: 'k.mansoori@sunrise.ae',            sigMobile: '+971 54 777 8899', eid: 'emirates_id_khalid.pdf',   passport: 'passport_khalid.pdf',   sigProof: 'sig_auth_khalid.pdf',   terminationReason: 'Clinic closure — voluntary liquidation' },
-      { company: 'Emirates Dermatology Hub',  contact: 'Dr. Priya Sharma',        status: 'KYC Submitted',         manager: 'Layla Ibrahim', tlNum: 'TL-2025-835700', tlExp: new Date('2026-09-30'), dhaNum: 'DHA-DH-20251587', vat: '100411237500003', emirate: 'Dubai',     phone: '+971 4 388 2200', cemail: 'info@emiratesderm.ae',   web: 'www.emiratesderm.ae',       addr: 'Unit 108, Dermis Tower, Bur Dubai, UAE',                     desig: 'CEO',               sigEmail: 'p.sharma@emiratesderm.ae',         sigMobile: '+971 56 888 9900', eid: 'emirates_id_priya.pdf',    passport: 'passport_priya.pdf',    sigProof: '',                      fieldErrors: { fileSignatureProof: 'Signature authority proof not uploaded — required for non-owner signatories.' } },
+      { company: 'Emirates Dermatology Hub',  contact: 'Dr. Priya Sharma',        status: 'KYC Submitted',         manager: 'Layla Ibrahim', tlNum: 'TL-2025-835700', tlExp: new Date('2026-09-30'), dhaNum: 'DHA-DH-20251587', vat: '100411237500003', emirate: 'Dubai',     phone: '+971 4 388 2200', cemail: 'info@emiratesderm.ae',   web: 'www.emiratesderm.ae',       addr: 'Unit 108, Dermis Tower, Bur Dubai, UAE',                     desig: 'Director',               sigEmail: 'p.sharma@emiratesderm.ae',         sigMobile: '+971 56 888 9900', eid: 'emirates_id_priya.pdf',    passport: 'passport_priya.pdf',    sigProof: '',                      fieldErrors: { fileSignatureProof: 'Signature authority proof not uploaded — required for non-owner signatories.' } },
       { company: 'Horizon Orthopedics',       contact: 'Dr. Omar Al Suwaidi',     status: 'KYC Under Review',      manager: 'Ali Hassan',    tlNum: 'TL-2025-912345', tlExp: new Date('2026-06-15'), dhaNum: 'DHA-OH-20250923', vat: '100399874600003', emirate: 'Abu Dhabi', phone: '+971 2 444 5500', cemail: 'info@horizonortho.ae',   web: 'www.horizonortho.ae',       addr: 'Level 4, Ortho Centre, Corniche Road, Abu Dhabi, UAE',       desig: 'Director',          sigEmail: 'o.suwaidi@horizonortho.ae',        sigMobile: '+971 50 999 0011', eid: 'emirates_id_omar.pdf',     passport: 'passport_omar.pdf',     sigProof: 'authority_omar.pdf'     },
       { company: 'Vitality Women Clinic',     contact: 'Dr. Chen Wei',            status: 'Contract Sent',         manager: 'Sara Mohammed', tlNum: 'TL-2025-678923', tlExp: new Date('2026-02-28'), dhaNum: 'DHA-WC-20251334', vat: '100374612800003', emirate: 'Dubai',     phone: '+971 4 455 3300', cemail: 'vitality@women.ae',      web: 'www.vitalitywomen.ae',      addr: 'Suite 210, Ladies Wing, Healthcare City, Dubai, UAE',        desig: 'Managing Partner',  sigEmail: 'c.wei@vitalitywomen.ae',           sigMobile: '+971 55 100 2222', eid: 'emirates_id_chen.pdf',     passport: 'passport_chen.pdf',     sigProof: 'partnership_deed.pdf'   },
       { company: 'Harmony Psychiatry Center', contact: 'Dr. Isabella Ferrari',    status: 'KYC Expired',           manager: 'John Smith',    tlNum: 'TL-2023-554321', tlExp: new Date('2024-11-01'), dhaNum: 'DHA-MH-20230789', vat: '100280134500003', emirate: 'Sharjah',   phone: '+971 6 566 7700', cemail: 'harmony@psychiatry.ae',  web: 'www.harmony.ae',            addr: 'Block C, Health Hub, University City, Sharjah, UAE',         desig: 'Medical Director',  sigEmail: 'i.ferrari@harmony.ae',             sigMobile: '+971 54 200 3333', eid: 'emirates_id_isabella.pdf', passport: 'passport_isabella.pdf', sigProof: 'director_proof.pdf',    fieldErrors: { tradeLicenseExpiry: 'Trade License expired on 01 Nov 2024 — please renew before re-submission.' } },
-      { company: 'Nightingale Medical Group', contact: 'Dr. Rashid Al Nuaimi',    status: 'Termination Requested', manager: 'Layla Ibrahim', tlNum: 'TL-2025-791456', tlExp: new Date('2026-04-30'), dhaNum: 'DHA-MG-20251778', vat: '100422983100003', emirate: 'Dubai',     phone: '+971 4 277 6600', cemail: 'info@nightingale.ae',    web: 'www.nightingale.ae',        addr: 'Tower 3, Medical Park, Al Garhoud, Dubai, UAE',              desig: 'CEO',               sigEmail: 'r.nuaimi@nightingale.ae',          sigMobile: '+971 56 300 4444', eid: 'emirates_id_rashid.pdf',   passport: 'passport_rashid.pdf',   sigProof: 'authority_rashid.pdf',  terminationReason: 'Merger with larger hospital network — account consolidation' },
+      { company: 'Nightingale Medical Group', contact: 'Dr. Rashid Al Nuaimi',    status: 'Termination Requested', manager: 'Layla Ibrahim', tlNum: 'TL-2025-791456', tlExp: new Date('2026-04-30'), dhaNum: 'DHA-MG-20251778', vat: '100422983100003', emirate: 'Dubai',     phone: '+971 4 277 6600', cemail: 'info@nightingale.ae',    web: 'www.nightingale.ae',        addr: 'Tower 3, Medical Park, Al Garhoud, Dubai, UAE',              desig: 'Director',               sigEmail: 'r.nuaimi@nightingale.ae',          sigMobile: '+971 56 300 4444', eid: 'emirates_id_rashid.pdf',   passport: 'passport_rashid.pdf',   sigProof: 'authority_rashid.pdf',  terminationReason: 'Merger with larger hospital network — account consolidation' },
       { company: 'Global Smiles Dental',      contact: 'Dr. Ananya Patel',        status: 'Contract Signed',       manager: 'Ali Hassan',    tlNum: 'TL-2025-867234', tlExp: new Date('2026-08-31'), dhaNum: 'DHA-DN-20251456', vat: '100407316200003', emirate: 'Dubai',     phone: '+971 4 366 8900', cemail: 'smiles@global.ae',       web: 'www.globalsmiles.ae',       addr: 'Unit 301, Smile Centre, Mirdif, Dubai, UAE',                 desig: 'Managing Director', sigEmail: 'a.patel@globalsmiles.ae',          sigMobile: '+971 55 400 5555', eid: 'emirates_id_ananya.pdf',   passport: 'passport_ananya.pdf',   sigProof: 'director_resolution.pdf' },
       { company: 'Aura Aesthetics & Laser',   contact: 'Dr. Carlos Mendez',       status: 'KYC Approved',          manager: 'Sara Mohammed', tlNum: 'TL-2025-743678', tlExp: new Date('2026-10-15'), dhaNum: 'DHA-AS-20251234', vat: '100388527300003', emirate: 'Dubai',     phone: '+971 4 344 7700', cemail: 'aura@aesthetics.ae',     web: 'www.auraaesthetics.ae',     addr: 'Floor 5, Aura Building, DIFC, Dubai, UAE',                   desig: 'Director',          sigEmail: 'c.mendez@auraaesthetics.ae',       sigMobile: '+971 56 500 6666', eid: 'emirates_id_carlos.pdf',   passport: 'passport_carlos.pdf',   sigProof: 'power_of_attorney.pdf'  },
       { company: 'Crescent Urgent Care',      contact: 'Dr. Aisha Al Marzouqi',   status: 'Termination Approved',  manager: 'John Smith',    tlNum: 'TL-2024-634890', tlExp: new Date('2025-06-30'), dhaNum: 'DHA-UC-20241567', vat: '100362748900003', emirate: 'Ajman',     phone: '+971 6 744 3300', cemail: 'crescent@urgentcare.ae', web: 'www.crescenturgentcare.ae', addr: 'Block 2, Crescent Tower, Ajman Uptown, Ajman, UAE',          desig: 'Medical Director',  sigEmail: 'a.marzouqi@crescenturgentcare.ae', sigMobile: '+971 56 700 7777', eid: 'emirates_id_aisha.pdf',    passport: 'passport_aisha.pdf',    sigProof: 'director_cert_aisha.pdf', terminationReason: 'Loss of Healthcare Authority License' },
@@ -335,6 +366,43 @@ export class ContractDashboardComponent implements OnInit {
         fieldErrors:          row.fieldErrors,
       };
     });
+  }
+
+  private seedNegotiationHistory(): void {
+    const h = (daysAgo: number, hour = 10) =>
+      new Date(Date.now() - daysAgo * 86_400_000 + hour * 3_600_000);
+
+    const sunrise = this.customers.find(c => c.companyName === 'Sunrise Family Clinic');
+    if (sunrise) {
+      sunrise.negotiationRemarks = 'Customer open to discussion — requested a 2-month exit window to wind down operations gracefully.';
+      sunrise.negotiationHistory = [
+        { date: h(12), role: 'reviewer',   by: 'John Smith (Reviewer)',          message: 'Initial termination request received. Customer cited voluntary closure. Initiated review and contacted clinic management.' },
+        { date: h(9),  role: 'customer',   by: 'Sunrise Family Clinic',          message: 'Clinic management confirmed voluntary liquidation decision. Requested 2-month grace period before final exit to ensure patient continuity.' },
+        { date: h(6),  role: 'reviewer',   by: 'John Smith (Reviewer)',          message: 'Negotiation terms reviewed internally. Forwarding for management approval with a proposed 6-week phased handover plan.' },
+      ];
+    }
+
+    const nightingale = this.customers.find(c => c.companyName === 'Nightingale Medical Group');
+    if (nightingale) {
+      nightingale.negotiationRemarks = 'Merger-driven exit — legal consolidation in progress. Handover timeline tied to acquiring network onboarding schedule.';
+      nightingale.negotiationHistory = [
+        { date: h(20), role: 'reviewer',    by: 'Layla Ibrahim (Reviewer)',      message: 'Termination request received. Reason: merger with larger hospital network. Documentation review initiated.' },
+        { date: h(16), role: 'customer',    by: 'Nightingale Medical Group',     message: 'Provided merger agreement extract. Confirmed account consolidation is being handled by the acquiring entity.' },
+        { date: h(12), role: 'management',  by: 'Management (Approver)',         message: 'Merger terms verified and accepted. Negotiation remarks approved. Notice period authorised.' },
+        { date: h(11), role: 'system',      by: 'System',                        message: 'Status advanced to Notice Period. Handover workflow initiated.' },
+      ];
+    }
+
+    const crescent = this.customers.find(c => c.companyName === 'Crescent Urgent Care');
+    if (crescent) {
+      crescent.negotiationRemarks = 'DHA license lapsed — regulatory authority confirmed no viable path to renewal. Expedited exit approved.';
+      crescent.negotiationHistory = [
+        { date: h(22), role: 'reviewer',    by: 'John Smith (Reviewer)',         message: 'Regulatory closure confirmed — DHA license lapsed on 30 Jun 2025. No renewal application submitted by the clinic.' },
+        { date: h(18), role: 'customer',    by: 'Crescent Urgent Care',          message: 'Management confirmed inability to renew license. Requested expedited exit with waiver of remaining contractual notice period.' },
+        { date: h(15), role: 'management',  by: 'Management (Approver)',         message: 'Regulatory grounds accepted as valid basis for early exit. Termination approved. License-loss waiver granted.' },
+        { date: h(14), role: 'system',      by: 'System',                        message: 'Status set to Termination Approved. Notice period clock started. Handover checklist sent to accounts team.' },
+      ];
+    }
   }
 
   matchDateFilters(dateToCheck: Date | string | null | undefined, selectedFilters: string[]): boolean {
@@ -448,6 +516,91 @@ export class ContractDashboardComponent implements OnInit {
   get terminationCount()          { return this.customers.filter(c => c.status === 'Termination Requested').length; }
   get terminationApprovedCount()  { return this.customers.filter(c => c.status === 'Termination Approved').length; }
   get terminationTotalActive()    { return this.customers.filter(c => ['Termination Requested','Termination Approved'].includes(c.status)).length; }
+  get terminationFinalizedCount() { return this.customers.filter(c => c.status === 'Termination Finalized').length; }
+
+  // KYC expiring within 60 days but not yet expired
+  get kycAboutToExpireCount(): number {
+    const now = Date.now();
+    const sixtyDays = 60 * 86_400_000;
+    return this.customers.filter(c =>
+      !c.kycExpired &&
+      c.kycExpiryDate != null &&
+      c.kycExpiryDate.getTime() > now &&
+      c.kycExpiryDate.getTime() - now <= sixtyDays
+    ).length;
+  }
+
+  // Helpers for redefined dashboard
+  get dubaiCount(): number { return this.customers.filter(c => c.emirate === 'Dubai').length; }
+  get abuDhabiCount(): number { return this.customers.filter(c => c.emirate === 'Abu Dhabi').length; }
+  get sharjahCount(): number { return this.customers.filter(c => c.emirate === 'Sharjah').length; }
+  get ajmanCount(): number { return this.customers.filter(c => c.emirate === 'Ajman').length; }
+
+  get awaitingSignatureRecords(): CustomerRecord[] {
+    return this.customers.filter(c => c.status === 'Contract Sent');
+  }
+
+  get recentKycSubmissions(): CustomerRecord[] {
+    return this.customers.filter(c => ['KYC Submitted', 'KYC Under Review'].includes(c.status));
+  }
+
+  get expiredKycRecords(): CustomerRecord[] {
+    return this.customers.filter(c => c.kycExpired);
+  }
+
+  get noticePeriodRecords(): CustomerRecord[] {
+    return this.customers.filter(c => ['Termination Requested', 'Termination Approved'].includes(c.status));
+  }
+
+  get kycApprovedCustomers(): CustomerRecord[] {
+    return this.customers.filter(c => c.status === 'KYC Approved');
+  }
+
+  get pipelineDonutGradient(): string {
+    const total = this.customers.length || 1;
+    const segments = [
+      { count: this.kycUnderReviewCount,                          color: '#00b8cd' },
+      { count: this.kycApprovedCount,                             color: '#00a674' },
+      { count: this.contractsActiveSigned + this.pendingSigCount, color: '#3f6ad8' },
+      { count: this.expiredKycCount,                              color: '#f64e60' },
+      { count: this.terminationTotalActive,                       color: '#ffc107' },
+    ];
+    let acc = 0;
+    const parts = segments.map(seg => {
+      const pct = (seg.count / total) * 100;
+      const start = acc;
+      acc += pct;
+      return `${seg.color} ${start.toFixed(1)}% ${acc.toFixed(1)}%`;
+    });
+    return `conic-gradient(${parts.join(', ')})`;
+  }
+
+  get exitReasonBreakdown(): { label: string; count: number; barClass: string }[] {
+    const reasons = this.noticePeriodRecords
+      .map(r => r.terminationReason ?? 'Other')
+      .reduce((acc, reason) => {
+        const key = reason.includes('liquidation') || reason.includes('closure')
+          ? 'Voluntary Liquidation / Closure'
+          : reason.includes('Merger') || reason.includes('merger') || reason.includes('consolidation')
+          ? 'Merger / Consolidation'
+          : reason.includes('License') || reason.includes('license') || reason.includes('Regulatory')
+          ? 'License Loss (Regulatory)'
+          : 'Other';
+        acc[key] = (acc[key] ?? 0) + 1;
+        return acc;
+      }, {} as Record<string, number>);
+
+    const barClassMap: Record<string, string> = {
+      'Voluntary Liquidation / Closure': 'db-region-bar--danger',
+      'Merger / Consolidation':          'db-region-bar--warning',
+      'License Loss (Regulatory)':       'db-region-bar--muted',
+      'Other':                           'db-region-bar--accent',
+    };
+
+    return Object.entries(reasons).map(([label, count]) => ({
+      label, count, barClass: barClassMap[label] ?? 'db-region-bar--accent',
+    }));
+  }
 
   // ── Status Helpers ─────────────────────────────────────────────────────────
   getStatusClass(status: string): string {

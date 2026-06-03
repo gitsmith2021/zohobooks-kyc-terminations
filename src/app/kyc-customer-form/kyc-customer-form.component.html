@@ -1,0 +1,159 @@
+<div class="customer-form-shell">
+  <div class="page-breadcrumb text-muted mb-2">
+    Home / <span class="text-primary">KYC Customer Form</span>
+  </div>
+
+  <div class="customer-form-scroll">
+    <form class="fb-preview-screen" #kycCustomerForm="ngForm" (ngSubmit)="submitForm()">
+      <div class="fb-preview-header">
+        <div class="fb-logo-placeholder"><i class="fas fa-hospital me-1"></i> Unitecare Customer Portal</div>
+        <div class="fb-preview-badge">{{ builderFormVersion }}</div>
+      </div>
+
+      <div class="fb-preview-body">
+        <div class="customer-form-title-row">
+          <div>
+            <h5>{{ builderFormTitle }}</h5>
+            <p>Please fill out the regulatory details below to complete your KYC verification.</p>
+          </div>
+          @if (submitted) {
+          <span class="customer-submit-state"><i class="fas fa-check-circle"></i> Submitted</span>
+          }
+        </div>
+
+        <div class="fb-preview-form">
+          @for (category of categories; track category.id) {
+          <section class="fb-preview-section">
+            <h6 class="fb-preview-section-title">{{ category.label }}</h6>
+            <div class="fb-preview-section-grid">
+              @for (prow of getPreviewGroups(category.id); track $index) {
+
+              @if (prow.type === 'field') {
+              <div class="fb-preview-group"
+                [class.fb-preview-group--wide]="prow.field!.type === 'textarea' || prow.field!.type === 'table'">
+                <label class="fb-preview-lbl" [for]="prow.field!.id">{{ prow.field!.label }}
+                  @if (prow.field!.required) { <span class="text-danger">*</span> }
+                </label>
+
+                @if (prow.field!.type === 'text') {
+                <input class="fb-preview-input" type="text" [id]="prow.field!.id" [name]="prow.field!.id"
+                  [required]="prow.field!.required" [(ngModel)]="formValues[prow.field!.id]"
+                  [placeholder]="'Enter ' + prow.field!.label.toLowerCase() + '...'">
+                }
+
+                @if (prow.field!.type === 'date') {
+                <input class="fb-preview-input" type="date" [id]="prow.field!.id" [name]="prow.field!.id"
+                  [required]="prow.field!.required" [(ngModel)]="formValues[prow.field!.id]">
+                }
+
+                @if (prow.field!.type === 'select') {
+                <select class="fb-preview-select" [id]="prow.field!.id" [name]="prow.field!.id"
+                  [required]="prow.field!.required" [(ngModel)]="formValues[prow.field!.id]">
+                  <option value="">{{ 'Select ' + prow.field!.label.toLowerCase() + '...' }}</option>
+                  @for (option of prow.field!.options ?? []; track option) {
+                  <option [value]="option">{{ option }}</option>
+                  }
+                </select>
+                }
+
+                @if (prow.field!.type === 'textarea') {
+                <textarea class="fb-preview-input" rows="2" [id]="prow.field!.id" [name]="prow.field!.id"
+                  [required]="prow.field!.required" [(ngModel)]="formValues[prow.field!.id]"
+                  [placeholder]="'Enter ' + prow.field!.label.toLowerCase() + '...'"></textarea>
+                }
+
+                @if (prow.field!.type === 'file') {
+                <label class="fb-preview-file-upload" [class.fb-preview-file-upload--filled]="fileValues[prow.field!.id]">
+                  <input type="file" [name]="prow.field!.id" [required]="prow.field!.required"
+                    accept=".pdf,.jpg,.jpeg,.png" (change)="onFileSelected($event, prow.field!.id)">
+                  <i class="fas" [class.fa-cloud-upload-alt]="!fileValues[prow.field!.id]"
+                    [class.fa-check-circle]="fileValues[prow.field!.id]"></i>
+                  <span>{{ fileValues[prow.field!.id] || 'Drag & Drop file here or click to browse' }}</span>
+                  <small>Supported formats: PDF, JPG, PNG (Max {{ prow.field!.sizeLimit }}MB)</small>
+                </label>
+                }
+
+                @if (prow.field!.type === 'table' && prow.field!.tableConfig) {
+                <div class="fb-preview-table-wrap">
+                  <table class="fb-preview-table">
+                    <thead>
+                      <tr>
+                        <th class="fb-pt-th fb-pt-th--role">Contact Person</th>
+                        @for (col of prow.field!.tableConfig!.columns; track col) {
+                        <th class="fb-pt-th">{{ col }}</th>
+                        }
+                      </tr>
+                    </thead>
+                    <tbody>
+                      @for (trow of prow.field!.tableConfig!.rows; track trow; let rowIdx = $index) {
+                      <tr>
+                        <td class="fb-pt-td fb-pt-td--role">{{ trow }}</td>
+                        @for (col of prow.field!.tableConfig!.columns; track col) {
+                        <td class="fb-pt-td">
+                          @if (col === 'Remarks') {
+                          <span class="fb-pt-remark-note">{{ prow.field!.tableConfig!.rowRemarks?.[rowIdx] || '—' }}</span>
+                          } @else {
+                          <input type="text" class="fb-pt-cell-input" [name]="prow.field!.id + '-' + rowIdx + '-' + col"
+                            [required]="prow.field!.required" [placeholder]="col" [ngModel]="getPocValue(trow, col)"
+                            (ngModelChange)="setPocValue(trow, col, $event)">
+                          }
+                        </td>
+                        }
+                      </tr>
+                      }
+                    </tbody>
+                  </table>
+                </div>
+                }
+              </div>
+              }
+
+              @if (prow.type === 'subgroup') {
+              <div class="fb-tl-subgroup fb-preview-group--wide">
+                <div class="fb-tl-subgroup-grid">
+                  @for (field of prow.fields!; track field.id) {
+                  <div class="fb-preview-group">
+                    <label class="fb-preview-lbl" [for]="field.id">{{ field.label }}
+                      @if (field.required) { <span class="text-danger">*</span> }
+                    </label>
+
+                    @if (field.type === 'text') {
+                    <input class="fb-preview-input" type="text" [id]="field.id" [name]="field.id"
+                      [required]="field.required" [(ngModel)]="formValues[field.id]"
+                      [placeholder]="'Enter ' + field.label.toLowerCase() + '...'">
+                    }
+
+                    @if (field.type === 'select') {
+                    <select class="fb-preview-select" [id]="field.id" [name]="field.id" [required]="field.required"
+                      [(ngModel)]="formValues[field.id]">
+                      <option value="">{{ 'Select ' + field.label.toLowerCase() + '...' }}</option>
+                      @for (option of field.options ?? []; track option) {
+                      <option [value]="option">{{ option }}</option>
+                      }
+                    </select>
+                    }
+
+                    @if (field.type === 'date') {
+                    <input class="fb-preview-input" type="date" [id]="field.id" [name]="field.id"
+                      [required]="field.required" [(ngModel)]="formValues[field.id]">
+                    }
+                  </div>
+                  }
+                </div>
+              </div>
+              }
+
+              }
+            </div>
+          </section>
+          }
+        </div>
+      </div>
+
+      <div class="customer-form-footer">
+        <button type="reset" class="customer-secondary-btn">Clear</button>
+        <button type="submit" class="customer-primary-btn" [disabled]="kycCustomerForm.invalid">Submit KYC</button>
+      </div>
+    </form>
+  </div>
+</div>

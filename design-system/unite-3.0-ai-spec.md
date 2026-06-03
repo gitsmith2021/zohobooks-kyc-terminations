@@ -7,7 +7,7 @@ Use this document with `unite-3.0-ai-spec.json` when building prototypes, HTML m
 | Layer | Authority | Notes |
 |-------|-----------|-------|
 | **Colors** | Brand Guidelines v2.1 (2025) | Unite 3.0 palette only |
-| **UI structure** | Figma `Unite-UI-Ripul` (Unite 2.0) | Spacing, radius, component sizes, states |
+| **UI structure** | Figma [KYCs - Contracts - Terminations](https://www.figma.com/design/xi4zYHXzRJja5qiEfPMc72/KYCs---Contracts---Terminations) | Spacing, radius, component sizes, states |
 | **Typography** | Lato | Web applications — Light/Regular/Bold/ExtraBold |
 
 **Never use Unite 2.0 primary `#009DDC`.** Use `#00B8CD` instead.

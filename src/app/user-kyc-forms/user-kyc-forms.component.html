@@ -1,0 +1,430 @@
+<!-- ═══════════════════════════════════════════════════════════════
+     USER - KYC FORMS  (3-Panel Layout)
+     ═══════════════════════════════════════════════════════════════ -->
+<div class="ukf-shell">
+
+  <!-- ══════════════════════════════════════════════════════════════
+       PANEL 1 — Customer List
+       ══════════════════════════════════════════════════════════════ -->
+  <aside class="ukf-cust-panel">
+
+    <div class="ukf-panel-hdr">
+      <span class="ukf-panel-title"><i class="fa-regular fa-hospital me-2"></i>Customers</span>
+      <span class="ukf-panel-count">{{ filteredCustomers.length }}</span>
+    </div>
+
+    <!-- Search -->
+    <div class="ukf-search-wrap">
+      <i class="fas fa-search ukf-search-icon"></i>
+      <input class="ukf-search-input"
+             type="text"
+             placeholder="Search customers…"
+             [(ngModel)]="customerSearch" />
+      @if (customerSearch) {
+        <button class="ukf-search-clear" (click)="customerSearch = ''">
+          <i class="fas fa-times"></i>
+        </button>
+      }
+    </div>
+
+    <!-- Customer List -->
+    <div class="ukf-scroll-area">
+      @if (filteredCustomers.length === 0) {
+        <div class="ukf-list-empty">No customers match "{{ customerSearch }}"</div>
+      }
+      @for (cust of filteredCustomers; track cust.id) {
+        <div class="ukf-cust-item"
+             [class.ukf-cust-item--active]="selectedCustomer?.id === cust.id"
+             (click)="selectCustomer(cust)">
+          <div class="ukf-cust-avatar">{{ cust.companyName.charAt(0) }}</div>
+          <div class="ukf-cust-meta">
+            <div class="ukf-cust-name">{{ cust.companyName }}</div>
+            <div class="ukf-cust-contact">{{ cust.contactName }}</div>
+          </div>
+          <span class="ukf-badge {{ getCustStatusClass(cust) }}">
+            {{ cust.submissions.length }}
+          </span>
+        </div>
+      }
+    </div>
+
+  </aside>
+
+  <!-- ══════════════════════════════════════════════════════════════
+       PANEL 2 — Submission Versions
+       ══════════════════════════════════════════════════════════════ -->
+  <aside class="ukf-sub-panel">
+
+    @if (!selectedCustomer) {
+      <div class="ukf-placeholder">
+        <i class="fas fa-hand-pointer ukf-placeholder-icon"></i>
+        <p>Select a customer to view their submitted KYC forms</p>
+      </div>
+    } @else {
+
+      <div class="ukf-panel-hdr ukf-panel-hdr--sub">
+        <div>
+          <div class="ukf-panel-title" style="font-size: 13px">{{ selectedCustomer.companyName }}</div>
+          <div class="ukf-panel-sub">{{ selectedCustomer.submissions.length }} submission{{ selectedCustomer.submissions.length !== 1 ? 's' : '' }}</div>
+        </div>
+      </div>
+
+      <div class="ukf-scroll-area">
+        @for (sub of selectedCustomer.submissions; track sub.id; let isLast = $last) {
+          <div class="ukf-sub-item"
+               [class.ukf-sub-item--active]="selectedSubmission?.id === sub.id"
+               (click)="selectSubmission(sub)">
+
+            <div class="ukf-sub-ver-badge">{{ sub.version }}</div>
+
+            <div class="ukf-sub-meta">
+              <div class="ukf-sub-formname">{{ sub.formName }}</div>
+              <div class="ukf-sub-date">
+                <i class="fas fa-calendar-alt me-1"></i>
+                Submitted {{ sub.submittedOn | date:'dd MMM yyyy' }}
+              </div>
+              @if (sub.reviewedOn) {
+                <div class="ukf-sub-date ukf-sub-date--reviewed">
+                  <i class="fas fa-check me-1"></i>
+                  Reviewed {{ sub.reviewedOn | date:'dd MMM yyyy' }}
+                </div>
+              }
+            </div>
+
+            <span class="ukf-badge {{ getSubStatusClass(sub.status) }} ukf-badge--sm">
+              <i class="{{ getSubStatusIcon(sub.status) }} me-1"></i>{{ sub.status }}
+            </span>
+
+          </div>
+          @if (!isLast) {
+            <hr class="ukf-sub-divider" />
+          }
+        }
+      </div>
+
+    }
+  </aside>
+
+  <!-- ══════════════════════════════════════════════════════════════
+       PANEL 3 — KYC Form Preview
+       ══════════════════════════════════════════════════════════════ -->
+  <main class="ukf-preview-panel">
+
+    @if (!selectedSubmission) {
+      <div class="ukf-placeholder ukf-placeholder--lg">
+        <i class="fas fa-file-alt ukf-placeholder-icon"></i>
+        <p>Select a KYC submission to preview the full form</p>
+      </div>
+    } @else {
+
+      <!-- Preview Toolbar -->
+      <div class="ukf-preview-toolbar">
+        <div class="ukf-preview-toolbar-left">
+          <span class="ukf-pv-form-name">{{ selectedSubmission.formName }}</span>
+          <span class="ukf-pv-ver-tag">{{ selectedSubmission.version }}</span>
+          <span class="ukf-badge {{ getSubStatusClass(selectedSubmission.status) }}">
+            <i class="{{ getSubStatusIcon(selectedSubmission.status) }} me-1"></i>
+            {{ selectedSubmission.status }}
+          </span>
+        </div>
+        <div class="ukf-preview-toolbar-right">
+          <button kendoButton themeColor="primary" fillMode="outline" (click)="downloadPdf()" class="ukf-dl-btn">
+            <i class="fas fa-download me-1"></i>Download PDF
+          </button>
+        </div>
+      </div>
+
+      <!-- ── KYC Form Document ────────────────────────────────────────────── -->
+      <div class="ukf-doc-wrap">
+        <div class="ukf-doc" id="ukf-printable">
+
+          <!-- Document Header -->
+          <div class="ukf-doc-hdr">
+            <div class="ukf-doc-hdr-brand">
+              <div class="ukf-doc-logo">
+                <i class="fas fa-hospital-alt"></i>
+              </div>
+              <div>
+                <div class="ukf-doc-brand-name">Unite Care</div>
+                <div class="ukf-doc-brand-sub">Zoho Contracts KYC</div>
+              </div>
+            </div>
+            <div class="ukf-doc-hdr-meta">
+              <div class="ukf-doc-form-title">{{ selectedSubmission.formName }}</div>
+              <div class="ukf-doc-meta-row">
+                <span class="ukf-doc-meta-label">Version</span>
+                <span class="ukf-doc-meta-val">{{ selectedSubmission.version }}</span>
+              </div>
+              <div class="ukf-doc-meta-row">
+                <span class="ukf-doc-meta-label">Submitted</span>
+                <span class="ukf-doc-meta-val">{{ selectedSubmission.submittedOn | date:'dd MMMM yyyy' }}</span>
+              </div>
+              @if (selectedSubmission.reviewedOn) {
+                <div class="ukf-doc-meta-row">
+                  <span class="ukf-doc-meta-label">Reviewed</span>
+                  <span class="ukf-doc-meta-val">{{ selectedSubmission.reviewedOn | date:'dd MMMM yyyy' }}</span>
+                </div>
+              }
+              <span class="ukf-badge {{ getSubStatusClass(selectedSubmission.status) }} mt-2 d-inline-flex">
+                <i class="{{ getSubStatusIcon(selectedSubmission.status) }} me-1"></i>
+                {{ selectedSubmission.status }}
+              </span>
+            </div>
+          </div>
+
+          <!-- ── SECTION 1: Customer Information ─────────────────────────── -->
+          <div class="ukf-doc-section">
+            <div class="ukf-doc-section-hdr ukf-doc-section-hdr--info">
+              <i class="fa-regular fa-building me-2"></i>Section 1 — Customer Information
+            </div>
+            <div class="ukf-doc-body">
+
+              <div class="ukf-field-grid">
+                <div class="ukf-field">
+                  <span class="ukf-field-label">Legal Entity / Clinic Name</span>
+                  <span class="ukf-field-val ukf-field-val--primary">{{ selectedSubmission.formData.companyName }}</span>
+                </div>
+                <div class="ukf-field ukf-field--wide">
+                  <span class="ukf-field-label">Registered Address (as per Trade License)</span>
+                  <span class="ukf-field-val">{{ selectedSubmission.formData.registeredAddress }}</span>
+                </div>
+                <div class="ukf-field">
+                  <span class="ukf-field-label">VAT Registration Number (TRN)</span>
+                  <span class="ukf-field-val" [class.ukf-field-val--empty]="!selectedSubmission.formData.vatTrnNumber">
+                    {{ selectedSubmission.formData.vatTrnNumber || '— Not provided' }}
+                  </span>
+                </div>
+              </div>
+
+              <!-- Trade License Sub-card -->
+              <div class="ukf-tl-card">
+                <div class="ukf-tl-card-hdr">
+                  <i class="fas fa-id-card me-2"></i>Trade License Details
+                </div>
+                <div class="ukf-field-grid ukf-field-grid--tl">
+                  <div class="ukf-field">
+                    <span class="ukf-field-label">Trade License Number</span>
+                    <span class="ukf-field-val">{{ selectedSubmission.formData.tradeLicenseNumber }}</span>
+                  </div>
+                  <div class="ukf-field">
+                    <span class="ukf-field-label">Issuing Authority</span>
+                    <span class="ukf-field-val">{{ selectedSubmission.formData.tradeLicenseAuthority }}</span>
+                  </div>
+                  <div class="ukf-field">
+                    <span class="ukf-field-label">Signing Authority</span>
+                    <span class="ukf-field-val">{{ selectedSubmission.formData.tradeLicenseSigningAuth }}</span>
+                  </div>
+                  <div class="ukf-field">
+                    <span class="ukf-field-label">Issue Date</span>
+                    <span class="ukf-field-val">{{ selectedSubmission.formData.tradeLicenseIssueDate }}</span>
+                  </div>
+                  <div class="ukf-field">
+                    <span class="ukf-field-label">Expiry Date</span>
+                    <span class="ukf-field-val">{{ selectedSubmission.formData.tradeLicenseExpiry }}</span>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- ── SECTION 2: Contact Persons (POCs) ───────────────────────── -->
+          <div class="ukf-doc-section">
+            <div class="ukf-doc-section-hdr ukf-doc-section-hdr--contacts">
+              <i class="fas fa-users me-2"></i>Section 2 — Contact Persons (POCs)
+            </div>
+            <div class="ukf-doc-body ukf-doc-body--table">
+              <table class="ukf-poc-table">
+                <thead>
+                  <tr>
+                    <th class="ukf-poc-th ukf-poc-th--role">Role</th>
+                    <th class="ukf-poc-th">Name</th>
+                    <th class="ukf-poc-th">Designation</th>
+                    <th class="ukf-poc-th">Email ID</th>
+                    <th class="ukf-poc-th">Phone Number</th>
+                    <th class="ukf-poc-th ukf-poc-th--remarks">Remarks</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (poc of selectedSubmission.formData.pocs; track poc.role) {
+                    <tr class="ukf-poc-tr" [class.ukf-poc-tr--signatory]="poc.role === 'Authorized Signatory'">
+                      <td class="ukf-poc-td ukf-poc-td--role">{{ poc.role }}</td>
+                      <td class="ukf-poc-td">{{ poc.name }}</td>
+                      <td class="ukf-poc-td">{{ poc.designation }}</td>
+                      <td class="ukf-poc-td ukf-poc-td--email">{{ poc.email }}</td>
+                      <td class="ukf-poc-td">{{ poc.phone }}</td>
+                      <td class="ukf-poc-td ukf-poc-td--remarks">{{ poc.remarks || '—' }}</td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- ── SECTION 3: Supporting Documents ────────────────────────── -->
+          <div class="ukf-doc-section">
+            <div class="ukf-doc-section-hdr ukf-doc-section-hdr--docs">
+              <i class="fas fa-folder-open me-2"></i>Section 3 — Supporting Documents &amp; Licenses
+            </div>
+            <div class="ukf-doc-body">
+              <div class="ukf-docs-list">
+
+                <div class="ukf-doc-file" [class.ukf-doc-file--missing]="!hasDoc(selectedSubmission.formData.fileDhaLicense)">
+                  <div class="ukf-doc-file-icon">
+                    <i class="{{ hasDoc(selectedSubmission.formData.fileDhaLicense) ? 'fas fa-file-pdf' : 'fas fa-file' }}"></i>
+                  </div>
+                  <div class="ukf-doc-file-meta">
+                    <div class="ukf-doc-file-label">DHA License Copy <span class="ukf-req-star">*</span></div>
+                    <div class="ukf-doc-file-name">
+                      {{ selectedSubmission.formData.fileDhaLicense || 'Not uploaded' }}
+                    </div>
+                  </div>
+                  <span class="ukf-doc-file-status">
+                    @if (hasDoc(selectedSubmission.formData.fileDhaLicense)) {
+                      <i class="fas fa-check-circle" style="color: #22c55e"></i>
+                    } @else {
+                      <i class="fas fa-exclamation-circle" style="color: #ef4444"></i>
+                    }
+                  </span>
+                  @if (hasDoc(selectedSubmission.formData.fileDhaLicense)) {
+                    <button class="ukf-eye-btn" title="Preview document"
+                      (click)="openDocPreview('DHA License Copy', selectedSubmission.formData.fileDhaLicense)">
+                      <i class="fas fa-eye"></i>
+                    </button>
+                  }
+                </div>
+
+                <div class="ukf-doc-file" [class.ukf-doc-file--missing]="!hasDoc(selectedSubmission.formData.fileTradeLicense)">
+                  <div class="ukf-doc-file-icon">
+                    <i class="{{ hasDoc(selectedSubmission.formData.fileTradeLicense) ? 'fas fa-file-pdf' : 'fas fa-file' }}"></i>
+                  </div>
+                  <div class="ukf-doc-file-meta">
+                    <div class="ukf-doc-file-label">Trade License Copy <span class="ukf-req-star">*</span></div>
+                    <div class="ukf-doc-file-name">
+                      {{ selectedSubmission.formData.fileTradeLicense || 'Not uploaded' }}
+                    </div>
+                  </div>
+                  <span class="ukf-doc-file-status">
+                    @if (hasDoc(selectedSubmission.formData.fileTradeLicense)) {
+                      <i class="fas fa-check-circle" style="color: #22c55e"></i>
+                    } @else {
+                      <i class="fas fa-exclamation-circle" style="color: #ef4444"></i>
+                    }
+                  </span>
+                  @if (hasDoc(selectedSubmission.formData.fileTradeLicense)) {
+                    <button class="ukf-eye-btn" title="Preview document"
+                      (click)="openDocPreview('Trade License Copy', selectedSubmission.formData.fileTradeLicense)">
+                      <i class="fas fa-eye"></i>
+                    </button>
+                  }
+                </div>
+
+                <div class="ukf-doc-file" [class.ukf-doc-file--optional]="!hasDoc(selectedSubmission.formData.fileVatCertificate)">
+                  <div class="ukf-doc-file-icon">
+                    <i class="{{ hasDoc(selectedSubmission.formData.fileVatCertificate) ? 'fas fa-file-pdf' : 'fas fa-file' }}"></i>
+                  </div>
+                  <div class="ukf-doc-file-meta">
+                    <div class="ukf-doc-file-label">VAT Certificate Copy <span class="ukf-optional-tag">optional</span></div>
+                    <div class="ukf-doc-file-name">
+                      {{ selectedSubmission.formData.fileVatCertificate || 'Not uploaded' }}
+                    </div>
+                  </div>
+                  <span class="ukf-doc-file-status">
+                    @if (hasDoc(selectedSubmission.formData.fileVatCertificate)) {
+                      <i class="fas fa-check-circle" style="color: #22c55e"></i>
+                    } @else {
+                      <i class="fas fa-minus-circle" style="color: #94a3b8"></i>
+                    }
+                  </span>
+                  @if (hasDoc(selectedSubmission.formData.fileVatCertificate)) {
+                    <button class="ukf-eye-btn" title="Preview document"
+                      (click)="openDocPreview('VAT Certificate Copy', selectedSubmission.formData.fileVatCertificate)">
+                      <i class="fas fa-eye"></i>
+                    </button>
+                  }
+                </div>
+
+              </div>
+            </div>
+          </div>
+
+          <!-- Document Footer -->
+          <div class="ukf-doc-footer">
+            <span>KYC Form — {{ selectedSubmission.formName }} {{ selectedSubmission.version }}</span>
+            <span>Generated by Unite Care Zoho Contracts KYC</span>
+            <span>Submitted: {{ selectedSubmission.submittedOn | date:'dd MMM yyyy' }}</span>
+          </div>
+
+        </div>
+      </div>
+      <!-- /KYC Form Document -->
+
+    }
+  </main>
+
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     DOCUMENT PREVIEW SLIDE PANEL
+     ═══════════════════════════════════════════════════════════════ -->
+@if (docPreviewOpen) {
+  <div class="ukf-dp-overlay" (click)="closeDocPreview()"></div>
+}
+
+<div class="ukf-dp-panel" [class.ukf-dp-panel--open]="docPreviewOpen">
+
+  <!-- Header -->
+  <div class="ukf-dp-hdr">
+    <div class="ukf-dp-hdr-left">
+      <div class="ukf-dp-hdr-icon"><i class="fas fa-file-pdf"></i></div>
+      <div class="ukf-dp-hdr-text">
+        <div class="ukf-dp-hdr-title">{{ docPreviewLabel }}</div>
+        <div class="ukf-dp-hdr-sub">{{ docPreviewFilename }}</div>
+      </div>
+    </div>
+    <button class="ukf-dp-close-btn" (click)="closeDocPreview()">
+      <i class="fas fa-times"></i>
+    </button>
+  </div>
+
+  <!-- Metadata toolbar -->
+  <div class="ukf-dp-toolbar">
+    <div class="ukf-dp-toolbar-left">
+      <span class="ukf-dp-cust-name">{{ selectedSubmission?.formData?.companyName }}</span>
+      <span class="ukf-dp-ver-tag">{{ selectedSubmission?.version }}</span>
+    </div>
+    <div class="ukf-dp-toolbar-right">
+      <button kendoButton themeColor="primary" fillMode="outline" class="ukf-dp-dl-btn">
+        <i class="fas fa-download me-1"></i>Download
+      </button>
+    </div>
+  </div>
+
+  <!-- Viewer body -->
+  <div class="ukf-dp-body">
+    <div class="ukf-dp-viewer">
+      <div class="ukf-dp-viewer-page">
+        <div class="ukf-dp-viewer-content">
+
+          <div class="ukf-dp-file-art">
+            <i class="fas fa-file-pdf ukf-dp-file-art-icon"></i>
+            <div class="ukf-dp-file-art-lines">
+              <span></span><span></span><span></span>
+              <span></span><span></span><span></span>
+            </div>
+          </div>
+
+          <div class="ukf-dp-file-name">{{ docPreviewFilename }}</div>
+          <div class="ukf-dp-file-meta">
+            <i class="fas fa-hospital-alt me-1"></i>{{ selectedSubmission?.formData?.companyName }}
+          </div>
+          <div class="ukf-dp-file-note">
+            Document preview renders here once real files are attached. In the live environment, the uploaded PDF will display directly in this viewer.
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>

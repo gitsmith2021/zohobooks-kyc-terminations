@@ -1,0 +1,358 @@
+@use '../../../styles/variables' as *;
+
+// ── Overlay ───────────────────────────────────────────────────────────────────
+.orp-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.38);
+  z-index: 1040;
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+}
+
+// ── Panel ─────────────────────────────────────────────────────────────────────
+.orp-panel {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 92vw;
+  max-width: 1400px;
+  background: #ffffff;
+  z-index: 1050;
+  box-shadow: -6px 0 24px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+@keyframes orpSlideIn {
+  from { transform: translateX(100%); }
+  to   { transform: translateX(0); }
+}
+
+.orp-slide-in { animation: orpSlideIn 0.28s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
+
+// ── Header ────────────────────────────────────────────────────────────────────
+.orp-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 24px;
+  border-bottom: 1px solid #e9ecef;
+  background: #fff;
+  flex-shrink: 0;
+}
+
+.orp-header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.orp-header-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.orp-header-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: rgba(0, 184, 205, 0.1);
+  color: $accent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 17px;
+  flex-shrink: 0;
+}
+
+.orp-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: $text;
+  margin: 0;
+}
+
+.orp-subtitle {
+  font-size: 12px;
+  color: $text-muted;
+  margin-top: 2px;
+}
+
+.orp-pending-badge {
+  background: rgba(0, 184, 205, 0.1);
+  color: $accent-hover;
+  border: 1px solid rgba(0, 184, 205, 0.2);
+  border-radius: 99px;
+  padding: 4px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+}
+
+.orp-close-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  color: $text-muted;
+  transition: background 0.12s, color 0.12s;
+
+  &:hover { background: #f0f1f3; color: $text; }
+}
+
+// ── Body / Table ──────────────────────────────────────────────────────────────
+.orp-body {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: auto;
+}
+
+.orp-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  gap: 10px;
+  color: $text-muted;
+  padding: 60px 24px;
+}
+
+.orp-empty-icon { font-size: 42px; opacity: 0.3; }
+.orp-empty-title { font-size: 15px; font-weight: 700; color: $text; }
+.orp-empty-sub   { font-size: 13px; color: $text-muted; }
+
+// ── Table ─────────────────────────────────────────────────────────────────────
+.orp-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  color: $text;
+
+  thead tr {
+    background: #4e4e4e;
+
+    th {
+      padding: 11px 14px;
+      font-size: 12.5px;
+      font-weight: 600;
+      color: #ffffff;
+      text-align: left;
+      white-space: nowrap;
+      border-right: 1px solid rgba(255,255,255,0.08);
+
+      &:last-child { border-right: none; }
+    }
+  }
+
+  tbody tr {
+    border-bottom: 1px solid rgba(15, 23, 42, 0.06);
+    transition: background 0.13s ease;
+
+    &:hover { background: rgba(0, 184, 205, 0.025); }
+
+    td {
+      padding: 10px 14px;
+      vertical-align: middle;
+    }
+  }
+}
+
+.orp-col-cb    { width: 44px; text-align: center; }
+.orp-col-action { width: 180px; }
+
+.orp-checkbox {
+  width: 15px;
+  height: 15px;
+  cursor: pointer;
+  accent-color: $accent;
+}
+
+// ── Row state tints ───────────────────────────────────────────────────────────
+.orp-row-sent     { background: rgba(0, 166, 116, 0.025); }
+.orp-row-rejected { background: rgba(246, 78, 96, 0.025); }
+
+// ── Customer cell ─────────────────────────────────────────────────────────────
+.orp-cell-customer {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.orp-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  background: rgba(0, 184, 205, 0.1);
+  color: $accent-hover;
+  font-size: 12px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.orp-company  { font-weight: 650; color: #0f172a; font-size: 13px; }
+.orp-contact  { font-size: 11.5px; color: $text-muted; margin-top: 1px; }
+
+// ── Channel badge ─────────────────────────────────────────────────────────────
+.orp-channel {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 9px;
+  border-radius: 99px;
+  font-size: 11.5px;
+  font-weight: 600;
+  white-space: nowrap;
+
+  &.orp-ch-email { background: rgba(0, 184, 205, 0.1); color: #00b8cd; border: 1px solid rgba(0, 184, 205, 0.2); }
+  &.orp-ch-wa    { background: rgba(37, 211, 102, 0.1); color: #1a9e50; border: 1px solid rgba(37, 211, 102, 0.3); }
+}
+
+// ── Status badge ──────────────────────────────────────────────────────────────
+.orp-status {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 9px;
+  border-radius: 6px;
+  font-size: 11.5px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.orp-status-pending  { background: rgba(0, 184, 205, 0.08); color: $accent-hover; border: 1px solid rgba(0, 184, 205, 0.18); }
+.orp-status-sent     { background: rgba(0, 166, 116, 0.08); color: #00a674; border: 1px solid rgba(0, 166, 116, 0.18); }
+.orp-status-rejected { background: rgba(246, 78, 96, 0.08); color: #f64e60; border: 1px solid rgba(246, 78, 96, 0.18); }
+
+// ── Misc cells ────────────────────────────────────────────────────────────────
+.orp-contact-info { font-size: 12.5px; color: #475569; }
+.orp-date         { font-variant-numeric: tabular-nums; font-weight: 500; color: $text; }
+.orp-remarks      { font-size: 12px; color: #64748b; font-style: italic; line-height: 1.4; }
+.orp-na           { color: #94a3b8; }
+.orp-poc          { font-size: 12.5px; font-weight: 500; color: $text; }
+
+// ── Action group ──────────────────────────────────────────────────────────────
+.orp-action-group {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+// ── Bulk footer ───────────────────────────────────────────────────────────────
+.orp-footer {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 24px;
+  border-top: 1px solid #e9ecef;
+  background: #f8fafc;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+}
+
+.orp-sel-count {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #475569;
+  flex: 1;
+}
+
+// ── Reject Dialog ─────────────────────────────────────────────────────────────
+.rej-dlg-body {
+  padding: 4px 0 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.rej-dlg-context {
+  background: #f8fafc;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 8px;
+  padding: 11px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.rej-dlg-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 12.5px;
+}
+
+.rej-dlg-lbl {
+  width: 70px;
+  flex-shrink: 0;
+  color: #64748b;
+  font-weight: 600;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.rej-dlg-val  { color: #0f172a; font-weight: 500; }
+.rej-dlg-ref  { font-family: 'Courier New', monospace; background: #e2e8f0; padding: 1px 6px; border-radius: 4px; font-size: 11.5px; font-weight: 700; }
+
+.rej-dlg-alert {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  background: rgba(246, 78, 96, 0.05);
+  border: 1px solid rgba(246, 78, 96, 0.2);
+  border-radius: 8px;
+  padding: 11px 14px;
+  font-size: 12.5px;
+  color: #0f172a;
+
+  i { color: #f64e60; font-size: 14px; margin-top: 1px; flex-shrink: 0; }
+}
+
+.rej-dlg-field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.rej-dlg-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #475569;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.rej-req { color: #f64e60; margin-left: 2px; }
+
+.rej-dlg-textarea {
+  width: 100%;
+  border: 1px solid rgba(15, 23, 42, 0.15);
+  border-radius: 6px;
+  padding: 8px 10px;
+  font-size: 13px;
+  color: #0f172a;
+  resize: vertical;
+  outline: none;
+  font-family: $font;
+  box-sizing: border-box;
+  min-height: 88px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+
+  &:focus { border-color: #f64e60; box-shadow: 0 0 0 3px rgba(246, 78, 96, 0.1); }
+  &::placeholder { color: #94a3b8; }
+}
+
+.rej-hint { font-size: 11.5px; color: #94a3b8; }

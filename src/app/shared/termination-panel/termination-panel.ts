@@ -28,6 +28,10 @@ export class TerminationPanel {
   callOffRemark     = '';
   callOffRemarkError = false;
 
+  // ── Negotiation Remarks ───────────────────────────────────────────────────
+  negotiationHistoryOpen = false;
+  negotiationRemarks = '';
+
   // ── Computed notice-period helpers ─────────────────────────────────────────
   get noticeEndDate(): Date | null {
     if (!this.record?.terminationDate) { return null; }
@@ -41,11 +45,77 @@ export class TerminationPanel {
     return Math.max(0, Math.ceil((this.noticeEndDate.getTime() - Date.now()) / 86_400_000));
   }
 
-  // ── Event handlers ──────────────────────────────────────────────────────────
+  get contractRef(): string {
+    if (!this.record?.contractHistory?.length) { return 'ZC-2025-000'; }
+    return this.record.contractHistory[this.record.contractHistory.length - 1].ref;
+  }
+
+  get annualValue(): string {
+    if (!this.record?.contractHistory?.length) { return 'AED 45,000'; }
+    return this.record.contractHistory[this.record.contractHistory.length - 1].annualValue;
+  }
+
+  get pendingClearanceValue(): string | null {
+    const s = this.record?.status;
+    if (s !== 'Termination Approved' && s !== 'Terminated') return null;
+    return this.record?.pendingClearanceValue ?? null;
+  }
+
+  // ── Stepper Helpers ────────────────────────────────────────────────────────
+  isStepDone(step: string): boolean {
+    const order = ['Termination Requested', 'Under Review', 'Notice Period', 'Terminated'];
+    const currentStatus = this.record?.status;
+    let currentIdx = 0;
+    if (currentStatus === 'Termination Approved') {
+      currentIdx = 2; // Notice Period
+    } else if (currentStatus === 'Terminated') {
+      currentIdx = 3;
+    }
+    const targetIdx = order.indexOf(step);
+    return targetIdx < currentIdx && currentIdx !== -1;
+  }
+
+  isStepActive(step: string): boolean {
+    const currentStatus = this.record?.status;
+    if (currentStatus === 'Termination Requested') {
+      return step === 'Termination Requested';
+    }
+    if (currentStatus === 'Termination Approved') {
+      return step === 'Notice Period';
+    }
+    if (currentStatus === 'Terminated') {
+      return step === 'Terminated';
+    }
+    return false;
+  }
+
+  getStatusClass(status: string): string {
+    const map: Record<string, string> = {
+      'Termination Requested': 'tm-badge-requested',
+      'Termination Approved':  'tm-badge-notice',
+      'Terminated':            'tm-badge-terminated',
+      'Call-Off':              'tm-badge-calloff',
+    };
+    return map[status] ?? 'badge-secondary';
+  }
+
+  getStatusIcon(status: string): string {
+    const map: Record<string, string> = {
+      'Termination Requested': 'fas fa-exclamation-circle',
+      'Termination Approved':  'fas fa-hourglass-half',
+      'Terminated':            'fas fa-times-circle',
+      'Call-Off':              'fas fa-undo',
+    };
+    return map[status] ?? 'fas fa-circle';
+  }
+
+  // ── Event Handlers ──────────────────────────────────────────────────────────
   onClose(): void {
-    this.showCallOffForm    = false;
-    this.callOffRemark      = '';
-    this.callOffRemarkError = false;
+    this.showCallOffForm      = false;
+    this.callOffRemark        = '';
+    this.callOffRemarkError   = false;
+    this.negotiationHistoryOpen = false;
+    this.negotiationRemarks   = '';
     this.close.emit();
   }
 

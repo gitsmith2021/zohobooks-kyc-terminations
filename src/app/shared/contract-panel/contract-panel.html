@@ -14,26 +14,46 @@
       <div>
         <h5 class="nkp-title">Contract Preview — {{ record.companyName }}</h5>
         <div class="nkp-subtitle">
-          {{ record.contractRef }}&nbsp;&nbsp;·&nbsp;&nbsp;Unitecare Software Solutions FZE &times; {{
+          {{ contractRef }}&nbsp;&nbsp;·&nbsp;&nbsp;Unitecare Software Solutions FZE &times; {{
           record.companyName }}
         </div>
       </div>
     </div>
     <div style="display:flex;align-items:center;gap:10px;flex-shrink:0">
-      <span class="cs-status-badge" [ngClass]="getStatusClass(record.contractStatus)">
-        <i [class]="getStatusIcon(record.contractStatus) + ' cs-badge-icon'"></i>
-        {{ record.contractStatus }}
+      <span class="cs-status-badge" [ngClass]="getStatusClass(contractStatus)">
+        <i [class]="getStatusIcon(contractStatus) + ' cs-badge-icon'"></i>
+        {{ contractStatus }}
       </span>
       <button class="nkp-close-btn" (click)="onClose()"><i class="fas fa-times"></i></button>
     </div>
   </div>
+
+  <!-- Version Navigator (Dashboard History Support) -->
+  @if (record.contractHistory?.length > 1) {
+  <div class="cp-version-bar">
+    <span class="cp-version-label">Contract History</span>
+    <div class="cp-version-tabs">
+      @for (cv of record.contractHistory; track cv.ref; let i = $index) {
+      <button class="cp-version-tab" [class.active]="selectedContractIdx === i"
+        [class.cp-version-tab--pending]="cv.status === 'pending'"
+        [class.cp-version-tab--expired]="cv.status === 'expired'" (click)="selectedContractIdx = i">
+        <span class="cp-version-num">v{{ cv.version }}</span>
+        <span class="cp-version-status-chip">
+          @if (cv.status === 'active') { <span class="cp-live-dot"></span> }
+          {{ cv.status === 'active' ? 'Active' : cv.status === 'pending' ? 'Pending' : 'Expired' }}
+        </span>
+      </button>
+      }
+    </div>
+  </div>
+  }
 
   <!-- PDF-like Viewer -->
   <div class="cp-viewer">
     <div class="cp-paper">
 
       <!-- Watermark for terminated contracts -->
-      @if (record.contractStatus === 'Contract Terminated') {
+      @if (contractStatus === 'Contract Terminated') {
       <div class="cp-watermark">TERMINATED</div>
       }
 
@@ -47,7 +67,7 @@
           </div>
         </div>
         <div class="cp-letterhead-right">
-          <div class="cp-ref-badge">{{ record.contractRef }}</div>
+          <div class="cp-ref-badge">{{ contractRef }}</div>
           <div class="cp-ref-date">Dated: {{ contractStartDate() | date:'dd MMMM yyyy' }}</div>
         </div>
       </div>
@@ -173,8 +193,8 @@
           </div>
 
           <!-- Client -->
-          <div class="cp-sig-block" [class.cp-sig-block--pending]="!record.contractSignedOn">
-            @if (record.contractSignedOn) {
+          <div class="cp-sig-block" [class.cp-sig-block--pending]="!contractSignedOn()">
+            @if (contractSignedOn()) {
             <div class="cp-sig-line">
               <div class="cp-sig-cursive">{{ record.contactName || record.customerName }}</div>
             </div>
@@ -187,8 +207,8 @@
             <div class="cp-sig-name">{{ record.contactName || record.customerName }}</div>
             <div class="cp-sig-detail">Authorised Signatory</div>
             <div class="cp-sig-detail">{{ record.companyName }}</div>
-            @if (record.contractSignedOn) {
-            <div class="cp-sig-date">{{ record.contractSignedOn | date:'dd MMMM yyyy' }}</div>
+            @if (contractSignedOn()) {
+            <div class="cp-sig-date">{{ contractSignedOn() | date:'dd MMMM yyyy' }}</div>
             }
           </div>
 
@@ -197,7 +217,7 @@
 
       <!-- Page Footer -->
       <div class="cp-page-footer">
-        <span>{{ record.contractRef }} — Confidential</span>
+        <span>{{ contractRef }} — Confidential</span>
         <span>Unitecare Software Solutions FZE &times; {{ record.companyName }}</span>
         <span>Page 1 of 3</span>
       </div>
@@ -207,7 +227,7 @@
     <!-- Page 2: Annexure A (SLA Commitments) -->
     <div class="cp-paper mt-3">
       <!-- Watermark for terminated contracts -->
-      @if (record.contractStatus === 'Contract Terminated') {
+      @if (contractStatus === 'Contract Terminated') {
       <div class="cp-watermark">TERMINATED</div>
       }
 
@@ -305,7 +325,7 @@
 
       <!-- Page Footer -->
       <div class="cp-page-footer">
-        <span>{{ record.contractRef }} — Confidential</span>
+        <span>{{ contractRef }} — Confidential</span>
         <span>Unitecare Software Solutions FZE &times; {{ record.companyName }}</span>
         <span>Page 2 of 3</span>
       </div>
@@ -315,7 +335,7 @@
     <!-- Page 3: Annexure B (UAE Healthcare Regulatory Compliance) -->
     <div class="cp-paper mt-3">
       <!-- Watermark for terminated contracts -->
-      @if (record.contractStatus === 'Contract Terminated') {
+      @if (contractStatus === 'Contract Terminated') {
       <div class="cp-watermark">TERMINATED</div>
       }
 
@@ -381,7 +401,7 @@
 
       <!-- Page Footer -->
       <div class="cp-page-footer">
-        <span>{{ record.contractRef }} — Confidential</span>
+        <span>{{ contractRef }} — Confidential</span>
         <span>Unitecare Software Solutions FZE &times; {{ record.companyName }}</span>
         <span>Page 3 of 3</span>
       </div>
@@ -407,12 +427,12 @@
         <i class="fas fa-print me-2"></i>Print
       }
     </button>
-    @if (record.contractStatus === 'Contract Sent') {
+    @if (contractStatus === 'Contract Sent') {
     <button kendoButton themeColor="warning" fillMode="outline" (click)="onSendReminder()">
       <i class="fas fa-paper-plane me-2"></i>Send Signature Reminder
     </button>
     }
-    @if (record.contractStatus === 'Contract Signed') {
+    @if (contractStatus === 'Contract Signed') {
     <button kendoButton themeColor="primary" fillMode="outline" (click)="onRequestAmendment()">
       <i class="fas fa-file-alt me-2"></i>Request Amendment
     </button>
@@ -435,14 +455,14 @@
       <div class="nkp-header-icon"><i class="fas fa-file-pen"></i></div>
       <div>
         <h5 class="nkp-title">Amendments — {{ record.companyName }}</h5>
-        <div class="nkp-subtitle">{{ record.contractRef }}&nbsp;&nbsp;·&nbsp;&nbsp;{{ record.amendments?.length || 0 }}
+        <div class="nkp-subtitle">{{ contractRef }}&nbsp;&nbsp;·&nbsp;&nbsp;{{ record.amendments?.length || 0 }}
           amendment{{ record.amendments?.length !== 1 ? 's' : '' }} on record</div>
       </div>
     </div>
     <div style="display:flex;align-items:center;gap:10px;flex-shrink:0">
-      <span class="cs-status-badge" [ngClass]="getStatusClass(record.contractStatus)">
-        <i [class]="getStatusIcon(record.contractStatus) + ' cs-badge-icon'"></i>
-        {{ record.contractStatus }}
+      <span class="cs-status-badge" [ngClass]="getStatusClass(contractStatus)">
+        <i [class]="getStatusIcon(contractStatus) + ' cs-badge-icon'"></i>
+        {{ contractStatus }}
       </span>
       <button class="nkp-close-btn" (click)="onClose()"><i class="fas fa-times"></i></button>
     </div>
@@ -484,7 +504,7 @@
           </div>
         </div>
         <div class="cp-letterhead-right">
-          <div class="cp-ref-badge">{{ record.contractRef }}</div>
+          <div class="cp-ref-badge">{{ contractRef }}</div>
           <div class="cp-ref-date">Amendment {{ amendPanelActiveIdx + 1 }} of {{ record.amendments.length }}</div>
         </div>
       </div>
@@ -538,7 +558,7 @@
           </div>
           <div class="cp-term">
             <div class="cp-term-lbl">Parent Contract</div>
-            <div class="cp-term-val">{{ record.contractRef }}</div>
+            <div class="cp-term-val">{{ contractRef }}</div>
           </div>
           <div class="cp-term">
             <div class="cp-term-lbl">Amendment No.</div>
@@ -570,7 +590,7 @@
 
       <!-- Page Footer -->
       <div class="cp-page-footer">
-        <span>{{ record.contractRef }} — Amendment {{ amendPanelActiveIdx + 1 }}</span>
+        <span>{{ contractRef }} — Amendment {{ amendPanelActiveIdx + 1 }}</span>
         <span>Unitecare Software Solutions FZE × {{ record.companyName }}</span>
         <span>Confidential</span>
       </div>
