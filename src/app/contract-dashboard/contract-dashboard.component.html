@@ -87,54 +87,62 @@
 
           <section class="dbx-kpi-grid">
             <button type="button" class="dbx-kpi dbx-kpi--kyc" (click)="setNav('kyc')">
-              <div class="dbx-kpi-top">
+              <div class="dbx-kpi-head">
                 <span class="dbx-kpi-icon"><i class="fas fa-shield-alt"></i></span>
+                <div class="dbx-kpi-main">
+                  <strong>{{ kycPipelineTotal }}</strong>
+                  <span>KYC Pipeline</span>
+                </div>
                 <span class="dbx-chip dbx-chip--success">{{ kycHealthPercent }}% healthy</span>
               </div>
-              <strong>{{ kycPipelineTotal }}</strong>
-              <span>KYC Pipeline</span>
               <div class="dbx-kpi-foot">
-                <em>{{ kycUnderReviewCount }} in review</em>
-                <em>{{ expiredKycCount }} expired</em>
+                <button class="dbx-kpi-badge" (click)="navigateWithFilter('kyc', 'KYC Under Review', $event)">{{ kycUnderReviewCount }} In Review</button>
+                <button class="dbx-kpi-badge" (click)="navigateWithFilter('kyc', 'KYC Expired', $event)">{{ expiredKycCount }} Expired</button>
               </div>
             </button>
 
             <button type="button" class="dbx-kpi dbx-kpi--contract" (click)="setNav('contracts')">
-              <div class="dbx-kpi-top">
+              <div class="dbx-kpi-head">
                 <span class="dbx-kpi-icon"><i class="fas fa-file-signature"></i></span>
+                <div class="dbx-kpi-main">
+                  <strong>{{ contractsTotal }}</strong>
+                  <span>Contracts Overview</span>
+                </div>
                 <span class="dbx-chip dbx-chip--primary">{{ contractConversionPercent }}% signed</span>
               </div>
-              <strong>{{ contractsTotal }}</strong>
-              <span>Contracts Overview</span>
               <div class="dbx-kpi-foot">
-                <em>{{ contractsActiveSigned }} signed</em>
-                <em>{{ pendingSigCount }} pending</em>
+                <button class="dbx-kpi-badge" (click)="navigateWithFilter('contracts', 'Contract Signed', $event)">{{ contractsActiveSigned }} Signed</button>
+                <button class="dbx-kpi-badge" (click)="navigateWithFilter('contracts', 'Contract Sent', $event)">{{ pendingSigCount }} Pending</button>
               </div>
             </button>
 
             <button type="button" class="dbx-kpi dbx-kpi--renewal" (click)="setNav('kyc')">
-              <div class="dbx-kpi-top">
+              <div class="dbx-kpi-head">
                 <span class="dbx-kpi-icon"><i class="fas fa-calendar-check"></i></span>
+                <div class="dbx-kpi-main">
+                  <strong>{{ projectedRenewalsCount }}</strong>
+                  <span>Expiring Soon / Renewals</span>
+                </div>
                 <span class="dbx-chip dbx-chip--warning">30 day view</span>
               </div>
-              <strong>{{ projectedRenewalsCount }}</strong>
-              <span>Expiring Soon / Renewals</span>
               <div class="dbx-kpi-foot">
-                <em>{{ kycAboutToExpireCount }} expiring</em>
-                <em>{{ expiredKycCount }} overdue</em>
+                <button class="dbx-kpi-badge" (click)="navigateWithFilter('kyc', 'KYC Approved', $event)">{{ kycAboutToExpireCount }} Expiring</button>
+                <button class="dbx-kpi-badge" (click)="navigateWithFilter('kyc', 'KYC Expired', $event)">{{ expiredKycCount }} Overdue</button>
               </div>
             </button>
 
             <button type="button" class="dbx-kpi dbx-kpi--exit" (click)="setNav('terminations')">
-              <div class="dbx-kpi-top">
+              <div class="dbx-kpi-head">
                 <span class="dbx-kpi-icon"><i class="fas fa-door-open"></i></span>
+                <div class="dbx-kpi-main">
+                  <strong>{{ terminationTotalActive }}</strong>
+                  <span>Recent Terminations</span>
+                </div>
                 <span class="dbx-chip dbx-chip--danger">{{ exitRiskPercent }}% exposure</span>
               </div>
-              <strong>{{ terminationTotalActive }}</strong>
-              <span>Recent Terminations</span>
               <div class="dbx-kpi-foot">
-                <em>{{ terminationCount }} requested</em>
-                <em>{{ terminationApprovedCount }} notice</em>
+                <button class="dbx-kpi-badge" (click)="navigateWithFilter('terminations', 'Termination Requested', $event)">{{ terminationCount }} Requested</button>
+                <button class="dbx-kpi-badge" (click)="navigateWithFilter('terminations', 'Termination Approved', $event)">{{ terminationApprovedCount }} Notice</button>
               </div>
             </button>
           </section>
@@ -148,15 +156,17 @@
                 </div>
                 <i class="fas fa-list-check"></i>
               </div>
-              <div class="dbx-action-cards">
+              <div class="dbx-bento-grid">
                 @for (item of dashboardActionItems; track item.label) {
-                <button type="button" class="dbx-action-card dbx-action-card--{{ item.tone }}" (click)="setNav(item.nav)">
-                  <span class="dbx-ac-icon"><i [class]="item.icon"></i></span>
-                  <span class="dbx-ac-body">
-                    <strong>{{ item.label }}</strong>
-                    <em>{{ item.meta }}</em>
-                  </span>
-                  <span class="dbx-ac-badge">{{ item.count }}</span>
+                <button type="button"
+                  class="dbx-bento-card dbx-bento-card--{{ item.tone }}"
+                  (click)="setNav(item.nav)">
+                  <div class="dbx-bc-top">
+                    <span class="dbx-bc-icon"><i [class]="item.icon"></i></span>
+                    <span class="dbx-bc-count">{{ item.count }}</span>
+                  </div>
+                  <strong class="dbx-bc-label">{{ item.label }}</strong>
+                  <em class="dbx-bc-meta">{{ item.meta }}</em>
                 </button>
                 }
               </div>
@@ -262,7 +272,8 @@
               </div>
             </article>
 
-            <article class="dbx-card">
+            <!-- Exit Reasons hidden — replaced by admin insights below -->
+            <article class="dbx-card" style="display:none">
               <div class="dbx-card-head dbx-card-head--compact">
                 <div>
                   <h5>Exit Reasons</h5>
@@ -279,6 +290,70 @@
                 }
               </div>
             </article>
+
+            <!-- Admin Insights: Manager Workload + Pipeline Velocity -->
+            <div class="dbx-admin-col">
+
+              <article class="dbx-card">
+                <div class="dbx-card-head dbx-card-head--compact">
+                  <div>
+                    <h5>Salesperson Workload</h5>
+                    <span>Account distribution &amp; health by salesperson</span>
+                  </div>
+                  <i class="fas fa-user-tie"></i>
+                </div>
+                <div class="dbx-mgr-list">
+                  @for (mgr of managerWorkload; track mgr.name) {
+                  <div class="dbx-mgr-row">
+                    <span class="dbx-mgr-name">{{ mgr.name }}</span>
+                    <div class="dbx-mgr-bar-wrap">
+                      @if (mgr.active > 0)    { <span class="dbx-mgr-seg dbx-mgr-seg--active"   [style.flex]="mgr.active"   (mouseenter)="showHoverTip('Active: '      + mgr.active,    $event)" (mousemove)="moveHoverTip($event)" (mouseleave)="hideHoverTip()"></span> }
+                      @if (mgr.pipeline > 0)  { <span class="dbx-mgr-seg dbx-mgr-seg--pipeline" [style.flex]="mgr.pipeline" (mouseenter)="showHoverTip('In pipeline: ' + mgr.pipeline,  $event)" (mousemove)="moveHoverTip($event)" (mouseleave)="hideHoverTip()"></span> }
+                      @if (mgr.attention > 0) { <span class="dbx-mgr-seg dbx-mgr-seg--attn"     [style.flex]="mgr.attention"(mouseenter)="showHoverTip('Needs attention: ' + mgr.attention, $event)" (mousemove)="moveHoverTip($event)" (mouseleave)="hideHoverTip()"></span> }
+                    </div>
+                    <span class="dbx-mgr-total">{{ mgr.total }}</span>
+                  </div>
+                  }
+                  <div class="dbx-mgr-legend">
+                    <span class="dbx-mgr-leg dbx-mgr-leg--active">Active</span>
+                    <span class="dbx-mgr-leg dbx-mgr-leg--pipeline">In pipeline</span>
+                    <span class="dbx-mgr-leg dbx-mgr-leg--attn">Needs attention</span>
+                  </div>
+                </div>
+              </article>
+
+              <article class="dbx-card">
+                <div class="dbx-card-head dbx-card-head--compact">
+                  <div>
+                    <h5>Pipeline Velocity</h5>
+                    <span>Avg. days a record spends per stage</span>
+                  </div>
+                  <i class="fas fa-gauge-high"></i>
+                </div>
+                <div class="dbx-vel-list">
+                  @for (stage of pipelineVelocity; track stage.label) {
+                  <div class="dbx-vel-row">
+                    <span class="dbx-vel-stage">{{ stage.label }}</span>
+                    <div class="dbx-vel-bar-wrap">
+                      <div class="dbx-vel-bar {{ stage.tone }}" [style.width.%]="stage.pct"
+                        (mouseenter)="showHoverTip(velToneLabel(stage.tone) + ': ' + stage.count, $event)"
+                        (mousemove)="moveHoverTip($event)"
+                        (mouseleave)="hideHoverTip()"></div>
+                    </div>
+                    <span class="dbx-vel-days">{{ stage.avgDays }}d</span>
+                    <span class="dbx-vel-count">{{ stage.count }}</span>
+                  </div>
+                  }
+                  <div class="dbx-vel-key">
+                    <span class="dbx-vel-k vel--fast">Fast</span>
+                    <span class="dbx-vel-k vel--ok">Normal</span>
+                    <span class="dbx-vel-k vel--slow">Slow</span>
+                    <span class="dbx-vel-k vel--critical">Critical</span>
+                  </div>
+                </div>
+              </article>
+
+            </div>
           </section>
         </div>
 
@@ -770,12 +845,13 @@
     } @else if (activeNav === 'kycCustomerForm') {
     <app-kyc-customer-form></app-kyc-customer-form>
     } @else if (activeNav === 'kyc') {
-    <app-kyc-verification [openRecordId]="kycRecordToOpen"
+    <app-kyc-verification [openRecordId]="kycRecordToOpen" [initialFilter]="kpiFilter"
       (panelClosed)="kycRecordToOpen = null"></app-kyc-verification>
     } @else if (activeNav === 'contracts') {
-    <app-contracts [openRecordId]="contractRecordToOpen" (panelClosed)="contractRecordToOpen = null"></app-contracts>
+    <app-contracts [openRecordId]="contractRecordToOpen" [initialFilter]="kpiFilter"
+      (panelClosed)="contractRecordToOpen = null"></app-contracts>
     } @else if (activeNav === 'terminations') {
-    <app-terminations [openRecordId]="terminationRecordToOpen"
+    <app-terminations [openRecordId]="terminationRecordToOpen" [initialFilter]="kpiFilter"
       (panelClosed)="terminationRecordToOpen = null"></app-terminations>
     } @else if (activeNav === 'user-kyc-forms') {
     <app-user-kyc-forms></app-user-kyc-forms>
@@ -1138,4 +1214,8 @@
 @if (contractPanelOpen && contractPanelCustomer) {
 <app-contract-panel [record]="contractPanelCustomer" (close)="closeContractPanel()">
 </app-contract-panel>
+}
+
+@if (hoverTip) {
+<div class="dbx-hover-tip" [style.left.px]="hoverTip.x" [style.top.px]="hoverTip.y">{{ hoverTip.text }}</div>
 }

@@ -129,6 +129,22 @@ export class ContractDashboardComponent implements OnInit {
   contractRecordToOpen: number | null = null;
   terminationRecordToOpen: number | null = null;
 
+  kpiFilter: string | null = null;
+  hoverTip: { text: string; x: number; y: number } | null = null;
+
+  showHoverTip(text: string, e: MouseEvent): void {
+    this.hoverTip = { text, x: e.clientX + 14, y: e.clientY - 40 };
+  }
+  moveHoverTip(e: MouseEvent): void {
+    if (this.hoverTip) this.hoverTip = { ...this.hoverTip, x: e.clientX + 14, y: e.clientY - 40 };
+  }
+  hideHoverTip(): void { this.hoverTip = null; }
+
+  velToneLabel(tone: string): string {
+    const map: Record<string, string> = { 'vel--fast': 'Fast', 'vel--ok': 'Normal', 'vel--slow': 'Slow', 'vel--critical': 'Critical' };
+    return map[tone] ?? tone;
+  }
+
   notifications = [
     {
       id: 1,
@@ -225,6 +241,12 @@ export class ContractDashboardComponent implements OnInit {
   ];
 
   setNav(id: string): void { this.activeNav = id; }
+
+  navigateWithFilter(nav: string, filter: string, event: Event): void {
+    event.stopPropagation();
+    this.kpiFilter = filter;
+    this.setNav(nav);
+  }
 
   getActiveNavLabel(): string {
     return this.navItems.find(item => item.id === this.activeNav)?.label || 'Dashboard';
@@ -602,6 +624,41 @@ export class ContractDashboardComponent implements OnInit {
     }));
   }
 
+  get managerWorkload(): Array<{ name: string; total: number; active: number; pipeline: number; attention: number }> {
+    const map: Record<string, { total: number; active: number; pipeline: number; attention: number }> = {};
+    const attnSet     = new Set(['KYC Expired', 'Termination Requested', 'Termination Approved']);
+    const pipelineSet = new Set(['KYC Submitted', 'KYC Under Review', 'Contract Sent']);
+    for (const c of this.customers) {
+      if (!map[c.salesPerson]) map[c.salesPerson] = { total: 0, active: 0, pipeline: 0, attention: 0 };
+      map[c.salesPerson].total++;
+      if (attnSet.has(c.status))     map[c.salesPerson].attention++;
+      else if (pipelineSet.has(c.status)) map[c.salesPerson].pipeline++;
+      else                               map[c.salesPerson].active++;
+    }
+    return Object.entries(map)
+      .map(([name, s]) => ({ name, ...s }))
+      .sort((a, b) => b.total - a.total);
+  }
+
+  get pipelineVelocity(): Array<{ label: string; count: number; avgDays: number; pct: number; tone: string }> {
+    const DAY = 86400000;
+    const now = Date.now();
+    const termAvg = this.noticePeriodRecords.length === 0 ? 0 :
+      Math.round(this.noticePeriodRecords.reduce((s, c) =>
+        s + (c.terminationDate ? Math.round((now - c.terminationDate.getTime()) / DAY) : 14), 0
+      ) / this.noticePeriodRecords.length);
+
+    const raw = [
+      { label: 'KYC Review',         count: this.kycUnderReviewCount,                                              avgDays: 8,       tone: 'vel--ok'       },
+      { label: 'KYC → Contract',     count: this.customers.filter(c => c.status === 'KYC Approved').length,        avgDays: 4,       tone: 'vel--fast'     },
+      { label: 'Awaiting Signature', count: this.pendingSigCount,                                                   avgDays: 18,      tone: 'vel--slow'     },
+      { label: 'Exit Process',       count: this.terminationTotalActive,                                            avgDays: termAvg, tone: 'vel--critical' },
+    ].filter(s => s.count > 0);
+
+    const maxDays = Math.max(...raw.map(s => s.avgDays), 1);
+    return raw.map(s => ({ ...s, pct: Math.round((s.avgDays / maxDays) * 100) }));
+  }
+
   get adminAttentionCount(): number {
     return this.expiredKycCount +
       this.kycUnderReviewCount +
@@ -776,7 +833,7 @@ export class ContractDashboardComponent implements OnInit {
   hideUaeTooltip(): void { this.uaeTooltip = null; }
 
   // ── Pan / Zoom ──────────────────────────────────────────────────────────────
-  mapPanZoom = { x: 0, y: 0, scale: 1 };
+  mapPanZoom = { x: -100, y: 0, scale: 1 };
   mapIsDragging = false;
   private _mapDragStart = { x: 0, y: 0, tx: 0, ty: 0 };
   private readonly _MAP_W = 1000;
@@ -844,7 +901,7 @@ export class ContractDashboardComponent implements OnInit {
 
   mapZoomIn():    void { this._mapZoomCenter(1.3); }
   mapZoomOut():   void { this._mapZoomCenter(1 / 1.3); }
-  mapZoomReset(): void { this.mapPanZoom = { x: 0, y: 0, scale: 1 }; }
+  mapZoomReset(): void { this.mapPanZoom = { x: -100, y: 0, scale: 1 }; }
 
   private _mapZoomCenter(factor: number): void {
     const cx = this._MAP_W / 2, cy = this._MAP_H / 2;

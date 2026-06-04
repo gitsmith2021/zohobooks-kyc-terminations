@@ -2681,32 +2681,18 @@
   border: 1px solid rgba(15, 23, 42, 0.09);
   border-radius: 8px;
   background: #ffffff;
-  min-height: 118px;
-  padding: 13px 14px;
+  padding: 11px 14px 0;
   text-align: left;
   cursor: pointer;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 0;
+  overflow: hidden;
   transition: border-color 0.16s, box-shadow 0.16s, transform 0.16s;
 
   &:hover {
     transform: translateY(-1px);
     box-shadow: 0 6px 18px rgba(15, 23, 42, 0.07);
-  }
-
-  strong {
-    color: #24384c;
-    font-size: 26px;
-    font-weight: 700;
-    line-height: 1;
-    letter-spacing: -0.3px;
-  }
-
-  > span {
-    color: #718096;
-    font-size: 12px;
-    font-weight: 500;
   }
 
   &--kyc    { border-top: 3px solid $success; }
@@ -2720,12 +2706,37 @@
 .dbx-kpi--renewal .dbx-kpi-icon { background: rgba(255, 193, 7, 0.14); color: $warning-text; }
 .dbx-kpi--exit    .dbx-kpi-icon { background: rgba(246, 78, 96, 0.09); color: $orange; }
 
-.dbx-kpi-top,
-.dbx-kpi-foot {
+.dbx-kpi-head {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 8px;
+  gap: 10px;
+  flex: 1;
+  padding-bottom: 9px;
+}
+
+.dbx-kpi-main {
+  flex: 1;
+  min-width: 0;
+
+  strong {
+    display: block;
+    color: #24384c;
+    font-size: 22px;
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: -0.3px;
+  }
+
+  span {
+    display: block;
+    color: #718096;
+    font-size: 11px;
+    font-weight: 500;
+    margin-top: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
 }
 
 .dbx-kpi-icon {
@@ -2741,18 +2752,43 @@
 }
 
 .dbx-kpi-foot {
-  margin-top: auto;
-  border-top: 1px solid rgba(226, 232, 240, 0.72);
-  padding-top: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin: 0 -14px;
+  padding: 6px 14px 8px;
+  border-top: 1px solid rgba(226, 232, 240, 0.6);
+}
 
-  em {
-    color: #8a97a7;
-    font-size: 11px;
-    font-style: normal;
-    font-weight: 500;
-    white-space: nowrap;
+.dbx-kpi--kyc      .dbx-kpi-foot { background: linear-gradient(90deg, rgba($success, .10), rgba($success, .04)); }
+.dbx-kpi--contract .dbx-kpi-foot { background: linear-gradient(90deg, rgba($accent,  .10), rgba($accent,  .04)); }
+.dbx-kpi--renewal  .dbx-kpi-foot { background: linear-gradient(90deg, rgba($warning, .13), rgba($warning, .05)); }
+.dbx-kpi--exit     .dbx-kpi-foot { background: linear-gradient(90deg, rgba($orange,  .10), rgba($orange,  .04)); }
+
+.dbx-kpi-badge {
+  appearance:      none;
+  border:          none;
+  border-radius:   99px;
+  padding:         3px 9px;
+  font-size:       11px;
+  font-weight:     600;
+  cursor:          pointer;
+  text-transform:  capitalize;
+  line-height:     1.5;
+  transition:      opacity .14s, transform .14s, box-shadow .14s;
+
+  &:hover {
+    opacity:    0.82;
+    transform:  scale(1.05);
+    box-shadow: 0 2px 6px rgba(0,0,0,.12);
   }
 }
+
+.dbx-kpi--kyc      .dbx-kpi-badge { background: rgba($success, .16); color: darken($success, 10%); }
+.dbx-kpi--contract .dbx-kpi-badge { background: rgba($accent,  .16); color: darken($accent,  10%); }
+.dbx-kpi--renewal  .dbx-kpi-badge { background: rgba($warning, .20); color: $warning-text;          }
+.dbx-kpi--exit     .dbx-kpi-badge { background: rgba($orange,  .14); color: darken($orange,   5%); }
 
 .dbx-chip {
   border-radius: 99px;
@@ -2833,106 +2869,272 @@
   }
 }
 
-.dbx-action-cards {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  padding: 12px;
-  flex: 1;
-  min-height: 0;
-  overflow-y: auto;
+// ── Bento action grid ─────────────────────────────────────────────────────
+.dbx-bento-grid {
+  display:               grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap:                   12px;
+  padding:               12px 12px 12px;
 
-  // Thin custom scrollbar
-  &::-webkit-scrollbar { width: 4px; }
-  &::-webkit-scrollbar-track { background: transparent; }
-  &::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.12); border-radius: 4px; }
+  // lone card in the last row fills the full width
+  .dbx-bento-card:last-child:nth-child(odd) { grid-column: 1 / -1; }
 }
 
-.dbx-action-card {
-  appearance: none;
-  width: 100%;
-  min-height: 66px;
-  border: 1px solid rgba(226, 232, 240, 0.9);
-  border-left: 3px solid $accent;
-  border-radius: 8px;
-  background: #fafcfd;
-  padding: 10px 12px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  text-align: left;
-  cursor: pointer;
-  flex-shrink: 0;
-  transition: background 0.14s, box-shadow 0.14s;
+.dbx-bento-card {
+  appearance:     none;
+  border-radius:  10px;
+  padding:        10px 12px;
+  display:        flex;
+  flex-direction: column;
+  gap:            8px;
+  text-align:     left;
+  cursor:         pointer;
+  border:         1px solid rgba(226, 232, 240, 0.85);
+  background:     #fafcfd;
+  transition:     transform .18s ease, box-shadow .18s ease, background .14s;
 
   &:hover {
-    background: #ffffff;
-    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.06);
+    transform:  translateY(-2px);
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+    background: #fff;
   }
 
-  &--danger  { border-left-color: $orange; }
-  &--warning { border-left-color: $warning; }
-  &--success { border-left-color: $success; }
+  &--danger  { border-top: 3px solid $orange;   background: rgba($orange,  .025); }
+  &--primary { border-top: 3px solid $accent;   background: rgba($accent,  .025); }
+  &--warning { border-top: 3px solid $warning;  background: rgba($warning, .04);  }
+  &--success { border-top: 3px solid $success;  background: rgba($success, .025); }
 }
 
-.dbx-ac-icon {
-  width: 36px;
-  height: 36px;
-  border-radius: 8px;
-  display: inline-flex;
-  align-items: center;
+.dbx-bc-top {
+  display:         flex;
+  align-items:     flex-start;
+  justify-content: space-between;
+  gap:             8px;
+}
+
+.dbx-bc-icon {
+  width:         34px;
+  height:        34px;
+  border-radius: 9px;
+  display:       inline-flex;
+  align-items:   center;
   justify-content: center;
-  font-size: 14px;
-  flex-shrink: 0;
+  font-size:     14px;
+  flex-shrink:   0;
+
+  .dbx-bento-card--primary & { background: rgba($accent,  .1);  color: $accent;       }
+  .dbx-bento-card--danger  & { background: rgba($orange,  .1);  color: $orange;       }
+  .dbx-bento-card--warning & { background: rgba($warning, .15); color: $warning-text; }
+  .dbx-bento-card--success & { background: rgba($success, .1);  color: $success;      }
 }
 
-.dbx-action-card--primary .dbx-ac-icon { background: rgba(0, 184, 205, 0.09);  color: $accent;       }
-.dbx-action-card--danger  .dbx-ac-icon { background: rgba(246, 78, 96, 0.09);  color: $orange;       }
-.dbx-action-card--warning .dbx-ac-icon { background: rgba(255, 193, 7, 0.15);  color: $warning-text; }
-.dbx-action-card--success .dbx-ac-icon { background: rgba(0, 166, 116, 0.09);  color: $success;      }
+.dbx-bc-count {
+  font-size:   20px;
+  font-weight: 800;
+  line-height: 1;
 
-.dbx-ac-body {
-  flex: 1;
-  min-width: 0;
-  display: flex;
+  .dbx-bento-card--primary & { color: $accent;       }
+  .dbx-bento-card--danger  & { color: $orange;       }
+  .dbx-bento-card--warning & { color: $warning-text; }
+  .dbx-bento-card--success & { color: $success;      }
+}
+
+.dbx-bc-label {
+  font-size:   12px;
+  font-weight: 600;
+  color:       #24384c;
+  line-height: 1.35;
+  display:     block;
+  margin-top:  auto;
+}
+
+.dbx-bc-meta {
+  font-size:   10.5px;
+  font-style:  normal;
+  color:       #8a97a7;
+  line-height: 1.35;
+  display:     block;
+
+  // always visible in the 2-col grid
+
+}
+
+// ── Admin Insights column ──────────────────────────────────────────────────
+.dbx-admin-col {
+  display:        flex;
   flex-direction: column;
-  gap: 3px;
+  gap:            12px;
 
-  strong {
-    color: #24384c;
-    font-size: 12px;
-    font-weight: 600;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
-  em {
-    color: #8a97a7;
-    font-size: 10.5px;
-    font-style: normal;
-    font-weight: 400;
-    line-height: 1.3;
-  }
+  .dbx-card { flex: 1; }
 }
 
-.dbx-ac-badge {
-  min-width: 28px;
-  height: 28px;
-  border-radius: 99px;
-  display: inline-flex;
+// Manager workload
+.dbx-mgr-list {
+  padding:        10px 14px 12px;
+  display:        flex;
+  flex-direction: column;
+  gap:            10px;
+}
+
+.dbx-mgr-row {
+  display:     flex;
   align-items: center;
-  justify-content: center;
-  font-size: 13px;
+  gap:         10px;
+}
+
+.dbx-mgr-name {
+  font-size:     11.5px;
+  font-weight:   600;
+  color:         $text;
+  width:         82px;
+  flex-shrink:   0;
+  white-space:   nowrap;
+  overflow:      hidden;
+  text-overflow: ellipsis;
+}
+
+.dbx-mgr-bar-wrap {
+  flex:          1;
+  height:        6px;
+  border-radius: 99px;
+  display:       flex;
+  overflow:      hidden;
+  gap:           2px;
+}
+
+.dbx-mgr-seg {
+  height:        100%;
+  border-radius: 99px;
+
+  &--active   { background: #10b981; }
+  &--pipeline { background: #0ea5e9; }
+  &--attn     { background: #f97316; }
+}
+
+.dbx-mgr-total {
+  font-size:   11px;
   font-weight: 700;
+  color:       $text-muted;
+  width:       16px;
+  text-align:  right;
   flex-shrink: 0;
 }
 
-.dbx-action-card--primary .dbx-ac-badge { background: rgba(0, 184, 205, 0.09);  color: $accent;       }
-.dbx-action-card--danger  .dbx-ac-badge { background: rgba(246, 78, 96, 0.09);  color: $orange;       }
-.dbx-action-card--warning .dbx-ac-badge { background: rgba(255, 193, 7, 0.15);  color: $warning-text; }
-.dbx-action-card--success .dbx-ac-badge { background: rgba(0, 166, 116, 0.09);  color: $success;      }
+.dbx-mgr-legend {
+  display:     flex;
+  gap:         12px;
+  padding-top: 4px;
+}
 
+.dbx-mgr-leg {
+  font-size:   10px;
+  font-weight: 500;
+  display:     flex;
+  align-items: center;
+  gap:         4px;
+
+  &::before {
+    content:       '';
+    width:         8px;
+    height:        8px;
+    border-radius: 50%;
+    flex-shrink:   0;
+  }
+
+  &--active   { color: #059669; &::before { background: #10b981; } }
+  &--pipeline { color: #0284c7; &::before { background: #0ea5e9; } }
+  &--attn     { color: #ea580c; &::before { background: #f97316; } }
+}
+
+// Pipeline velocity
+.dbx-vel-list {
+  padding:        10px 14px 12px;
+  display:        flex;
+  flex-direction: column;
+  gap:            10px;
+}
+
+.dbx-vel-row {
+  display:     flex;
+  align-items: center;
+  gap:         8px;
+}
+
+.dbx-vel-stage {
+  font-size:     11px;
+  font-weight:   500;
+  color:         $text-muted;
+  width:         108px;
+  flex-shrink:   0;
+  white-space:   nowrap;
+}
+
+.dbx-vel-bar-wrap {
+  flex:          1;
+  height:        6px;
+  background:    #e9ecef;
+  border-radius: 99px;
+  overflow:      hidden;
+}
+
+.dbx-vel-bar {
+  height:        100%;
+  border-radius: 99px;
+  transition:    width .4s ease;
+
+  &.vel--fast     { background: #10b981; }
+  &.vel--ok       { background: #0ea5e9; }
+  &.vel--slow     { background: #f59e0b; }
+  &.vel--critical { background: #ef4444; }
+}
+
+.dbx-vel-days {
+  font-size:   11px;
+  font-weight: 700;
+  color:       $text;
+  width:       22px;
+  text-align:  right;
+  flex-shrink: 0;
+}
+
+.dbx-vel-count {
+  font-size:     10px;
+  font-weight:   500;
+  color:         $text-muted;
+  background:    #f1f5f9;
+  border-radius: 99px;
+  padding:       1px 6px;
+  flex-shrink:   0;
+}
+
+.dbx-vel-key {
+  display:     flex;
+  gap:         10px;
+  padding-top: 4px;
+}
+
+.dbx-vel-k {
+  font-size:   10px;
+  font-weight: 500;
+  display:     flex;
+  align-items: center;
+  gap:         4px;
+
+  &::before {
+    content:       '';
+    width:         8px;
+    height:        8px;
+    border-radius: 50%;
+    flex-shrink:   0;
+  }
+
+  &.vel--fast     { color: #059669; &::before { background: #10b981; } }
+  &.vel--ok       { color: #0284c7; &::before { background: #0ea5e9; } }
+  &.vel--slow     { color: #d97706; &::before { background: #f59e0b; } }
+  &.vel--critical { color: #dc2626; &::before { background: #ef4444; } }
+}
+
+// ── Pipeline donut ─────────────────────────────────────────────────────────
 .dbx-pipeline-body {
   display: grid;
   grid-template-columns: 132px minmax(0, 1fr);
@@ -3077,6 +3279,9 @@
   cursor: grab;
   user-select: none;
   -webkit-user-select: none;
+  background-color: #f8feff;
+  background-image: radial-gradient(circle, rgba(0, 184, 205, 0.22) 1px, transparent 1px);
+  background-size: 18px 18px;
 
   &.dbx-uae-dragging {
     cursor: grabbing;
@@ -3094,8 +3299,8 @@
   transition: opacity 0.15s;
 
   path {
-    fill: #e8eff6;
-    stroke: #c4d0dc;
+    fill: rgba(246, 78, 96, 0.08);
+    stroke: rgba(246, 78, 96, 0.22);
     stroke-width: 1.5;
     stroke-linejoin: round;
     transition: fill 0.2s;
@@ -3400,6 +3605,104 @@
 .dbx-exit-row i { background: $orange; }
 .dbx-exit-row:nth-child(2) i { background: $warning; }
 .dbx-exit-row:nth-child(3) i { background: rgba(0, 184, 205, 0.65); }
+
+// ── Salesperson profile grid ───────────────────────────────────────────────
+.dbx-sp-grid {
+  display:               grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap:                   8px;
+  padding:               10px 12px 4px;
+}
+
+.dbx-sp-card {
+  border:         1px solid rgba(226, 232, 240, .85);
+  border-radius:  10px;
+  padding:        10px;
+  display:        flex;
+  flex-direction: column;
+  gap:            6px;
+  cursor:         default;
+  transition:     box-shadow .15s ease;
+
+  &:hover { box-shadow: 0 4px 14px rgba(15,23,42,.08); }
+}
+
+.dbx-sp-header {
+  display:         flex;
+  align-items:     flex-start;
+  justify-content: space-between;
+}
+
+.dbx-sp-avatar {
+  width:           30px;
+  height:          30px;
+  border-radius:   50%;
+  display:         flex;
+  align-items:     center;
+  justify-content: center;
+  font-size:       13px;
+  font-weight:     700;
+  flex-shrink:     0;
+
+  &--0 { background: rgba($accent,  .12); color: $accent;       }
+  &--1 { background: rgba($success, .12); color: $success;      }
+  &--2 { background: rgba($warning, .18); color: $warning-text; }
+  &--3 { background: rgba($orange,  .12); color: $orange;       }
+}
+
+.dbx-sp-total {
+  font-size:   22px;
+  font-weight: 800;
+  color:       $text;
+  line-height: 1;
+}
+
+.dbx-sp-name {
+  font-size:   11px;
+  font-weight: 600;
+  color:       $text-muted;
+}
+
+.dbx-sp-bar {
+  height:        5px;
+  border-radius: 99px;
+  display:       flex;
+  overflow:      hidden;
+  gap:           2px;
+  margin-top:    2px;
+}
+
+.dbx-sp-seg {
+  height:        100%;
+  border-radius: 99px;
+
+  &--active   { background: $success; }
+  &--pipeline { background: $accent;  }
+  &--attn     { background: $orange;  }
+}
+
+.dbx-sp-legend {
+  display:     flex;
+  gap:         10px;
+  padding:     4px 12px 10px;
+}
+
+// ── Floating hover tooltip ─────────────────────────────────────────────────
+.dbx-hover-tip {
+  position:       fixed;
+  background:     #1e293b;
+  color:          #fff;
+  font-size:      11px;
+  font-weight:    500;
+  line-height:    1.4;
+  padding:        6px 10px;
+  border-radius:  7px;
+  pointer-events: none;
+  z-index:        9999;
+  white-space:    nowrap;
+  box-shadow:     0 4px 14px rgba(0,0,0,.22);
+
+}
 
 @media (max-width: 1320px) {
   .dbx-kpi-grid {

@@ -84,6 +84,10 @@ export class TerminationsComponent implements OnInit {
     private ks: KeyboardShortcutService
   ) {}
 
+  @Input() set initialFilter(status: string | null) {
+    if (status) this.selectedStatuses = [status as TerminationStatus];
+  }
+
   @Input() set openRecordId(id: number | null) {
     if (id != null) {
       setTimeout(() => {

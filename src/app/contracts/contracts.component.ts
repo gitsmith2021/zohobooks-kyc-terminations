@@ -74,6 +74,10 @@ export class ContractsComponent implements OnInit {
     private ks: KeyboardShortcutService
   ) {}
 
+  @Input() set initialFilter(status: string | null) {
+    if (status) this.selectedStatuses = [status as ContractStatus];
+  }
+
   @Input() set openRecordId(id: number | null) {
     if (id != null) {
       setTimeout(() => {

@@ -147,6 +147,10 @@ export class KycVerificationComponent implements OnInit {
   activeResubRecord: KycRecord | null = null;
   activeResubAnchor?: any;
 
+  @Input() set initialFilter(status: string | null) {
+    if (status) this.selectedStatuses = [status as KycStatus];
+  }
+
   @Input() set openRecordId(id: number | null) {
     if (id != null) {
       setTimeout(() => {
